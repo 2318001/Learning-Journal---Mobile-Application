@@ -730,6 +730,177 @@ button[type="button"]:hover,
   line-height: 1.6;
 }
 
+/* Added edit button styles */
+.edit-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.125rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.edit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+}
+
+.edit-section-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.edit-section-header h1 {
+  margin-bottom: 0;
+}
+
+/* Added modal header actions styles */
+.modal-header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.modal-header-actions h2 {
+  margin: 0;
+}
+
+/* Added settings button styles */
+.settings-btn {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+  border: none;
+  padding: 0.625rem 1.125rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.25rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(79, 172, 254, 0.3);
+}
+
+.settings-btn:hover {
+  transform: rotate(90deg) scale(1.1);
+  box-shadow: 0 4px 12px rgba(79, 172, 254, 0.5);
+}
+
+/* Added actions menu styles */
+.actions-menu {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border-radius: 12px;
+  border: 2px solid rgba(102, 126, 234, 0.2);
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  flex: 1;
+  min-width: 140px;
+}
+
+.reset-all-btn {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+}
+
+.reset-all-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(240, 147, 251, 0.5);
+}
+
+.add-new-btn {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+}
+
+.add-new-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(79, 172, 254, 0.5);
+}
+
+/* Added CV section styles */
+.cv-content {
+  padding: 1rem 0;
+}
+
+.cv-section {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  padding: 1.5rem;
+  border-radius: 16px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #667eea;
+  transition: all 0.3s ease;
+}
+
+.cv-section:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+  border-left-color: #764ba2;
+}
+
+.cv-section h3 {
+  color: #667eea;
+  font-size: 1.375rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.cv-section p {
+  color: #475569;
+  line-height: 1.8;
+  font-size: 1rem;
+}
+
+/* Added edit form styles */
+.edit-form {
+  padding: 1rem 0;
+}
+
+.edit-form .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.edit-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.edit-form input[type="text"],
+.edit-form textarea {
+  width: 100%;
+  padding: 0.875rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+.edit-form input[type="text"]:focus,
+.edit-form textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   header .container {
@@ -791,6 +962,25 @@ button[type="button"]:hover,
   .about-content .about-grid {
     grid-template-columns: 1fr;
   }
+
+  .edit-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .modal-header-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .actions-menu {
+    flex-direction: column;
+  }
+
+  .action-btn {
+    width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
@@ -825,6 +1015,12 @@ button[type="button"]:hover,
   }
 
   .about-quote {
+    font-size: 1rem;
+  }
+
+  .edit-btn,
+  .settings-btn {
+    padding: 0.5rem 0.875rem;
     font-size: 1rem;
   }
 }

@@ -19,7 +19,6 @@
                 <ul class="nav-list">
                     <li><a href="index.html" class="active">Home</a></li>
                     <li><a href="#" id="journalBtn">My Journal</a></li>
-                    <!-- Changed About from link to modal button -->
                     <li><a href="#" id="aboutBtn">About</a></li>
                     <li><a href="#" id="projectsBtn">Projects</a></li>
                 </ul>
@@ -38,10 +37,14 @@
             <section class="first-section">
                 <div class="second-section">
                     <div class="third-section">
-                        <h1>
-                            <span class="greeting-wave">👋</span> Hi, I'm Rajan KC
-                        </h1>
-                        <p class="description">
+                        <!-- Added edit button for hero section -->
+                        <div class="edit-section-header">
+                            <h1>
+                                <span class="greeting-wave">👋</span> <span id="heroName">Hi, I'm Rajan KC</span>
+                            </h1>
+                            <button class="edit-btn" id="editHeroBtn" title="Edit Introduction">✏️</button>
+                        </div>
+                        <p class="description" id="heroDescription">
                             I am a passionate developer who enjoys building dynamic, user-friendly web applications. I study Computer Science at UCA and I like exploring the latest technologies to bring creative ideas to life.
                         </p>
                         <div class="cta-buttons">
@@ -63,11 +66,45 @@
         </div>
     </footer>
 
+    <!-- Added Edit Hero Modal -->
+    <div id="editHeroModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 class="gradient-text">Edit Introduction</h2>
+            
+            <form id="editHeroForm" class="edit-form">
+                <div class="form-group">
+                    <label for="editHeroName">Name/Greeting:</label>
+                    <input type="text" id="editHeroName" required placeholder="Hi, I'm...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="editHeroDesc">Description:</label>
+                    <textarea id="editHeroDesc" rows="5" required placeholder="Your introduction..."></textarea>
+                </div>
+                
+                <button type="submit" class="cta-btn primary">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Journal Modal -->
     <div id="journalModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
             <div id="journalDatetime" class="datetime"></div>
+            
+            <!-- Added settings icon for journal actions -->
+            <div class="modal-header-actions">
+                <h2 class="gradient-text">My Journal Entries</h2>
+                <button class="settings-btn" id="journalSettingsBtn" title="Journal Actions">⚙️</button>
+            </div>
+            
+            <!-- Hidden actions menu -->
+            <div id="journalActionsMenu" class="actions-menu" style="display: none;">
+                <button class="action-btn reset-all-btn" id="resetAllJournalBtn">🗑️ Reset All</button>
+                <button class="action-btn add-new-btn" id="addNewJournalBtn">➕ Add New</button>
+            </div>
             
             <form id="journalForm" class="journal-form">
                 <div class="form-group">
@@ -80,11 +117,8 @@
                     <textarea id="journalContent" name="journalContent" rows="10" required placeholder="Write your thoughts here..."></textarea>
                 </div>
                 
-                <div class="button-group">
-                    <button type="submit" id="addButton">Submit Entry</button>
-                    <button type="reset" id="resetButton">Reset</button>
-                    <button type="button" id="newButton">Add New</button>
-                </div>
+                <!-- Only submit button visible by default -->
+                <button type="submit" id="addButton" class="cta-btn primary">Submit Entry</button>
             </form>
 
             <div id="journalEntries" class="journal-entries"></div>
@@ -96,6 +130,18 @@
         <div class="modal-content">
             <span class="close-button">&times;</span>
             <div id="projectsDatetime" class="datetime"></div>
+            
+            <!-- Added settings icon for project actions -->
+            <div class="modal-header-actions">
+                <h2 class="gradient-text">My Projects</h2>
+                <button class="settings-btn" id="projectsSettingsBtn" title="Project Actions">⚙️</button>
+            </div>
+            
+            <!-- Hidden actions menu -->
+            <div id="projectsActionsMenu" class="actions-menu" style="display: none;">
+                <button class="action-btn reset-all-btn" id="resetAllProjectsBtn">🗑️ Reset All</button>
+                <button class="action-btn add-new-btn" id="addNewProjectBtn">➕ Add New</button>
+            </div>
             
             <form id="projectForm" class="project-form">
                 <div class="form-group">
@@ -113,61 +159,161 @@
                     <input type="file" id="projectFiles" name="projectFiles" accept="image/*" multiple>
                 </div>
                 
-                <div class="button-group">
-                    <button type="submit" id="addProjectButton">Submit Project</button>
-                    <button type="reset" id="resetProjectButton">Reset</button>
-                    <button type="button" id="newProjectButton">Add New</button>
-                </div>
+                <!-- Only submit button visible by default -->
+                <button type="submit" id="addProjectButton" class="cta-btn primary">Submit Project</button>
             </form>
 
             <div id="projectsList" class="projects-list"></div>
         </div>
     </div>
 
-    <!-- Added new About modal -->
+    <!-- About Modal -->
     <div id="aboutModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
             <div id="aboutDatetime" class="datetime"></div>
             
-            <div class="about-content">
+            <!-- Added edit button for about section -->
+            <div class="modal-header-actions">
                 <h2 class="gradient-text">About This Learning Journal</h2>
-                
+                <button class="edit-btn" id="editAboutBtn" title="Edit About">✏️</button>
+            </div>
+            
+            <div class="about-content" id="aboutContent">
                 <div class="about-grid">
                     <div class="about-card">
                         <div class="about-icon">🎯</div>
                         <h3>Purpose</h3>
-                        <p>This Learning Journal is designed to help me document my journey in web development and track my progress as I learn new technologies and build exciting projects.</p>
+                        <p id="aboutPurpose">This Learning Journal is designed to help me document my journey in web development and track my progress as I learn new technologies and build exciting projects.</p>
                     </div>
 
                     <div class="about-card">
                         <div class="about-icon">✨</div>
                         <h3>Features</h3>
-                        <ul class="features-list">
-                            <li>Write and save journal entries</li>
-                            <li>Document projects with descriptions and images</li>
-                            <li>Track learning progress over time</li>
-                            <li>Beautiful, responsive design</li>
-                        </ul>
+                        <p id="aboutFeatures">Write and save journal entries, document projects with descriptions and images, track learning progress over time, and enjoy a beautiful responsive design.</p>
                     </div>
 
                     <div class="about-card">
                         <div class="about-icon">💻</div>
                         <h3>Technologies</h3>
-                        <p>Built with HTML5, CSS3, and vanilla JavaScript. Features a modern design with gradients, animations, and a fully responsive layout that works on all devices.</p>
+                        <p id="aboutTech">Built with HTML5, CSS3, and vanilla JavaScript. Features a modern design with gradients, animations, and a fully responsive layout that works on all devices.</p>
                     </div>
 
                     <div class="about-card">
                         <div class="about-icon">👨‍💻</div>
                         <h3>About Me</h3>
-                        <p>I'm Rajan KC, a Computer Science student at UCA. I'm passionate about creating user-friendly web applications and constantly learning new technologies to improve my skills.</p>
+                        <p id="aboutMe">I'm Rajan KC, a Computer Science student at UCA. I'm passionate about creating user-friendly web applications and constantly learning new technologies to improve my skills.</p>
                     </div>
                 </div>
 
                 <div class="about-footer">
-                    <p class="about-quote">"The journey of a thousand miles begins with a single step." - Lao Tzu</p>
+                    <p class="about-quote" id="aboutQuote">"The journey of a thousand miles begins with a single step." - Lao Tzu</p>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Added Edit About Modal -->
+    <div id="editAboutModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 class="gradient-text">Edit About Section</h2>
+            
+            <form id="editAboutForm" class="edit-form">
+                <div class="form-group">
+                    <label for="editPurpose">Purpose:</label>
+                    <textarea id="editPurpose" rows="3" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editFeatures">Features:</label>
+                    <textarea id="editFeatures" rows="3" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editTech">Technologies:</label>
+                    <textarea id="editTech" rows="3" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editMe">About Me:</label>
+                    <textarea id="editMe" rows="3" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editQuote">Quote:</label>
+                    <input type="text" id="editQuote" required>
+                </div>
+                
+                <button type="submit" class="cta-btn primary">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Added CV Modal -->
+    <div id="cvModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <div id="cvDatetime" class="datetime"></div>
+            
+            <div class="modal-header-actions">
+                <h2 class="gradient-text">My CV / Resume</h2>
+                <button class="edit-btn" id="editCVBtn" title="Edit CV">✏️</button>
+            </div>
+            
+            <div class="cv-content" id="cvContent">
+                <div class="cv-section">
+                    <h3>📋 Personal Information</h3>
+                    <p id="cvPersonal">Name: Rajan KC<br>Email: rajan@example.com<br>Phone: +123 456 7890<br>Location: UCA Campus</p>
+                </div>
+                
+                <div class="cv-section">
+                    <h3>🎓 Education</h3>
+                    <p id="cvEducation">Bachelor of Computer Science<br>University of Central Asia (UCA)<br>Expected Graduation: 2026</p>
+                </div>
+                
+                <div class="cv-section">
+                    <h3>💼 Experience</h3>
+                    <p id="cvExperience">Web Developer Intern - Tech Company (2024)<br>Freelance Developer - Various Projects (2023-Present)</p>
+                </div>
+                
+                <div class="cv-section">
+                    <h3>🛠️ Skills</h3>
+                    <p id="cvSkills">HTML5, CSS3, JavaScript, React, Node.js, Git, Responsive Design, UI/UX Design</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Added Edit CV Modal -->
+    <div id="editCVModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 class="gradient-text">Edit CV / Resume</h2>
+            
+            <form id="editCVForm" class="edit-form">
+                <div class="form-group">
+                    <label for="editCVPersonal">Personal Information:</label>
+                    <textarea id="editCVPersonal" rows="4" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editCVEducation">Education:</label>
+                    <textarea id="editCVEducation" rows="3" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editCVExperience">Experience:</label>
+                    <textarea id="editCVExperience" rows="3" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editCVSkills">Skills:</label>
+                    <textarea id="editCVSkills" rows="2" required></textarea>
+                </div>
+                
+                <button type="submit" class="cta-btn primary">Save Changes</button>
+            </form>
         </div>
     </div>
 </body>
