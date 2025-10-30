@@ -1,4 +1,6 @@
-/* Simple and Clean Design */
+/* ============================================
+   GLOBAL STYLES
+   ============================================ */
 * {
   margin: 0;
   padding: 0;
@@ -19,7 +21,9 @@ body {
   padding: 0 20px;
 }
 
-/* Header */
+/* ============================================
+   HEADER AND NAVIGATION
+   ============================================ */
 header {
   background: white;
   padding: 1rem 0;
@@ -43,7 +47,7 @@ header .container {
   color: #2c5282;
 }
 
-/* Navigation */
+/* Navigation with 3 consistent items */
 nav ul.nav-list {
   list-style: none;
   display: flex;
@@ -65,7 +69,9 @@ nav ul.nav-list li a.active {
   color: white;
 }
 
-/* Page DateTime Banner */
+/* ============================================
+   DATE AND TIME BANNER
+   ============================================ */
 .page-datetime-banner {
   background: #2c5282;
   padding: 0.75rem 0;
@@ -78,7 +84,9 @@ nav ul.nav-list li a.active {
   font-weight: 600;
 }
 
-/* Main Content */
+/* ============================================
+   MAIN CONTENT - HOME PAGE
+   ============================================ */
 main {
   padding: 2rem 0;
 }
@@ -117,13 +125,23 @@ main {
   margin-bottom: 1.5rem;
 }
 
-/* CTA Buttons */
-.cta-buttons {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
+/* Hero image styling */
+.hero-image {
+  flex-shrink: 0;
 }
 
+.profile-image {
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
 .cta-btn {
   padding: 0.75rem 1.5rem;
   border: none;
@@ -142,32 +160,53 @@ main {
   background: #2a4365;
 }
 
-.cta-btn.secondary {
-  background: white;
-  color: #2c5282;
-  border: 2px solid #2c5282;
+button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.cta-btn.secondary:hover {
+button[type="submit"] {
   background: #2c5282;
   color: white;
 }
 
-/* Hero Image */
-.hero-image {
-  flex-shrink: 0;
+button[type="submit"]:hover {
+  background: #2a4365;
 }
 
-.profile-image {
-  width: 250px;
-  height: 250px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 4px solid white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+/* Edit button for hero section */
+.edit-btn {
+  background: #2c5282;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
 }
 
-/* Footer */
+.edit-btn:hover {
+  background: #2a4365;
+}
+
+.edit-section-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.edit-section-header h1 {
+  margin-bottom: 0;
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
 .site-footer {
   background: #2d3748;
   color: white;
@@ -176,7 +215,9 @@ main {
   margin-top: 3rem;
 }
 
-/* Modal */
+/* ============================================
+   MODAL STYLES
+   ============================================ */
 .modal {
   display: none;
   position: fixed;
@@ -214,7 +255,7 @@ main {
   color: #2c5282;
 }
 
-/* DateTime Display */
+/* DateTime display in modals */
 .datetime {
   background: #2c5282;
   color: white;
@@ -225,10 +266,66 @@ main {
   font-weight: 600;
 }
 
-/* Forms */
+/* Modal header with title and settings button */
+.modal-header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.modal-header-actions h2 {
+  margin: 0;
+  color: #2c5282;
+}
+
+.gradient-text {
+  color: #2c5282;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+}
+
+/* Settings button (+ icon) to toggle form */
+.settings-btn {
+  background: #48bb78;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.5rem;
+  min-width: 45px;
+  height: 45px;
+}
+
+.settings-btn:hover {
+  background: #38a169;
+}
+
+/* ============================================
+   EMPTY STATE MESSAGE
+   ============================================ */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #718096;
+  font-size: 1.1rem;
+  background: #f7fafc;
+  border-radius: 6px;
+  border: 2px dashed #cbd5e0;
+}
+
+/* ============================================
+   FORMS
+   ============================================ */
 .journal-form,
 .project-form {
   margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #f7fafc;
+  border-radius: 6px;
 }
 
 .form-group {
@@ -264,126 +361,41 @@ main {
   min-height: 150px;
 }
 
-/* Buttons */
-.button-group {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
+/* Edit forms styling */
+.edit-form {
+  padding: 1rem 0;
 }
 
-button {
-  padding: 0.75rem 1.5rem;
-  border: none;
+.edit-form .form-group {
+  margin-bottom: 1.25rem;
+}
+
+.edit-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.edit-form input[type="text"],
+.edit-form textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e2e8f0;
   border-radius: 6px;
   font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
+  font-family: inherit;
 }
 
-button[type="submit"] {
-  background: #2c5282;
-  color: white;
+.edit-form input[type="text"]:focus,
+.edit-form textarea:focus {
+  outline: none;
+  border-color: #2c5282;
 }
 
-button[type="submit"]:hover {
-  background: #2a4365;
-}
-
-/* Edit Button */
-.edit-btn {
-  background: #2c5282;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.edit-btn:hover {
-  background: #2a4365;
-}
-
-.edit-section-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.edit-section-header h1 {
-  margin-bottom: 0;
-}
-
-/* Modal Header Actions */
-.modal-header-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.modal-header-actions h2 {
-  margin: 0;
-  color: #2c5282;
-}
-
-/* Settings Button */
-.settings-btn {
-  background: #4299e1;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1.25rem;
-}
-
-.settings-btn:hover {
-  background: #3182ce;
-}
-
-/* Actions Menu */
-.actions-menu {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  background: #edf2f7;
-  border-radius: 6px;
-  flex-wrap: wrap;
-}
-
-.action-btn {
-  padding: 0.625rem 1.25rem;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  flex: 1;
-  min-width: 120px;
-}
-
-.reset-all-btn {
-  background: #e53e3e;
-  color: white;
-}
-
-.reset-all-btn:hover {
-  background: #c53030;
-}
-
-.add-new-btn {
-  background: #48bb78;
-  color: white;
-}
-
-.add-new-btn:hover {
-  background: #38a169;
-}
-
-/* Journal and Project Entries */
+/* ============================================
+   JOURNAL AND PROJECT ENTRIES
+   ============================================ */
 .journal-entries,
 .projects-list {
   margin-top: 1.5rem;
@@ -420,23 +432,7 @@ button[type="submit"]:hover {
   font-size: 0.875rem;
 }
 
-/* Project Images */
-.project-images {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 0.75rem;
-}
-
-.project-image {
-  max-width: 120px;
-  max-height: 120px;
-  border-radius: 6px;
-  object-fit: cover;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Files List */
+/* Files list for projects */
 .files-list {
   list-style: none;
   margin: 0.75rem 0;
@@ -453,153 +449,9 @@ button[type="submit"]:hover {
   color: #4a5568;
 }
 
-.files-list li:before {
-  content: "📎 ";
-  margin-right: 0.5rem;
-}
-
-/* About Modal */
-.about-content {
-  padding: 1rem 0;
-}
-
-.gradient-text {
-  color: #2c5282;
-  text-align: center;
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 2rem;
-}
-
-.about-content .about-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.about-content .about-card {
-  background: #f7fafc;
-  padding: 1.5rem;
-  border-radius: 6px;
-  border: 2px solid #e2e8f0;
-}
-
-.about-icon {
-  font-size: 2.5rem;
-  text-align: center;
-  margin-bottom: 0.75rem;
-  display: block;
-}
-
-.about-content .about-card h3 {
-  color: #2c5282;
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-  text-align: center;
-}
-
-.about-content .about-card p {
-  color: #4a5568;
-  line-height: 1.6;
-  text-align: center;
-}
-
-.features-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.features-list li {
-  color: #4a5568;
-  padding: 0.5rem 0;
-  padding-left: 1.5rem;
-  position: relative;
-  text-align: left;
-}
-
-.features-list li::before {
-  content: "✓";
-  position: absolute;
-  left: 0;
-  color: #2c5282;
-  font-weight: bold;
-}
-
-.about-footer {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 2px solid #e2e8f0;
-}
-
-.about-quote {
-  text-align: center;
-  font-size: 1.1rem;
-  font-style: italic;
-  color: #2c5282;
-  font-weight: 600;
-}
-
-/* CV Section */
-.cv-content {
-  padding: 1rem 0;
-}
-
-.cv-section {
-  background: #f7fafc;
-  padding: 1.25rem;
-  border-radius: 6px;
-  margin-bottom: 1.25rem;
-  border-left: 4px solid #2c5282;
-}
-
-.cv-section h3 {
-  color: #2c5282;
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-}
-
-.cv-section p {
-  color: #4a5568;
-  line-height: 1.6;
-}
-
-/* Edit Forms */
-.edit-form {
-  padding: 1rem 0;
-}
-
-.edit-form .form-group {
-  margin-bottom: 1.25rem;
-}
-
-.edit-form label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: #798fb5;
-}
-
-.edit-form input[type="text"],
-.edit-form textarea {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-family: inherit;
-}
-
-.edit-form input[type="text"]:focus,
-.edit-form textarea:focus {
-  outline: none;
-  border-color: #2c5282;
-}
-
-/* Responsive */
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
 @media (max-width: 768px) {
   header .container {
     flex-direction: column;
@@ -629,33 +481,11 @@ button[type="submit"]:hover {
     padding: 1.5rem;
   }
 
-  .button-group,
-  .cta-buttons {
-    flex-direction: column;
-  }
-
-  button,
-  .cta-btn {
-    width: 100%;
-  }
-
-  .about-content .about-grid {
-    grid-template-columns: 1fr;
-  }
-
   .edit-section-header,
   .modal-header-actions {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.75rem;
-  }
-
-  .actions-menu {
-    flex-direction: column;
-  }
-
-  .action-btn {
-    width: 100%;
   }
 }
 
