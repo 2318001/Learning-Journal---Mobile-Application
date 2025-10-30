@@ -1,57 +1,56 @@
-<!-- File: about.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About - Learning Journal PWA</title>
+    <title>Learning Journal PWA - Mobile Application Development</title>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="icon" href="image/mario 111.png" type="image/png">
-    <meta name="theme-color" content="#16a34a">
+    <link rel="icon" href="image/mario-111.jpg" type="image/png">
+    <meta name="theme-color" content="#0ea5e9">
     <script src="script.js" defer></script>
 </head>
 <body>
     <header>
         <div class="container">
-            <div class="logo">
-                <span class="logo-text">WEL~COME~TO~MY JOURNAL</span>
+            <div class="logo">         
+                <span class="logo-text">✨ MY LEARNING JOURNAL</span>
             </div>
             <nav>
                 <ul class="nav-list">
-                    <li><a href="index.html">Home</a></li>
+                    <li><a href="index.html" class="active">Home</a></li>
                     <li><a href="#" id="journalBtn">My Journal</a></li>
-                    <li><a href="about.html" class="active">About</a></li>
+                    <!-- Changed About from link to modal button -->
+                    <li><a href="#" id="aboutBtn">About</a></li>
                     <li><a href="#" id="projectsBtn">Projects</a></li>
                 </ul>
             </nav>
         </div>
     </header>
     
+    <div class="page-datetime-banner">
+        <div class="container">
+            <div id="pageDateTime" class="page-datetime"></div>
+        </div>
+    </div>
+    
     <main>
         <div class="container">
-            <section class="about-section">
-                <h1>About Me</h1>
-                <div class="about-content">
-                    <div class="about-image">
-                        <img src="image/mario 111.png" alt="Profile image of Mario">
+            <section class="first-section">
+                <div class="second-section">
+                    <div class="third-section">
+                        <h1>
+                            <span class="greeting-wave">👋</span> Hi, I'm Rajan KC
+                        </h1>
+                        <p class="description">
+                            I am a passionate developer who enjoys building dynamic, user-friendly web applications. I study Computer Science at UCA and I like exploring the latest technologies to bring creative ideas to life.
+                        </p>
+                        <div class="cta-buttons">
+                            <button class="cta-btn primary" id="journalBtnHero">Start Writing</button>
+                            <button class="cta-btn secondary" id="projectsBtnHero">View Projects</button>
+                        </div>
                     </div>
-                    <div class="about-text">
-                        <h2>Rajan KC</h2>
-                        <p>I am a passionate developer who enjoys building dynamic, user-friendly web applications. I study Computer Science at UCA and I like exploring the latest technologies to bring creative ideas to life.</p>
-                        
-                        <h3>Education</h3>
-                        <p>Currently pursuing Computer Science at University of Central Asia (UCA)</p>
-                        
-                        <h3>Skills</h3>
-                        <ul>
-                            <li>Web Development (HTML, CSS, JavaScript)</li>
-                            <li>Mobile Application Development</li>
-                            <li>Problem Solving</li>
-                            <li>Team Collaboration</li>
-                        </ul>
-                        
-                        <h3>Interests</h3>
-                        <p>Exploring new technologies, building creative projects, and continuous learning.</p>
+                    <div class="hero-image">
+                        <img src="image/mario-111.jpg" alt="Profile image of Rajan" class="profile-image">
                     </div>
                 </div>
             </section>
@@ -60,7 +59,7 @@
 
     <footer class="site-footer">
         <div class="container">
-            <p>&copy; 2025 Rajan - Learning Journal</p>
+            <p>&copy; 2025 Rajan KC - Learning Journal | Built with passion 💙</p>
         </div>
     </footer>
 
@@ -73,24 +72,22 @@
             <form id="journalForm" class="journal-form">
                 <div class="form-group">
                     <label for="journalTitle">Title:</label>
-                    <input type="text" id="journalTitle" name="journalTitle" required>
+                    <input type="text" id="journalTitle" name="journalTitle" required placeholder="Enter your journal title...">
                 </div>
                 
                 <div class="form-group">
-                    <label for="journalContent">Journal:</label>
-                    <textarea id="journalContent" name="journalContent" rows="10" required></textarea>
+                    <label for="journalContent">Journal Entry:</label>
+                    <textarea id="journalContent" name="journalContent" rows="10" required placeholder="Write your thoughts here..."></textarea>
                 </div>
                 
                 <div class="button-group">
-                    <button type="submit" id="addButton">submit</button>
+                    <button type="submit" id="addButton">Submit Entry</button>
                     <button type="reset" id="resetButton">Reset</button>
-                    <button type="button" id="newButton">Add new</button>
+                    <button type="button" id="newButton">Add New</button>
                 </div>
             </form>
 
-            <div id="journalEntries" class="journal-entries">
-                <!-- Journal entries will be displayed here -->
-            </div>
+            <div id="journalEntries" class="journal-entries"></div>
         </div>
     </div>
 
@@ -103,12 +100,12 @@
             <form id="projectForm" class="project-form">
                 <div class="form-group">
                     <label for="projectTitle">Project Title:</label>
-                    <input type="text" id="projectTitle" name="projectTitle" required>
+                    <input type="text" id="projectTitle" name="projectTitle" required placeholder="Enter project name...">
                 </div>
                 
                 <div class="form-group">
                     <label for="projectDescription">Project Description:</label>
-                    <textarea id="projectDescription" name="projectDescription" rows="5" required></textarea>
+                    <textarea id="projectDescription" name="projectDescription" rows="5" required placeholder="Describe your project..."></textarea>
                 </div>
 
                 <div class="form-group">
@@ -117,14 +114,59 @@
                 </div>
                 
                 <div class="button-group">
-                    <button type="submit" id="addProjectButton">Submit</button>
+                    <button type="submit" id="addProjectButton">Submit Project</button>
                     <button type="reset" id="resetProjectButton">Reset</button>
-                    <button type="button" id="newProjectButton">Add new</button>
+                    <button type="button" id="newProjectButton">Add New</button>
                 </div>
             </form>
 
-            <div id="projectsList" class="projects-list">
-                <!-- Projects will be displayed here -->
+            <div id="projectsList" class="projects-list"></div>
+        </div>
+    </div>
+
+    <!-- Added new About modal -->
+    <div id="aboutModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <div id="aboutDatetime" class="datetime"></div>
+            
+            <div class="about-content">
+                <h2 class="gradient-text">About This Learning Journal</h2>
+                
+                <div class="about-grid">
+                    <div class="about-card">
+                        <div class="about-icon">🎯</div>
+                        <h3>Purpose</h3>
+                        <p>This Learning Journal is designed to help me document my journey in web development and track my progress as I learn new technologies and build exciting projects.</p>
+                    </div>
+
+                    <div class="about-card">
+                        <div class="about-icon">✨</div>
+                        <h3>Features</h3>
+                        <ul class="features-list">
+                            <li>Write and save journal entries</li>
+                            <li>Document projects with descriptions and images</li>
+                            <li>Track learning progress over time</li>
+                            <li>Beautiful, responsive design</li>
+                        </ul>
+                    </div>
+
+                    <div class="about-card">
+                        <div class="about-icon">💻</div>
+                        <h3>Technologies</h3>
+                        <p>Built with HTML5, CSS3, and vanilla JavaScript. Features a modern design with gradients, animations, and a fully responsive layout that works on all devices.</p>
+                    </div>
+
+                    <div class="about-card">
+                        <div class="about-icon">👨‍💻</div>
+                        <h3>About Me</h3>
+                        <p>I'm Rajan KC, a Computer Science student at UCA. I'm passionate about creating user-friendly web applications and constantly learning new technologies to improve my skills.</p>
+                    </div>
+                </div>
+
+                <div class="about-footer">
+                    <p class="about-quote">"The journey of a thousand miles begins with a single step." - Lao Tzu</p>
+                </div>
             </div>
         </div>
     </div>
