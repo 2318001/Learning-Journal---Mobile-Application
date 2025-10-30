@@ -502,15 +502,66 @@ button[type="submit"]:hover {
 /* CV file display styling */
 .cv-file-display {
   margin-top: 1.5rem;
-  padding: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1.5rem;
   background: #edf2f7;
   border-radius: 6px;
   border-left: 4px solid #48bb78;
 }
 
 .cv-file-display p {
-  margin: 0;
+  margin: 0 0 0.5rem 0;
   color: #2d3748;
+  font-size: 1.1rem;
+}
+
+/* Added prominent styling for View CV button */
+.cv-file-display #viewCvBtn {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.1rem;
+  background: #48bb78;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.cv-file-display #viewCvBtn:hover {
+  background: #38a169;
+}
+
+/* ============================================
+   MOBILE FLOATING ACTION BUTTON (FAB)
+   ============================================ */
+/* Added floating action button for mobile to easily add journal/projects */
+.mobile-fab {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  background: #48bb78;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 2rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 999;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-fab:hover {
+  background: #38a169;
+  transform: scale(1.1);
+}
+
+.mobile-fab:active {
+  transform: scale(0.95);
 }
 
 /* ============================================
@@ -551,6 +602,16 @@ button[type="submit"]:hover {
     align-items: flex-start;
     gap: 0.75rem;
   }
+
+  /* Show floating action button on mobile for easier access */
+  .mobile-fab {
+    display: flex;
+  }
+
+  /* Hide desktop settings button on mobile since we have FAB */
+  .settings-btn {
+    display: none;
+  }
 }
 
 @media (max-width: 480px) {
@@ -568,5 +629,14 @@ button[type="submit"]:hover {
 
   .gradient-text {
     font-size: 1.5rem;
+  }
+
+  /* Adjust FAB size for smaller screens */
+  .mobile-fab {
+    width: 55px;
+    height: 55px;
+    font-size: 1.75rem;
+    bottom: 15px;
+    right: 15px;
   }
 }

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Learning Journal PWA - Mobile Application Development</title>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="icon" href="image/mario 111.png" type="image/png">
+    <link rel="icon" href="image/mario-111.jpg" type="image/png">
     <meta name="theme-color" content="#0ea5e9">
     <script src="script.js" defer></script>
 </head>
@@ -52,7 +52,7 @@
                         </p>
                     </div>
                     <div class="hero-image">
-                        <img src="image/mario 111.png" alt="Profile image of Rajan" class="profile-image">
+                        <img src="image/mario-111.jpg" alt="Profile image of Rajan" class="profile-image">
                     </div>
                 </div>
             </section>
@@ -193,6 +193,12 @@
             <!-- Hidden file input for CV upload -->
             <input type="file" id="cvFileInput" accept=".pdf,.doc,.docx" style="display: none;">
             
+            <!-- Display uploaded CV file prominently -->
+            <div id="cvFileDisplay" class="cv-file-display" style="display: none;">
+                <p><strong>Uploaded CV:</strong> <span id="cvFileName"></span></p>
+                <button id="viewCvBtn" class="cta-btn primary" style="margin-top: 10px;">View Uploaded CV</button>
+            </div>
+            
             <!-- Editable CV content -->
             <div id="cvContent" class="cv-content">
                 <h3>Education</h3>
@@ -203,11 +209,6 @@
                 
                 <h3>Experience</h3>
                 <p>Add your work experience here...</p>
-            </div>
-            
-            <!-- Display uploaded CV file name -->
-            <div id="cvFileDisplay" class="cv-file-display" style="display: none;">
-                <p><strong>Uploaded CV:</strong> <span id="cvFileName"></span></p>
             </div>
         </div>
     </div>

@@ -26,6 +26,7 @@ function initializeModals() {
     journalModal.style.display = "block"
     updateDateTime()
     checkJournalEmpty()
+    showMobileFAB("journal")
   }
 
   // Open projects modal when clicking Projects button
@@ -34,18 +35,21 @@ function initializeModals() {
     projectsModal.style.display = "block"
     updateDateTime()
     checkProjectsEmpty()
+    showMobileFAB("projects")
   }
 
   aboutBtn.onclick = () => {
     console.log("[v0] About button clicked - opening modal")
     aboutModal.style.display = "block"
     updateDateTime()
+    hideMobileFAB()
   }
 
   cvBtn.onclick = () => {
     console.log("[v0] CV button clicked - opening modal")
     cvModal.style.display = "block"
     updateDateTime()
+    hideMobileFAB()
   }
 
   // Close modals when clicking (x) button
@@ -53,6 +57,7 @@ function initializeModals() {
     button.onclick = function () {
       console.log("[v0] Close button clicked")
       this.closest(".modal").style.display = "none"
+      hideMobileFAB()
     }
   })
 
@@ -61,6 +66,7 @@ function initializeModals() {
     if (event.target.classList.contains("modal")) {
       console.log("[v0] Clicked outside modal - closing")
       event.target.style.display = "none"
+      hideMobileFAB()
     }
   }
 }
@@ -190,6 +196,7 @@ function initializeEditCv() {
   const cvFileInput = document.getElementById("cvFileInput")
 
   let uploadedCvFile = null
+  let uploadedCvURL = null
 
   if (!editCvBtn || !editCvModal || !editCvForm) {
     console.log("[v0] CV elements not found")
@@ -233,31 +240,27 @@ function initializeEditCv() {
         console.log("[v0] CV file selected:", file.name)
         uploadedCvFile = file
 
-        const fileURL = URL.createObjectURL(file)
+        if (uploadedCvURL) {
+          URL.revokeObjectURL(uploadedCvURL)
+        }
+        uploadedCvURL = URL.createObjectURL(file)
 
         // Display uploaded file name with view button
         const cvFileDisplay = document.getElementById("cvFileDisplay")
         const cvFileName = document.getElementById("cvFileName")
+        const viewBtn = document.getElementById("viewCvBtn")
 
         cvFileName.textContent = file.name
         cvFileDisplay.style.display = "block"
 
-        let viewBtn = document.getElementById("viewCvBtn")
-        if (!viewBtn) {
-          viewBtn = document.createElement("button")
-          viewBtn.id = "viewCvBtn"
-          viewBtn.className = "cta-btn primary"
-          viewBtn.textContent = "View Uploaded CV"
-          viewBtn.style.marginTop = "10px"
-          cvFileDisplay.appendChild(viewBtn)
+        if (viewBtn) {
+          viewBtn.onclick = () => {
+            console.log("[v0] Opening uploaded CV:", uploadedCvURL)
+            window.open(uploadedCvURL, "_blank")
+          }
         }
 
-        // Open CV in new tab when view button is clicked
-        viewBtn.onclick = () => {
-          window.open(fileURL, "_blank")
-        }
-
-        alert(`CV file "${file.name}" uploaded successfully! Click "View Uploaded CV" to open it.`)
+        alert(`CV file "${file.name}" uploaded successfully! Click "View Uploaded CV" button to open it.`)
       }
     }
   } else {
@@ -510,5 +513,64 @@ function checkProjectsEmpty() {
     } else {
       emptyState.style.display = "none"
     }
+  }
+}
+
+// ============================================
+// MOBILE FLOATING ACTION BUTTON (FAB)
+// ============================================
+function showMobileFAB(type) {
+  let fab = document.getElementById("mobileFAB")
+
+  // Create FAB if it doesn't exist
+  if (!fab) {
+    fab = document.createElement("button")
+    fab.id = "mobileFAB"
+    fab.className = "mobile-fab"
+    fab.innerHTML = "+"
+    fab.title = "Add New Entry"
+    document.body.appendChild(fab)
+  }
+
+  // Set up click handler based on type
+  fab.onclick = () => {
+    if (type === "journal") {
+      const journalForm = document.getElementById("journalForm")
+      const journalSettingsBtn = document.getElementById("journalSettingsBtn")
+
+      if (journalForm.style.display === "none" || journalForm.style.display === "") {
+        journalForm.style.display = "block"
+        fab.innerHTML = "×"
+        if (journalSettingsBtn) journalSettingsBtn.textContent = "×"
+      } else {
+        journalForm.style.display = "none"
+        fab.innerHTML = "+"
+        if (journalSettingsBtn) journalSettingsBtn.textContent = "+"
+        journalForm.reset()
+      }
+    } else if (type === "projects") {
+      const projectForm = document.getElementById("projectForm")
+      const projectsSettingsBtn = document.getElementById("projectsSettingsBtn")
+
+      if (projectForm.style.display === "none" || projectForm.style.display === "") {
+        projectForm.style.display = "block"
+        fab.innerHTML = "×"
+        if (projectsSettingsBtn) projectsSettingsBtn.textContent = "×"
+      } else {
+        projectForm.style.display = "none"
+        fab.innerHTML = "+"
+        if (projectsSettingsBtn) projectsSettingsBtn.textContent = "+"
+        projectForm.reset()
+      }
+    }
+  }
+
+  fab.style.display = "flex"
+}
+
+function hideMobileFAB() {
+  const fab = document.getElementById("mobileFAB")
+  if (fab) {
+    fab.style.display = "none"
   }
 }
