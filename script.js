@@ -580,7 +580,6 @@ function hideMobileFAB() {
 }
 
 */
-
 // ============================================
 // MODAL FUNCTIONALITY
 // ============================================
@@ -1106,31 +1105,49 @@ function initializeResetButtons() {
   const resetJournalBtn = document.getElementById("resetJournalBtn")
   const resetProjectsBtn = document.getElementById("resetProjectsBtn")
 
+  console.log("Initializing reset buttons...")
+  console.log("Reset Journal Button:", resetJournalBtn)
+  console.log("Reset Projects Button:", resetProjectsBtn)
+
   // Reset all journal entries
   if (resetJournalBtn) {
     resetJournalBtn.onclick = () => {
+      console.log("Reset Journal button clicked!")
       const confirmed = confirm("Are you sure you want to delete ALL journal entries? This cannot be undone!")
 
       if (confirmed) {
+        console.log("User confirmed deletion")
         const journalEntries = document.getElementById("journalEntries")
         journalEntries.innerHTML = ""
         checkJournalEmpty()
         alert("All journal entries have been deleted.")
+      } else {
+        console.log("User cancelled deletion")
       }
     }
+    console.log("Reset Journal button handler attached successfully")
+  } else {
+    console.error("Reset Journal button not found!")
   }
 
   // Reset all project entries
   if (resetProjectsBtn) {
     resetProjectsBtn.onclick = () => {
+      console.log("Reset Projects button clicked!")
       const confirmed = confirm("Are you sure you want to delete ALL projects? This cannot be undone!")
 
       if (confirmed) {
+        console.log("User confirmed deletion")
         const projectsList = document.getElementById("projectsList")
         projectsList.innerHTML = ""
         checkProjectsEmpty()
         alert("All projects have been deleted.")
+      } else {
+        console.log("User cancelled deletion")
       }
     }
+    console.log("Reset Projects button handler attached successfully")
+  } else {
+    console.error("Reset Projects button not found!")
   }
 }
