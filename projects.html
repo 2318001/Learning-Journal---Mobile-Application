@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects - Learning Journal PWA</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="image/mario 111.png" type="image/png">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">         
+                <span class="logo-text">MY PROJECTS</span>
+            </div>
+            <nav>
+                <ul class="nav-list">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="journal.html">My Journal</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="projects.html" class="active">Projects</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div id="datetime" class="datetime"></div>
+            
+            <form id="projectForm" class="project-form">
+                <div class="form-group">
+                    <label for="projectTitle">Project Title:</label>
+                    <input type="text" id="projectTitle" name="projectTitle" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="projectDescription">Project Description:</label>
+                    <textarea id="projectDescription" name="projectDescription" rows="5" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="projectFiles">Project Files:</label>
+                    <input type="file" id="projectFiles" name="projectFiles" multiple>
+                </div>
+                
+                <div class="button-group">
+                    <button type="submit" id="addProjectButton">Add Project</button>
+                    <button type="reset" id="resetProjectButton">Reset</button>
+                    <button type="button" id="newProjectButton">New Project</button>
+                </div>
+            </form>
+
+            <div id="projectsList" class="projects-list">
+                <!-- Projects will be displayed here -->
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 2025 Rajan - Learning Journal</p>
+        </div>
+    </footer>
+</body>
+</html>

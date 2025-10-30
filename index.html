@@ -1,0 +1,141 @@
+<!-- File: index.html - Homepage (Learning Journal PWA)
+    Main parts commented: head, header, main (hero), image, footer -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- HEAD: meta tags, title, stylesheet, favicon -->
+    <!-- Meta tags for character encoding and responsive design -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Journal PWA - Mobile Application Development</title>
+    <!-- Single canonical stylesheet -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Favicon (tab icon) - uses local image; consider renaming to remove spaces -->
+    <link rel="icon" href="image/mario 111.png" type="image/png">
+    <!-- Theme color for some mobile browsers -->
+    <meta name="theme-color" content="#16a34a">
+    <!-- JavaScript -->
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <!-- HEADER: site logo and primary navigation -->
+    <header>
+        <div class="container">
+        
+            <div class="logo">         
+                <span class="logo-text">WEL~COME~TO~MY JOURNAL</span>
+            </div>
+            <!-- NAVIGATION: links to main site pages -->
+            <nav>
+                <ul class="nav-list">
+                    <!-- Navigation Links -->
+                    <li><a href="#" class="active">Home</a></li>
+                    <li><a href="#" id="journalBtn">My Journal</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="#" id="projectsBtn">Projects</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    
+    <!-- MAIN: main content area (hero/introduction) -->
+    <main>
+        <div class="container">
+            <!-- HERO: introductory section with heading and profile image -->
+            <section class="first-section">
+                <!-- Flex Container for Content and Image -->
+                <div class="second-section">
+                    <!-- TEXT: greeting, heading and personal description -->
+                        <div class="third-section">
+                
+                        <!-- Main Heading with icon and highlighted name -->
+                            <h1>
+                              Rajan kc
+                            </h1>
+                            <!-- Bio Description -->
+                            <p class="description">
+                                I am a passionate developer who enjoys building dynamic, user-friendly web applications. I study Computer Science at UCA and I like exploring the latest technologies to bring creative ideas to life.
+                            </p>
+                    </div>
+                    <!-- IMAGE: profile image (shown to the right on larger screens) -->
+                    <div class="hero-image">
+                        <img src="image/mario 111.png" alt="Profile image of Mario" class="profile-image">
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- FOOTER: copyright and site information -->
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 2025 Rajan - Learning Journal</p>
+        </div>
+    </footer>
+
+    <!-- Journal Modal -->
+    <div id="journalModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <div id="datetime" class="datetime"></div>
+            
+            <form id="journalForm" class="journal-form">
+                <div class="form-group">
+                    <label for="journalTitle">Title:</label>
+                    <input type="text" id="journalTitle" name="journalTitle" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="journalContent">Journal Entry:</label>
+                    <textarea id="journalContent" name="journalContent" rows="10" required></textarea>
+                </div>
+                
+                <div class="button-group">
+                    <button type="submit" id="addButton">Add Entry</button>
+                    <button type="reset" id="resetButton">Reset</button>
+                    <button type="button" id="newButton">New Entry</button>
+                </div>
+            </form>
+
+            <div id="journalEntries" class="journal-entries">
+                <!-- Journal entries will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Projects Modal -->
+    <div id="projectsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <div id="datetime" class="datetime"></div>
+            
+            <form id="projectForm" class="project-form">
+                <div class="form-group">
+                    <label for="projectTitle">Project Title:</label>
+                    <input type="text" id="projectTitle" name="projectTitle" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="projectDescription">Project Description:</label>
+                    <textarea id="projectDescription" name="projectDescription" rows="5" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="projectFiles">Project Files:</label>
+                    <input type="file" id="projectFiles" name="projectFiles" multiple>
+                </div>
+                
+                <div class="button-group">
+                    <button type="submit" id="addProjectButton">Add Project</button>
+                    <button type="reset" id="resetProjectButton">Reset</button>
+                    <button type="button" id="newProjectButton">New Project</button>
+                </div>
+            </form>
+
+            <div id="projectsList" class="projects-list">
+                <!-- Projects will be displayed here -->
+            </div>
+        </div>
+    </div>
+</body>
+</html>
