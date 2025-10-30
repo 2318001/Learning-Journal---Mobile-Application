@@ -247,7 +247,7 @@ button[type="submit"]:hover {
 /* Added reset button styling */
 .reset-btn {
   background: #e53e3e;
-  color: white;
+  color: rgb(200, 14, 14);
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 6px;
@@ -258,7 +258,7 @@ button[type="submit"]:hover {
 }
 
 .reset-btn:hover {
-  background: #c53030;
+  background: #38950a;
 }
 
 /* ============================================
