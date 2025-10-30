@@ -7,10 +7,14 @@ function initializeModals() {
   const journalModal = document.getElementById("journalModal")
   const projectsModal = document.getElementById("projectsModal")
   const editHeroModal = document.getElementById("editHeroModal")
+  const aboutModal = document.getElementById("aboutModal")
+  const cvModal = document.getElementById("cvModal")
 
   // Get button elements
   const journalBtn = document.getElementById("journalBtn")
   const projectsBtn = document.getElementById("projectsBtn")
+  const aboutBtn = document.getElementById("aboutBtn")
+  const cvBtn = document.getElementById("cvBtn")
 
   const closeButtons = document.getElementsByClassName("close-button")
 
@@ -18,14 +22,24 @@ function initializeModals() {
   journalBtn.onclick = () => {
     journalModal.style.display = "block"
     updateDateTime()
-    checkJournalEmpty() // Check if empty state should be shown
+    checkJournalEmpty()
   }
 
   // Open projects modal when clicking Projects button
   projectsBtn.onclick = () => {
     projectsModal.style.display = "block"
     updateDateTime()
-    checkProjectsEmpty() // Check if empty state should be shown
+    checkProjectsEmpty()
+  }
+
+  aboutBtn.onclick = () => {
+    aboutModal.style.display = "block"
+    updateDateTime()
+  }
+
+  cvBtn.onclick = () => {
+    cvModal.style.display = "block"
+    updateDateTime()
   }
 
   // Close modals when clicking (x) button
@@ -72,6 +86,16 @@ function updateDateTime() {
     projectsDateTime.textContent = dateTimeString
   }
 
+  const aboutDateTime = document.getElementById("aboutDatetime")
+  if (aboutDateTime) {
+    aboutDateTime.textContent = dateTimeString
+  }
+
+  const cvDateTime = document.getElementById("cvDatetime")
+  if (cvDateTime) {
+    cvDateTime.textContent = dateTimeString
+  }
+
   // Update home page datetime banner
   const pageDateTime = document.getElementById("pageDateTime")
   if (pageDateTime) {
@@ -87,6 +111,8 @@ function initializeEditHero() {
   const editHeroBtn = document.getElementById("editHeroBtn")
   const editHeroModal = document.getElementById("editHeroModal")
   const editHeroForm = document.getElementById("editHeroForm")
+
+  if (!editHeroBtn || !editHeroModal || !editHeroForm) return
 
   // Open edit modal and populate with current values
   editHeroBtn.onclick = () => {
@@ -115,69 +141,80 @@ function initializeEditHero() {
 }
 
 // ============================================
-// JOURNAL EMPTY STATE CHECK
 // ============================================
-// Shows/hides empty state message based on journal entries
-function checkJournalEmpty() {
-  const journalEntries = document.getElementById("journalEntries")
-  const emptyState = document.getElementById("journalEmptyState")
+// Allows editing of the About introduction text
+function initializeEditAbout() {
+  const editAboutBtn = document.getElementById("editAboutBtn")
+  const editAboutModal = document.getElementById("editAboutModal")
+  const editAboutForm = document.getElementById("editAboutForm")
 
-  // Show empty state if no entries exist
-  if (journalEntries.children.length === 0) {
-    emptyState.style.display = "block"
-  } else {
-    emptyState.style.display = "none"
+  if (!editAboutBtn || !editAboutModal || !editAboutForm) return
+
+  // Open edit modal and populate with current value
+  editAboutBtn.onclick = () => {
+    const currentText = document.getElementById("aboutContent").textContent.trim()
+    document.getElementById("editAboutText").value = currentText
+    editAboutModal.style.display = "block"
+  }
+
+  // Save changes when form is submitted
+  editAboutForm.onsubmit = (e) => {
+    e.preventDefault()
+
+    const newText = document.getElementById("editAboutText").value
+    document.getElementById("aboutContent").innerHTML = `<p>${newText}</p>`
+
+    editAboutModal.style.display = "none"
+    alert("About section updated successfully!")
   }
 }
 
 // ============================================
-// PROJECTS EMPTY STATE CHECK
 // ============================================
-// Shows/hides empty state message based on project entries
-function checkProjectsEmpty() {
-  const projectsList = document.getElementById("projectsList")
-  const emptyState = document.getElementById("projectsEmptyState")
+// Allows editing of CV content and uploading CV files
+function initializeEditCv() {
+  const editCvBtn = document.getElementById("editCvBtn")
+  const editCvModal = document.getElementById("editCvModal")
+  const editCvForm = document.getElementById("editCvForm")
+  const uploadCvBtn = document.getElementById("uploadCvBtn")
+  const cvFileInput = document.getElementById("cvFileInput")
 
-  // Show empty state if no projects exist
-  if (projectsList.children.length === 0) {
-    emptyState.style.display = "block"
-  } else {
-    emptyState.style.display = "none"
+  if (!editCvBtn || !editCvModal || !editCvForm) return
+
+  // Open edit modal and populate with current value
+  editCvBtn.onclick = () => {
+    const currentText = document.getElementById("cvContent").innerText.trim()
+    document.getElementById("editCvText").value = currentText
+    editCvModal.style.display = "block"
   }
-}
 
-// ============================================
-// SETTINGS MENU TOGGLE
-// ============================================
-// Toggles form visibility when clicking settings icon
-function initializeSettingsMenus() {
-  const journalSettingsBtn = document.getElementById("journalSettingsBtn")
-  const journalForm = document.getElementById("journalForm")
+  // Save changes when form is submitted
+  editCvForm.onsubmit = (e) => {
+    e.preventDefault()
 
-  const projectsSettingsBtn = document.getElementById("projectsSettingsBtn")
-  const projectForm = document.getElementById("projectForm")
+    const newText = document.getElementById("editCvText").value
+    // Convert line breaks to HTML
+    const formattedText = newText.replace(/\n/g, "<br>")
+    document.getElementById("cvContent").innerHTML = formattedText
 
-  // Toggle journal form visibility
-  journalSettingsBtn.onclick = () => {
-    if (journalForm.style.display === "none") {
-      journalForm.style.display = "block"
-      journalSettingsBtn.textContent = "×" // Change to close icon
-    } else {
-      journalForm.style.display = "none"
-      journalForm.reset() // Clear form when hiding
-      journalSettingsBtn.textContent = "+" // Change back to add icon
+    editCvModal.style.display = "none"
+    alert("CV updated successfully!")
+  }
+
+  // Handle CV file upload
+  if (uploadCvBtn && cvFileInput) {
+    uploadCvBtn.onclick = () => {
+      cvFileInput.click()
     }
-  }
 
-  // Toggle projects form visibility
-  projectsSettingsBtn.onclick = () => {
-    if (projectForm.style.display === "none") {
-      projectForm.style.display = "block"
-      projectsSettingsBtn.textContent = "×" // Change to close icon
-    } else {
-      projectForm.style.display = "none"
-      projectForm.reset() // Clear form when hiding
-      projectsSettingsBtn.textContent = "+" // Change back to add icon
+    cvFileInput.onchange = (e) => {
+      const file = e.target.files[0]
+      if (file) {
+        // Display uploaded file name
+        document.getElementById("cvFileName").textContent = file.name
+        document.getElementById("cvFileDisplay").style.display = "block"
+        alert(`CV file "${file.name}" uploaded successfully!`)
+      }
     }
   }
 }
@@ -192,16 +229,17 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initialize hero section editing
   initializeEditHero()
 
+  initializeEditAbout()
+  initializeEditCv()
+
   // Initialize settings menu toggles
   initializeSettingsMenus()
 
   // Update date and time every second
   setInterval(updateDateTime, 1000)
-  updateDateTime() // Initial call
+  updateDateTime()
 
-  // ============================================
-  // JOURNAL FUNCTIONALITY
-  // ============================================
+  // Initialize journal functionality
   const journalForm = document.getElementById("journalForm")
   const journalEntries = document.getElementById("journalEntries")
 
@@ -242,9 +280,7 @@ document.addEventListener("DOMContentLoaded", () => {
     })
   }
 
-  // ============================================
-  // PROJECTS FUNCTIONALITY
-  // ============================================
+  // Initialize projects functionality
   const projectForm = document.getElementById("projectForm")
   const projectsList = document.getElementById("projectsList")
 
@@ -302,3 +338,27 @@ document.addEventListener("DOMContentLoaded", () => {
   checkJournalEmpty()
   checkProjectsEmpty()
 })
+
+// Declare the missing functions
+function checkJournalEmpty() {
+  const journalEntries = document.getElementById("journalEntries")
+  if (journalEntries && journalEntries.children.length === 0) {
+    document.getElementById("journalEmptyMessage").style.display = "block"
+  } else {
+    document.getElementById("journalEmptyMessage").style.display = "none"
+  }
+}
+
+function checkProjectsEmpty() {
+  const projectsList = document.getElementById("projectsList")
+  if (projectsList && projectsList.children.length === 0) {
+    document.getElementById("projectsEmptyMessage").style.display = "block"
+  } else {
+    document.getElementById("projectsEmptyMessage").style.display = "none"
+  }
+}
+
+function initializeSettingsMenus() {
+  // Placeholder for settings menu initialization logic
+  console.log("Settings menus initialized")
+}

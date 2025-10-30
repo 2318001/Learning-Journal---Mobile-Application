@@ -10,18 +10,19 @@
     <script src="script.js" defer></script>
 </head>
 <body>
-    <!-- Simplified header with only 3 navigation items: Home, Journal, Projects -->
+    <!-- Added About and CV back to navigation -->
     <header>
         <div class="container">
             <div class="logo">         
                 <span class="logo-text">MY LEARNING JOURNAL</span>
             </div>
             <nav>
-                <!-- Navigation with 3 items consistently across all pages -->
                 <ul class="nav-list">
                     <li><a href="index.html" class="active">Home</a></li>
                     <li><a href="#" id="journalBtn">Journal</a></li>
                     <li><a href="#" id="projectsBtn">Projects</a></li>
+                    <li><a href="#" id="aboutBtn">About</a></li>
+                    <li><a href="#" id="cvBtn">CV</a></li>
                 </ul>
             </nav>
         </div>
@@ -49,7 +50,6 @@
                         <p class="description" id="heroDescription">
                             I am a passionate developer who enjoys building dynamic, user-friendly web applications. I study Computer Science at UCA and I like exploring the latest technologies to bring creative ideas to life.
                         </p>
-                        <!-- Removed "Start Writing" button from home page -->
                     </div>
                     <div class="hero-image">
                         <img src="image/mario 111.png" alt="Profile image of Rajan" class="profile-image">
@@ -91,17 +91,13 @@
     <div id="journalModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
-            <!-- Date and time display in modal -->
             <div id="journalDatetime" class="datetime"></div>
             
-            <!-- Simplified header with single settings icon -->
             <div class="modal-header-actions">
                 <h2 class="gradient-text">My Journal</h2>
-                <!-- Settings icon to toggle form visibility -->
                 <button class="settings-btn" id="journalSettingsBtn" title="Add New Journal">+</button>
             </div>
             
-            <!-- Form hidden by default, shown when clicking settings icon -->
             <form id="journalForm" class="journal-form" style="display: none;">
                 <div class="form-group">
                     <label for="journalTitle">Title:</label>
@@ -113,16 +109,13 @@
                     <textarea id="journalContent" name="journalContent" rows="10" required placeholder="Write your thoughts here..."></textarea>
                 </div>
                 
-                <!-- Only submit button visible -->
                 <button type="submit" id="addButton" class="cta-btn primary">Submit Entry</button>
             </form>
 
-            <!-- Empty state message when no journals exist -->
             <div id="journalEmptyState" class="empty-state">
                 <p>No journal entries yet. Click the + button to add your first entry!</p>
             </div>
 
-            <!-- Journal entries container - newest entries appear on top -->
             <div id="journalEntries" class="journal-entries"></div>
         </div>
     </div>
@@ -131,17 +124,13 @@
     <div id="projectsModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
-            <!-- Date and time display in modal -->
             <div id="projectsDatetime" class="datetime"></div>
             
-            <!-- Simplified header with single settings icon -->
             <div class="modal-header-actions">
                 <h2 class="gradient-text">My Projects</h2>
-                <!-- Settings icon to toggle form visibility -->
                 <button class="settings-btn" id="projectsSettingsBtn" title="Add New Project">+</button>
             </div>
             
-            <!-- Form hidden by default, shown when clicking settings icon -->
             <form id="projectForm" class="project-form" style="display: none;">
                 <div class="form-group">
                     <label for="projectTitle">Project Title:</label>
@@ -158,17 +147,102 @@
                     <input type="file" id="projectFiles" name="projectFiles" accept="image/*" multiple>
                 </div>
                 
-                <!-- Only submit button visible -->
                 <button type="submit" id="addProjectButton" class="cta-btn primary">Submit Project</button>
             </form>
 
-            <!-- Empty state message when no projects exist -->
             <div id="projectsEmptyState" class="empty-state">
                 <p>No projects yet. Click the + button to add your first project!</p>
             </div>
 
-            <!-- Projects list container - newest projects appear on top -->
             <div id="projectsList" class="projects-list"></div>
+        </div>
+    </div>
+
+    <!-- Added About Modal with editable introduction -->
+    <div id="aboutModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <div id="aboutDatetime" class="datetime"></div>
+            
+            <div class="modal-header-actions">
+                <h2 class="gradient-text">About Me</h2>
+                <button class="edit-btn" id="editAboutBtn" title="Edit About">Edit</button>
+            </div>
+            
+            <!-- Editable about introduction -->
+            <div id="aboutContent" class="about-content">
+                <p>I am a passionate developer who loves creating innovative solutions and learning new technologies. My journey in software development has been exciting and full of growth.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Added CV Modal with editable content and upload button -->
+    <div id="cvModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <div id="cvDatetime" class="datetime"></div>
+            
+            <div class="modal-header-actions">
+                <h2 class="gradient-text">My CV</h2>
+                <div class="cv-actions">
+                    <button class="edit-btn" id="editCvBtn" title="Edit CV">Edit</button>
+                    <button class="upload-btn" id="uploadCvBtn" title="Upload CV">Upload from Device</button>
+                </div>
+            </div>
+            
+            <!-- Hidden file input for CV upload -->
+            <input type="file" id="cvFileInput" accept=".pdf,.doc,.docx" style="display: none;">
+            
+            <!-- Editable CV content -->
+            <div id="cvContent" class="cv-content">
+                <h3>Education</h3>
+                <p>Computer Science - University of Central Arkansas</p>
+                
+                <h3>Skills</h3>
+                <p>JavaScript, React, Node.js, HTML, CSS, Git</p>
+                
+                <h3>Experience</h3>
+                <p>Add your work experience here...</p>
+            </div>
+            
+            <!-- Display uploaded CV file name -->
+            <div id="cvFileDisplay" class="cv-file-display" style="display: none;">
+                <p><strong>Uploaded CV:</strong> <span id="cvFileName"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Added Edit About Modal -->
+    <div id="editAboutModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 class="gradient-text">Edit About</h2>
+            
+            <form id="editAboutForm" class="edit-form">
+                <div class="form-group">
+                    <label for="editAboutText">About Introduction:</label>
+                    <textarea id="editAboutText" rows="8" required placeholder="Write about yourself..."></textarea>
+                </div>
+                
+                <button type="submit" class="cta-btn primary">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Added Edit CV Modal -->
+    <div id="editCvModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 class="gradient-text">Edit CV</h2>
+            
+            <form id="editCvForm" class="edit-form">
+                <div class="form-group">
+                    <label for="editCvText">CV Content:</label>
+                    <textarea id="editCvText" rows="15" required placeholder="Enter your CV details..."></textarea>
+                </div>
+                
+                <button type="submit" class="cta-btn primary">Save Changes</button>
+            </form>
         </div>
     </div>
 </body>
