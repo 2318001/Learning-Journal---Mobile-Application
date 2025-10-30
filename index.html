@@ -23,16 +23,15 @@
         <div class="container">
         
             <div class="logo">         
-                <span class="logo-text">WEL~COME~TO~MY JOURNAL</span>
+                <span class="logo-text">Welcome</span>
             </div>
-            <!-- NAVIGATION: links to main site pages -->
+            <!-- NAVIGATION: buttons to open separate pages (right aligned) -->
             <nav>
                 <ul class="nav-list">
-                    <!-- Navigation Links -->
-                    <li><a href="#" class="active">Home</a></li>
-                    <li><a href="#" id="journalBtn">My Journal</a></li>
-                    <li><a href="about.html">About</a></li>
-                    <li><a href="#" id="projectsBtn">Projects</a></li>
+                    <li><button type="button" class="nav-button active" data-target="index.htm">Home</button></li>
+                    <li><button type="button" class="nav-button" data-target="journal.htm">Journal</button></li>
+                    <li><button type="button" class="nav-button" data-target="projects.htm">Projects</button></li>
+                    <li><button type="button" class="nav-button" data-target="about.htm">About</button></li>
                 </ul>
             </nav>
         </div>
@@ -73,69 +72,6 @@
         </div>
     </footer>
 
-    <!-- Journal Modal -->
-    <div id="journalModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <div id="datetime" class="datetime"></div>
-            
-            <form id="journalForm" class="journal-form">
-                <div class="form-group">
-                    <label for="journalTitle">Title:</label>
-                    <input type="text" id="journalTitle" name="journalTitle" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="journalContent">Journal Entry:</label>
-                    <textarea id="journalContent" name="journalContent" rows="10" required></textarea>
-                </div>
-                
-                <div class="button-group">
-                    <button type="submit" id="addButton">Add Entry</button>
-                    <button type="reset" id="resetButton">Reset</button>
-                    <button type="button" id="newButton">New Entry</button>
-                </div>
-            </form>
-
-            <div id="journalEntries" class="journal-entries">
-                <!-- Journal entries will be displayed here -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Projects Modal -->
-    <div id="projectsModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <div id="datetime" class="datetime"></div>
-            
-            <form id="projectForm" class="project-form">
-                <div class="form-group">
-                    <label for="projectTitle">Project Title:</label>
-                    <input type="text" id="projectTitle" name="projectTitle" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="projectDescription">Project Description:</label>
-                    <textarea id="projectDescription" name="projectDescription" rows="5" required></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="projectFiles">Project Files:</label>
-                    <input type="file" id="projectFiles" name="projectFiles" multiple>
-                </div>
-                
-                <div class="button-group">
-                    <button type="submit" id="addProjectButton">Add Project</button>
-                    <button type="reset" id="resetProjectButton">Reset</button>
-                    <button type="button" id="newProjectButton">New Project</button>
-                </div>
-            </form>
-
-            <div id="projectsList" class="projects-list">
-                <!-- Projects will be displayed here -->
-            </div>
-        </div>
-    </div>
+    <!-- No modals on the homepage — subpages handle journal/projects/about content -->
 </body>
 </html>

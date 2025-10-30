@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Projects - Learning Journal</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="image/mario 111.png" type="image/png">
+    <script src="script.js" defer></script>
+</head>
+<body>
+<header>
+    <div class="container">
+        <div class="logo"><span class="logo-text">Welcome</span></div>
+        <nav>
+            <ul class="nav-list">
+                <li><button type="button" class="nav-button" data-target="index.htm">Home</button></li>
+                <li><button type="button" class="nav-button" data-target="journal.htm">Journal</button></li>
+                <li><button type="button" class="nav-button active" data-target="projects.htm">Projects</button></li>
+                <li><button type="button" class="nav-button" data-target="about.htm">About</button></li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<main>
+    <div class="container">
+        <section class="first-section">
+            <div class="second-section">
+                <div class="third-section">
+                    <h1>Projects</h1>
+                    <p class="description">Add and showcase projects below.</p>
+
+                    <form id="projectForm">
+                        <div>
+                            <label for="pTitle">Project title</label><br>
+                            <input id="pTitle" name="pTitle" required>
+                        </div>
+                        <div>
+                            <label for="pDesc">Description</label><br>
+                            <textarea id="pDesc" name="pDesc" rows="4" required></textarea>
+                        </div>
+                        <div style="margin-top:8px;">
+                            <button type="submit">Add Project</button>
+                            <button type="button" id="clearProjects">Clear All</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="hero-image">
+                    <img src="image/mario 111.png" alt="Mario" class="profile-image">
+                </div>
+            </div>
+
+            <section id="projectsList" class="projects-grid" aria-live="polite">
+                <!-- projects go here -->
+            </section>
+        </section>
+    </div>
+</main>
+
+<footer class="site-footer">
+    <div class="container"><p>&copy; 2025 Rajan - Learning Journal</p></div>
+</footer>
+
+<script>
+// Simple projects storage using localStorage
+(function(){
+    const form = document.getElementById('projectForm');
+    const listEl = document.getElementById('projectsList');
+    const key = 'learningProjects';
+
+    function load(){
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : [];
+    }
+    function save(v){ localStorage.setItem(key, JSON.stringify(v)); }
+
+    function render(){
+        const items = load();
+        if(items.length === 0){ listEl.innerHTML = '<p>No projects yet.</p>'; return; }
+        listEl.innerHTML = '';
+        items.slice().reverse().forEach(p => {
+            const d = document.createElement('div');
+            d.className = 'project-card';
+            d.innerHTML = `<h3>${escapeHtml(p.title)}</h3><p>${escapeHtml(p.desc)}</p><small>${new Date(p.date).toLocaleString()}</small>`;
+            listEl.appendChild(d);
+        });
+    }
+    function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    form.addEventListener('submit', function(e){
+        e.preventDefault();
+        const title = form.pTitle.value.trim();
+        const desc = form.pDesc.value.trim();
+        if(!title || !desc) return alert('Please fill both fields');
+        const arr = load();
+        arr.push({title, desc, date: Date.now()});
+        save(arr);
+        form.reset();
+        render();
+    });
+
+    document.getElementById('clearProjects').addEventListener('click', function(){
+        if(confirm('Clear all projects?')){ localStorage.removeItem(key); render(); }
+    });
+
+    render();
+})();
+</script>
+</body>
+</html>

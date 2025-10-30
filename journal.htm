@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Journal - Learning Journal</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="image/mario 111.png" type="image/png">
+    <script src="script.js" defer></script>
+</head>
+<body>
+<header>
+    <div class="container">
+        <div class="logo"><span class="logo-text">Welcome</span></div>
+        <nav>
+            <ul class="nav-list">
+                <li><button type="button" class="nav-button" data-target="index.htm">Home</button></li>
+                <li><button type="button" class="nav-button active" data-target="journal.htm">Journal</button></li>
+                <li><button type="button" class="nav-button" data-target="projects.htm">Projects</button></li>
+                <li><button type="button" class="nav-button" data-target="about.htm">About</button></li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<main>
+    <div class="container">
+        <section class="first-section">
+            <div class="second-section">
+                <div class="third-section">
+                    <h1>My Journal</h1>
+                    <p class="description">Record your learning notes below.</p>
+
+                    <form id="journalForm">
+                        <div>
+                            <label for="title">Title</label><br>
+                            <input id="title" name="title" required>
+                        </div>
+                        <div>
+                            <label for="content">Entry</label><br>
+                            <textarea id="content" name="content" rows="6" required></textarea>
+                        </div>
+                        <div style="margin-top:8px;">
+                            <button type="submit">Add Entry</button>
+                            <button type="button" id="clearJournal">Clear All</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="hero-image">
+                    <img src="image/mario 111.png" alt="Mario" class="profile-image">
+                </div>
+            </div>
+
+            <section id="entries" class="journal-entries" aria-live="polite">
+                <!-- entries go here -->
+            </section>
+        </section>
+    </div>
+</main>
+
+<footer class="site-footer">
+    <div class="container"><p>&copy; 2025 Rajan - Learning Journal</p></div>
+</footer>
+
+<script>
+// Simple journal storage using localStorage
+(function(){
+    const form = document.getElementById('journalForm');
+    const entriesEl = document.getElementById('entries');
+    const storageKey = 'learningJournalEntries';
+
+    function loadEntries(){
+        const raw = localStorage.getItem(storageKey);
+        return raw ? JSON.parse(raw) : [];
+    }
+
+    function saveEntries(list){
+        localStorage.setItem(storageKey, JSON.stringify(list));
+    }
+
+    function render(){
+        const list = loadEntries();
+        if(list.length === 0){
+            entriesEl.innerHTML = '<p>No entries yet.</p>';
+            return;
+        }
+        entriesEl.innerHTML = '';
+        list.slice().reverse().forEach(e => {
+            const div = document.createElement('div');
+            div.className = 'journal-entry';
+            div.innerHTML = `<h3>${escapeHtml(e.title)}</h3><p>${escapeHtml(e.content)}</p><small>${new Date(e.date).toLocaleString()}</small>`;
+            entriesEl.appendChild(div);
+        });
+    }
+
+    function escapeHtml(str){
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    form.addEventListener('submit', function(e){
+        e.preventDefault();
+        const title = form.title.value.trim();
+        const content = form.content.value.trim();
+        if(!title || !content) return alert('Please fill both fields');
+        const list = loadEntries();
+        list.push({title, content, date: Date.now()});
+        saveEntries(list);
+        form.reset();
+        render();
+    });
+
+    document.getElementById('clearJournal').addEventListener('click', function(){
+        if(confirm('Clear all journal entries?')){
+            localStorage.removeItem(storageKey);
+            render();
+        }
+    });
+
+    render();
+})();
+</script>
+</body>
+</html>

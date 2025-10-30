@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>About - Learning Journal</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="image/mario 111.png" type="image/png">
+    <script src="script.js" defer></script>
+</head>
+<body>
+<header>
+    <div class="container">
+        <div class="logo"><span class="logo-text">Welcome</span></div>
+        <nav>
+            <ul class="nav-list">
+                <li><button type="button" class="nav-button" data-target="index.htm">Home</button></li>
+                <li><button type="button" class="nav-button" data-target="journal.htm">Journal</button></li>
+                <li><button type="button" class="nav-button" data-target="projects.htm">Projects</button></li>
+                <li><button type="button" class="nav-button active" data-target="about.htm">About</button></li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<main>
+    <div class="container">
+        <section class="first-section">
+            <div class="second-section">
+                <div class="third-section">
+                    <h1>About</h1>
+                    <p class="description">Hi — I'm Rajan, a computer science student who enjoys building web apps and learning new tech. This is my learning journal.</p>
+
+                    <h3>Contact</h3>
+                    <p>If you'd like to reach out, leave a message below (this stores locally for now):</p>
+                    <form id="contactForm">
+                        <div>
+                            <label for="name">Name</label><br>
+                            <input id="name" name="name" required>
+                        </div>
+                        <div>
+                            <label for="message">Message</label><br>
+                            <textarea id="message" name="message" rows="4" required></textarea>
+                        </div>
+                        <div style="margin-top:8px;"><button type="submit">Save message</button></div>
+                    </form>
+                </div>
+                <div class="hero-image">
+                    <img src="image/mario 111.png" alt="Mario" class="profile-image">
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<footer class="site-footer">
+    <div class="container"><p>&copy; 2025 Rajan - Learning Journal</p></div>
+</footer>
+
+<script>
+// Local contact message storage (demo)
+(function(){
+    const form = document.getElementById('contactForm');
+    const key = 'learningContact';
+    function save(v){ localStorage.setItem(key, JSON.stringify(v)); }
+    function load(){ const r = localStorage.getItem(key); return r ? JSON.parse(r) : null; }
+
+    form.addEventListener('submit', function(e){
+        e.preventDefault();
+        const name = form.name.value.trim();
+        const message = form.message.value.trim();
+        if(!name || !message) return alert('Please fill both fields');
+        save({name, message, date: Date.now()});
+        form.reset();
+        alert('Message saved locally.');
+    });
+})();
+</script>
+</body>
+</html>
