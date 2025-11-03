@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" href="image/mario 111.png" type="image/png">
     <meta name="theme-color" content="#0ea5e9">
-    <!-- Load modular JavaScript files before main script -->
     <script src="js/storage.js" defer></script>
     <script src="js/browser.js" defer></script>
     <script src="js/thirdparty.js" defer></script>
@@ -94,14 +93,13 @@
             
             <div class="modal-header-actions">
                 <h2 class="gradient-text">My Journal</h2>
-                <div style="display: flex; gap: 0.5rem;">
+                <div class="button-group">
                     <button class="settings-btn" id="journalSettingsBtn" title="Add New Journal">+</button>
                     <button class="reset-btn" id="resetJournalBtn" title="Reset All Journals">Reset++</button>
                 </div>
             </div>
             
             <form id="journalForm" class="journal-form" style="display: none;">
-                <!-- Added validation attributes and error messages -->
                 <div class="form-group">
                     <label for="journalTitle">Title: <span class="required">*</span></label>
                     <input 
@@ -151,13 +149,12 @@
             
             <div class="modal-header-actions">
                 <h2 class="gradient-text">My Projects</h2>
-                <div style="display: flex; gap: 0.5rem;">
+                <div class="button-group">
                     <button class="settings-btn" id="projectsSettingsBtn" title="Add New Project">+</button>
                     <button class="reset-btn" id="resetProjectsBtn" title="Reset All Projects">Reset++</button>
                 </div>
             </div>
             
-            <!-- Added validation to project form -->
             <form id="projectForm" class="project-form" style="display: none;">
                 <div class="form-group">
                     <label for="projectTitle">Project Title: <span class="required">*</span></label>
@@ -203,7 +200,7 @@
         </div>
     </div>
 
-    <!-- Added YouTube video section to About Modal -->
+    <!-- Added upload button and file input for About section -->
     <div id="aboutModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
@@ -211,14 +208,18 @@
             
             <div class="modal-header-actions">
                 <h2 class="gradient-text">About Me</h2>
-                <button class="edit-btn" id="editAboutBtn" title="Edit About">Edit</button>
+                <div class="button-group">
+                    <button class="edit-btn" id="editAboutBtn" title="Edit About">Edit</button>
+                    <button class="upload-btn" id="uploadAboutBtn" title="Upload About">Upload from Device</button>
+                </div>
             </div>
+            
+            <input type="file" id="aboutFileInput" accept=".txt,.doc,.docx" style="display: none;">
             
             <div id="aboutContent" class="about-content">
                 <p>I am a passionate developer who loves creating innovative solutions and learning new technologies. My journey in software development has been exciting and full of growth.</p>
             </div>
 
-            <!-- Enhanced YouTube section with better controls -->
             <div class="youtube-section">
                 <h3>Featured Video</h3>
                 <div class="youtube-controls">
@@ -310,7 +311,6 @@
         </div>
     </div>
 
-    <!-- Load YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
 </body>
 </html>

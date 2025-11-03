@@ -310,6 +310,8 @@ function initializeOtherModals(storage) {
   const aboutBtn = document.getElementById("aboutBtn")
   const aboutModal = document.getElementById("aboutModal")
   const editAboutBtn = document.getElementById("editAboutBtn")
+  const uploadAboutBtn = document.getElementById("uploadAboutBtn")
+  const aboutFileInput = document.getElementById("aboutFileInput")
   const editAboutModal = document.getElementById("editAboutModal")
   const editAboutForm = document.getElementById("editAboutForm")
   const aboutContent = document.getElementById("aboutContent")
@@ -338,6 +340,26 @@ function initializeOtherModals(storage) {
     })
   }
 
+  if (uploadAboutBtn && aboutFileInput) {
+    uploadAboutBtn.addEventListener("click", () => {
+      aboutFileInput.click()
+    })
+
+    aboutFileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0]
+      if (file) {
+        const reader = new FileReader()
+        reader.onload = (event) => {
+          const content = event.target.result
+          if (aboutContent) aboutContent.textContent = content
+          storage.setLocal("aboutContent", content)
+          alert(`File "${file.name}" uploaded successfully!`)
+        }
+        reader.readAsText(file)
+      }
+    })
+  }
+
   const savedAbout = storage.getLocal("aboutContent")
   if (savedAbout && aboutContent) aboutContent.textContent = savedAbout
 
@@ -349,6 +371,9 @@ function initializeOtherModals(storage) {
   const cvContent = document.getElementById("cvContent")
   const uploadCvBtn = document.getElementById("uploadCvBtn")
   const cvFileInput = document.getElementById("cvFileInput")
+  const cvFileDisplay = document.getElementById("cvFileDisplay")
+  const cvFileName = document.getElementById("cvFileName")
+  const viewCvBtn = document.getElementById("viewCvBtn")
 
   if (cvBtn && cvModal) {
     cvBtn.addEventListener("click", () => {
@@ -382,11 +407,32 @@ function initializeOtherModals(storage) {
     cvFileInput.addEventListener("change", (e) => {
       const file = e.target.files[0]
       if (file) {
-        const cvFileName = document.getElementById("cvFileName")
-        const cvFileDisplay = document.getElementById("cvFileDisplay")
         if (cvFileName) cvFileName.textContent = file.name
         if (cvFileDisplay) cvFileDisplay.style.display = "block"
         storage.setLocal("cvFileName", file.name)
+
+        const reader = new FileReader()
+        reader.onload = (event) => {
+          storage.setLocal("cvFileData", event.target.result)
+        }
+        reader.readAsDataURL(file)
+
+        alert(`CV file "${file.name}" uploaded successfully!`)
+      }
+    })
+  }
+
+  if (viewCvBtn) {
+    viewCvBtn.addEventListener("click", () => {
+      const fileData = storage.getLocal("cvFileData")
+      const fileName = storage.getLocal("cvFileName")
+      if (fileData && fileName) {
+        const link = document.createElement("a")
+        link.href = fileData
+        link.download = fileName
+        link.click()
+      } else {
+        alert("No CV file uploaded yet.")
       }
     })
   }
@@ -396,8 +442,6 @@ function initializeOtherModals(storage) {
 
   const savedCvFile = storage.getLocal("cvFileName")
   if (savedCvFile) {
-    const cvFileName = document.getElementById("cvFileName")
-    const cvFileDisplay = document.getElementById("cvFileDisplay")
     if (cvFileName) cvFileName.textContent = savedCvFile
     if (cvFileDisplay) cvFileDisplay.style.display = "block"
   }

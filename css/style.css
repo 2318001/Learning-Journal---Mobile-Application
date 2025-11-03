@@ -277,6 +277,14 @@ body.dark-mode .profile-image {
 /* ============================================
    BUTTONS
    ============================================ */
+
+/* Fixed button group styling to prevent disappearing */
+.button-group {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .cta-btn {
   padding: 0.75rem 1.5rem;
   border: none;
@@ -371,6 +379,7 @@ button[type="submit"]:hover {
   font-size: 1.5rem;
   min-width: 45px;
   height: 45px;
+  /* Removed display: none on mobile */
 }
 
 .settings-btn:hover {
@@ -462,6 +471,8 @@ button[type="submit"]:hover {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .modal-header-actions h2 {
@@ -655,6 +666,47 @@ body.dark-mode .project-entry h3 {
 
 .journal-entry small,
 .project-entry small {
+  color: var(--text-tertiary);
+  font-size: 0.875rem;
+  transition: color 0.3s ease;
+}
+
+/* Added project card styling */
+.project-card {
+  background: var(--bg-secondary);
+  padding: 1.5rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  border-left: 4px solid #48bb78;
+  box-shadow: 0 2px 4px var(--shadow-color);
+  transition: all 0.3s ease;
+}
+
+.project-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px var(--shadow-color);
+}
+
+.project-card h3 {
+  color: #48bb78;
+  margin-bottom: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+body.dark-mode .project-card h3 {
+  color: #68d391;
+}
+
+.project-card p {
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+  transition: color 0.3s ease;
+}
+
+.project-card small {
   color: var(--text-tertiary);
   font-size: 0.875rem;
   transition: color 0.3s ease;
@@ -934,13 +986,7 @@ body.dark-mode .youtube-section h3 {
     gap: 0.75rem;
   }
 
-  .mobile-fab {
-    display: flex;
-  }
-
-  .settings-btn {
-    display: none;
-  }
+  /* Removed settings-btn display: none rule */
 
   .youtube-controls {
     flex-direction: column;
@@ -948,6 +994,11 @@ body.dark-mode .youtube-section h3 {
 
   .youtube-controls input {
     width: 100%;
+  }
+
+  .button-group {
+    width: 100%;
+    justify-content: flex-start;
   }
 }
 
