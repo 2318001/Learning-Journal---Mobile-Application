@@ -2,124 +2,95 @@
 class BrowserAPIsManager {
   constructor(storage) {
     this.storage = storage
-    this.locationBtn = document.getElementById("locationBtn")
-    this.notificationBtn = document.getElementById("notificationBtn")
-    this.locationDisplay = document.getElementById("locationDisplay")
     this.init()
   }
 
   init() {
-    if (this.locationBtn) {
-      this.locationBtn.addEventListener("click", () => this.getLocation())
+    // Form Validation Manager - Handles HTML5 Constraint Validation API
+    const journalTitle = document.getElementById("journalTitle")
+    const journalContent = document.getElementById("journalContent")
+    const charCount = document.getElementById("charCount")
+
+    if (journalTitle) {
+      journalTitle.addEventListener("input", () => this.validateField(journalTitle, "titleError"))
+      journalTitle.addEventListener("blur", () => this.validateField(journalTitle, "titleError"))
     }
 
-    if (this.notificationBtn) {
-      this.notificationBtn.addEventListener("click", () => this.requestNotificationPermission())
-    }
-
-    // Check if notifications are already enabled
-    if (Notification.permission === "granted" && this.notificationBtn) {
-      this.notificationBtn.textContent = "🔔✓"
-      this.notificationBtn.title = "Notifications Enabled"
-    }
-  }
-
-  // Geolocation API
-  getLocation() {
-    if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser")
-      return
-    }
-
-    this.locationBtn.textContent = "⏳"
-    this.locationBtn.disabled = true
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords
-        this.displayLocation(latitude, longitude)
-        this.locationBtn.textContent = "📍✓"
-        this.locationBtn.disabled = false
-
-        // Save location to session storage
-        this.storage.setSession("userLocation", { latitude, longitude })
-
-        console.log("[v0] Location retrieved:", { latitude, longitude })
-      },
-      (error) => {
-        console.error("[v0] Geolocation error:", error)
-        alert(`Error getting location: ${error.message}`)
-        this.locationBtn.textContent = "📍"
-        this.locationBtn.disabled = false
-      },
-    )
-  }
-
-  displayLocation(lat, lon) {
-    if (!this.locationDisplay) return
-
-    this.locationDisplay.style.display = "block"
-    this.locationDisplay.innerHTML = `
-      <strong>Your Location:</strong> 
-      Latitude: ${lat.toFixed(4)}, Longitude: ${lon.toFixed(4)}
-      <button id="copyLocationBtn" class="copy-btn">📋 Copy</button>
-    `
-
-    // Add copy to clipboard functionality
-    const copyBtn = document.getElementById("copyLocationBtn")
-    if (copyBtn) {
-      copyBtn.addEventListener("click", () => {
-        this.copyToClipboard(`Lat: ${lat.toFixed(4)}, Lon: ${lon.toFixed(4)}`)
+    if (journalContent) {
+      journalContent.addEventListener("input", () => {
+        this.validateField(journalContent, "contentError")
+        if (charCount) {
+          charCount.textContent = journalContent.value.length
+        }
       })
+      journalContent.addEventListener("blur", () => this.validateField(journalContent, "contentError"))
+    }
+
+    // Project form validation
+    const projectTitle = document.getElementById("projectTitle")
+    const projectDescription = document.getElementById("projectDescription")
+
+    if (projectTitle) {
+      projectTitle.addEventListener("input", () => this.validateField(projectTitle, "projectTitleError"))
+      projectTitle.addEventListener("blur", () => this.validateField(projectTitle, "projectTitleError"))
+    }
+
+    if (projectDescription) {
+      projectDescription.addEventListener("input", () => this.validateField(projectDescription, "projectDescError"))
+      projectDescription.addEventListener("blur", () => this.validateField(projectDescription, "projectDescError"))
     }
   }
 
-  // Notification API
-  async requestNotificationPermission() {
-    if (!("Notification" in window)) {
-      alert("This browser does not support notifications")
-      return
+  validateField(field, errorElementId) {
+    const errorElement = document.getElementById(errorElementId)
+
+    if (!field.validity.valid) {
+      this.showError(field, errorElement)
+      return false
+    } else {
+      this.clearError(field, errorElement)
+      return true
+    }
+  }
+
+  showError(field, errorElement) {
+    if (field.validity.valueMissing) {
+      errorElement.textContent = "This field is required."
+    } else if (field.validity.tooShort) {
+      errorElement.textContent = `Minimum ${field.minLength} characters required. Current: ${field.value.length}`
+    } else if (field.validity.tooLong) {
+      errorElement.textContent = `Maximum ${field.maxLength} characters allowed. Current: ${field.value.length}`
+    } else if (field.validity.patternMismatch) {
+      errorElement.textContent = field.title || "Invalid format."
+    } else {
+      errorElement.textContent = "Invalid input."
     }
 
-    if (Notification.permission === "granted") {
-      this.sendNotification("Notifications Already Enabled", "You will receive updates when you save journal entries!")
-      return
-    }
+    field.classList.add("invalid")
+    errorElement.style.display = "block"
+  }
 
-    if (Notification.permission !== "denied") {
-      const permission = await Notification.requestPermission()
+  clearError(field, errorElement) {
+    errorElement.textContent = ""
+    errorElement.style.display = "none"
+    field.classList.remove("invalid")
+  }
 
-      if (permission === "granted") {
-        this.notificationBtn.textContent = "🔔✓"
-        this.notificationBtn.title = "Notifications Enabled"
-        this.sendNotification("Notifications Enabled!", "You will now receive updates when you save journal entries.")
-        console.log("[v0] Notification permission granted")
-      } else {
-        console.log("[v0] Notification permission denied")
+  validateForm(formElement) {
+    const inputs = formElement.querySelectorAll("input[required], textarea[required]")
+    let isValid = true
+
+    inputs.forEach((input) => {
+      if (!input.validity.valid) {
+        isValid = false
+        const errorId = input.getAttribute("aria-describedby")
+        if (errorId) {
+          this.showError(input, document.getElementById(errorId))
+        }
       }
-    }
-  }
+    })
 
-  sendNotification(title, body) {
-    if (Notification.permission === "granted") {
-      new Notification(title, {
-        body: body,
-        icon: "image/mario 111.png",
-        badge: "image/mario 111.png",
-      })
-    }
-  }
-
-  // Clipboard API
-  async copyToClipboard(text) {
-    try {
-      await navigator.clipboard.writeText(text)
-      alert("Copied to clipboard!")
-      console.log("[v0] Text copied to clipboard")
-    } catch (err) {
-      console.error("[v0] Failed to copy:", err)
-      alert("Failed to copy to clipboard")
-    }
+    return isValid
   }
 }
 
