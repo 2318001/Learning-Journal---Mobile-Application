@@ -90,7 +90,7 @@ class YouTubeManager {
             this.handleStateChange(event)
           },
           onError: (event) => {
-            console.error("[v0] YouTube player error:", event.data)
+            console.error("YouTube player error:", event.data)
             videoStatus.textContent = "Error loading video. Please check the video ID."
           },
         },

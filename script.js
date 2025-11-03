@@ -140,6 +140,132 @@ class JournalManager {
   }
 }
 
+class ProjectsManager {
+  constructor(storage, browserAPIs) {
+    this.storage = storage
+    this.browserAPIs = browserAPIs
+    this.projectsBtn = document.getElementById("projectsBtn")
+    this.projectsModal = document.getElementById("projectsModal")
+    this.projectForm = document.getElementById("projectForm")
+    this.projectsSettingsBtn = document.getElementById("projectsSettingsBtn")
+    this.resetProjectsBtn = document.getElementById("resetProjectsBtn")
+    this.projectsList = document.getElementById("projectsList")
+    this.projectsEmptyState = document.getElementById("projectsEmptyState")
+
+    this.init()
+  }
+
+  async init() {
+    await this.loadProjects()
+
+    if (this.projectsBtn) {
+      this.projectsBtn.addEventListener("click", () => this.openModal())
+    }
+    if (this.projectsSettingsBtn) {
+      this.projectsSettingsBtn.addEventListener("click", () => this.toggleForm())
+    }
+    if (this.projectForm) {
+      this.projectForm.addEventListener("submit", (e) => this.handleSubmit(e))
+    }
+    if (this.resetProjectsBtn) {
+      this.resetProjectsBtn.addEventListener("click", () => this.resetProjects())
+    }
+  }
+
+  openModal() {
+    if (this.projectsModal) {
+      this.projectsModal.style.display = "block"
+      updateDateTime("projectsDatetime")
+    }
+  }
+
+  toggleForm() {
+    if (this.projectForm) {
+      const isHidden = this.projectForm.style.display === "none"
+      this.projectForm.style.display = isHidden ? "block" : "none"
+    }
+  }
+
+  async handleSubmit(e) {
+    e.preventDefault()
+
+    if (this.browserAPIs && !this.browserAPIs.validateForm(this.projectForm)) {
+      alert("Please fix the errors in the form before submitting.")
+      return
+    }
+
+    const titleInput = document.getElementById("projectTitle")
+    const descInput = document.getElementById("projectDescription")
+
+    if (!titleInput || !descInput) return
+
+    const project = {
+      title: titleInput.value,
+      description: descInput.value,
+      timestamp: new Date().toISOString(),
+      dateString: new Date().toLocaleString(),
+    }
+
+    try {
+      await this.storage.addToIndexedDB("projects", project)
+      this.projectForm.reset()
+      this.projectForm.style.display = "none"
+      await this.loadProjects()
+    } catch (error) {
+      alert("Error saving project. Please try again.")
+    }
+  }
+
+  async loadProjects() {
+    try {
+      const projects = await this.storage.getAllFromIndexedDB("projects")
+
+      if (projects.length === 0) {
+        if (this.projectsEmptyState) this.projectsEmptyState.style.display = "block"
+        if (this.projectsList) this.projectsList.innerHTML = ""
+        return
+      }
+
+      if (this.projectsEmptyState) this.projectsEmptyState.style.display = "none"
+
+      projects.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+
+      if (this.projectsList) {
+        this.projectsList.innerHTML = projects
+          .map(
+            (project) => `
+          <div class="project-card">
+            <h3>${this.escapeHtml(project.title)}</h3>
+            <p>${this.escapeHtml(project.description)}</p>
+            <small>Created: ${project.dateString}</small>
+          </div>
+        `,
+          )
+          .join("")
+      }
+    } catch (error) {
+      console.error("Error loading projects:", error)
+    }
+  }
+
+  async resetProjects() {
+    if (confirm("Are you sure you want to delete all projects? This cannot be undone.")) {
+      try {
+        await this.storage.clearIndexedDB("projects")
+        await this.loadProjects()
+      } catch (error) {
+        console.error("Error clearing projects:", error)
+      }
+    }
+  }
+
+  escapeHtml(text) {
+    const div = document.createElement("div")
+    div.textContent = text
+    return div.innerHTML
+  }
+}
+
 function updateDateTime(elementId) {
   const element = document.getElementById(elementId)
   if (element) {
@@ -181,17 +307,13 @@ function initializeModals() {
 }
 
 function initializeOtherModals(storage) {
-  const projectsBtn = document.getElementById("projectsBtn")
-  const projectsModal = document.getElementById("projectsModal")
-  if (projectsBtn && projectsModal) {
-    projectsBtn.addEventListener("click", () => {
-      projectsModal.style.display = "block"
-      updateDateTime("projectsDatetime")
-    })
-  }
-
   const aboutBtn = document.getElementById("aboutBtn")
   const aboutModal = document.getElementById("aboutModal")
+  const editAboutBtn = document.getElementById("editAboutBtn")
+  const editAboutModal = document.getElementById("editAboutModal")
+  const editAboutForm = document.getElementById("editAboutForm")
+  const aboutContent = document.getElementById("aboutContent")
+
   if (aboutBtn && aboutModal) {
     aboutBtn.addEventListener("click", () => {
       aboutModal.style.display = "block"
@@ -199,13 +321,85 @@ function initializeOtherModals(storage) {
     })
   }
 
+  if (editAboutBtn && editAboutModal && editAboutForm) {
+    editAboutBtn.addEventListener("click", () => {
+      const currentText = aboutContent?.textContent || ""
+      const textInput = document.getElementById("editAboutText")
+      if (textInput) textInput.value = currentText
+      editAboutModal.style.display = "block"
+    })
+
+    editAboutForm.addEventListener("submit", (e) => {
+      e.preventDefault()
+      const newText = document.getElementById("editAboutText")?.value || ""
+      if (aboutContent) aboutContent.textContent = newText
+      storage.setLocal("aboutContent", newText)
+      editAboutModal.style.display = "none"
+    })
+  }
+
+  const savedAbout = storage.getLocal("aboutContent")
+  if (savedAbout && aboutContent) aboutContent.textContent = savedAbout
+
   const cvBtn = document.getElementById("cvBtn")
   const cvModal = document.getElementById("cvModal")
+  const editCvBtn = document.getElementById("editCvBtn")
+  const editCvModal = document.getElementById("editCvModal")
+  const editCvForm = document.getElementById("editCvForm")
+  const cvContent = document.getElementById("cvContent")
+  const uploadCvBtn = document.getElementById("uploadCvBtn")
+  const cvFileInput = document.getElementById("cvFileInput")
+
   if (cvBtn && cvModal) {
     cvBtn.addEventListener("click", () => {
       cvModal.style.display = "block"
       updateDateTime("cvDatetime")
     })
+  }
+
+  if (editCvBtn && editCvModal && editCvForm) {
+    editCvBtn.addEventListener("click", () => {
+      const currentText = cvContent?.innerHTML || ""
+      const textInput = document.getElementById("editCvText")
+      if (textInput) textInput.value = currentText
+      editCvModal.style.display = "block"
+    })
+
+    editCvForm.addEventListener("submit", (e) => {
+      e.preventDefault()
+      const newText = document.getElementById("editCvText")?.value || ""
+      if (cvContent) cvContent.innerHTML = newText
+      storage.setLocal("cvContent", newText)
+      editCvModal.style.display = "none"
+    })
+  }
+
+  if (uploadCvBtn && cvFileInput) {
+    uploadCvBtn.addEventListener("click", () => {
+      cvFileInput.click()
+    })
+
+    cvFileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0]
+      if (file) {
+        const cvFileName = document.getElementById("cvFileName")
+        const cvFileDisplay = document.getElementById("cvFileDisplay")
+        if (cvFileName) cvFileName.textContent = file.name
+        if (cvFileDisplay) cvFileDisplay.style.display = "block"
+        storage.setLocal("cvFileName", file.name)
+      }
+    })
+  }
+
+  const savedCv = storage.getLocal("cvContent")
+  if (savedCv && cvContent) cvContent.innerHTML = savedCv
+
+  const savedCvFile = storage.getLocal("cvFileName")
+  if (savedCvFile) {
+    const cvFileName = document.getElementById("cvFileName")
+    const cvFileDisplay = document.getElementById("cvFileDisplay")
+    if (cvFileName) cvFileName.textContent = savedCvFile
+    if (cvFileDisplay) cvFileDisplay.style.display = "block"
   }
 
   const editHeroBtn = document.getElementById("editHeroBtn")
@@ -260,6 +454,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const browserAPIs = new BrowserAPIsManager(storage)
   const youtubeManager = new YouTubeManager(storage)
   const journalManager = new JournalManager(storage, browserAPIs)
+  const projectsManager = new ProjectsManager(storage, browserAPIs)
 
   journalManager.setValidationManager(browserAPIs)
 
@@ -268,7 +463,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initializeOtherModals(storage)
 })
 
-// Declare BrowserAPIsManager and YouTubeManager classes or import them here
 class BrowserAPIsManager {
   constructor(storage) {
     this.storage = storage
