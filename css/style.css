@@ -110,6 +110,39 @@ body.dark-mode .theme-toggle:hover {
   color: #1a202c;
 }
 
+/* Added browser API button styling */
+.browser-api-btn {
+  background: transparent;
+  border: 2px solid #48bb78;
+  color: #48bb78;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+}
+
+.browser-api-btn:hover {
+  background: #48bb78;
+  color: white;
+  transform: scale(1.1);
+}
+
+.browser-api-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+body.dark-mode .browser-api-btn {
+  border-color: #68d391;
+  color: #68d391;
+}
+
+body.dark-mode .browser-api-btn:hover {
+  background: #68d391;
+  color: #1a202c;
+}
+
 nav ul.nav-list {
   list-style: none;
   display: flex;
@@ -150,6 +183,34 @@ nav ul.nav-list li a.active {
   color: white;
   font-size: 1rem;
   font-weight: 600;
+}
+
+/* Added location display styling */
+.location-display {
+  text-align: center;
+  color: white;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.copy-btn {
+  background: white;
+  color: #2c5282;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  margin-left: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.copy-btn:hover {
+  background: #e2e8f0;
+  transform: scale(1.05);
 }
 
 /* ============================================
@@ -489,6 +550,33 @@ body.dark-mode .gradient-text {
   min-height: 150px;
 }
 
+/* Added validation styling */
+.required {
+  color: #e53e3e;
+  font-weight: bold;
+}
+
+.error-message {
+  display: none;
+  color: #e53e3e;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  font-weight: 600;
+}
+
+.form-group input.invalid,
+.form-group textarea.invalid {
+  border-color: #e53e3e;
+  background: rgba(229, 62, 62, 0.05);
+}
+
+.character-count {
+  text-align: right;
+  font-size: 0.875rem;
+  color: var(--text-tertiary);
+  margin-top: 0.25rem;
+}
+
 .edit-form {
   padding: 1rem 0;
 }
@@ -570,6 +658,24 @@ body.dark-mode .project-entry h3 {
   color: var(--text-tertiary);
   font-size: 0.875rem;
   transition: color 0.3s ease;
+}
+
+/* Added copy entry button styling */
+.copy-entry-btn {
+  background: #48bb78;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  margin-top: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.copy-entry-btn:hover {
+  background: #38a169;
+  transform: translateY(-2px);
 }
 
 .files-list {
@@ -744,6 +850,18 @@ body.dark-mode .youtube-section h3 {
 .control-btn:hover {
   background: #2a4365;
   transform: translateY(-2px);
+}
+
+/* Added video status styling */
+.video-status {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: var(--bg-accent);
+  border-radius: 4px;
+  text-align: center;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
 }
 
 /* ============================================
