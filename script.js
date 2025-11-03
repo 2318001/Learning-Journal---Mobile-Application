@@ -85,13 +85,17 @@ class JournalManager {
     }
 
     try {
+      console.log("🔄 Starting to save journal entry...", entry)
+      
       // Save to IndexedDB
-      await this.storage.addToIndexedDB("journals", entry)
+      const indexedDBResult = await this.storage.addToIndexedDB("journals", entry)
+      console.log("✅ Saved to IndexedDB:", indexedDBResult)
       
       // Also save to localStorage as backup
       const localJournals = this.storage.getLocal("journals") || []
       localJournals.push(entry)
       this.storage.setLocal("journals", localJournals)
+      console.log("✅ Saved to localStorage")
 
       // Reset form
       this.journalForm.reset()
@@ -104,30 +108,44 @@ class JournalManager {
       // Reload and display entries
       await this.loadJournals()
       
-      alert("Journal entry saved successfully!")
+      alert("✅ Journal entry saved successfully!")
     } catch (error) {
-      console.error("Error saving journal:", error)
-      alert("Error saving journal entry. Please try again.")
+      console.error("❌ Error saving journal:", error)
+      alert("❌ Error saving journal entry. Please try again.")
     }
   }
 
   async loadJournals() {
     try {
+      console.log("🔄 Loading journals...")
+      
+      let journals = []
+      let source = "none"
+
       // Try IndexedDB first
-      let journals = await this.storage.getAllFromIndexedDB("journals")
+      try {
+        journals = await this.storage.getAllFromIndexedDB("journals")
+        source = "IndexedDB"
+        console.log(`📖 Loaded ${journals.length} journals from ${source}:`, journals)
+      } catch (indexedDBError) {
+        console.warn("⚠️ IndexedDB error, falling back to localStorage:", indexedDBError)
+      }
       
       // Fallback to localStorage if IndexedDB fails or returns empty
       if (!journals || journals.length === 0) {
         journals = this.storage.getLocal("journals") || []
+        source = "localStorage"
+        console.log(`📖 Loaded ${journals.length} journals from ${source}:`, journals)
       }
 
-      console.log("Loaded journals:", journals) // Debug log
-
       if (journals.length === 0) {
+        console.log("📭 No journals found")
         if (this.journalEmptyState) this.journalEmptyState.style.display = "block"
         if (this.journalEntries) this.journalEntries.innerHTML = ""
         return
       }
+
+      console.log(`🎉 Found ${journals.length} journals from ${source}`)
 
       if (this.journalEmptyState) this.journalEmptyState.style.display = "none"
 
@@ -137,7 +155,7 @@ class JournalManager {
       if (this.journalEntries) {
         this.journalEntries.innerHTML = journals
           .map(
-            (entry, index) => `
+            (entry) => `
           <div class="journal-entry">
             <div class="entry-header">
               <h3>${this.escapeHtml(entry.title)}</h3>
@@ -148,11 +166,14 @@ class JournalManager {
         `
           )
           .join("")
+        console.log("✅ Journals displayed in UI")
       }
     } catch (error) {
-      console.error("Error loading journals:", error)
-      // Fallback to localStorage
+      console.error("❌ Error loading journals:", error)
+      // Final fallback to localStorage
       const localJournals = this.storage.getLocal("journals") || []
+      console.log("🔄 Final fallback to localStorage:", localJournals)
+      
       if (localJournals.length === 0) {
         if (this.journalEmptyState) this.journalEmptyState.style.display = "block"
       } else {
@@ -279,39 +300,57 @@ class ProjectsManager {
     }
 
     try {
+      console.log("🔄 Starting to save project...", project)
+      
       await this.storage.addToIndexedDB("projects", project)
+      console.log("✅ Saved to IndexedDB")
       
       // Also save to localStorage as backup
       const localProjects = this.storage.getLocal("projects") || []
       localProjects.push(project)
       this.storage.setLocal("projects", localProjects)
+      console.log("✅ Saved to localStorage")
 
       this.projectForm.reset()
       this.projectForm.style.display = "none"
       await this.loadProjects()
       
-      alert("Project saved successfully!")
+      alert("✅ Project saved successfully!")
     } catch (error) {
-      console.error("Error saving project:", error)
-      alert("Error saving project. Please try again.")
+      console.error("❌ Error saving project:", error)
+      alert("❌ Error saving project. Please try again.")
     }
   }
 
   async loadProjects() {
     try {
-      let projects = await this.storage.getAllFromIndexedDB("projects")
+      console.log("🔄 Loading projects...")
+      
+      let projects = []
+      let source = "none"
+
+      try {
+        projects = await this.storage.getAllFromIndexedDB("projects")
+        source = "IndexedDB"
+        console.log(`📖 Loaded ${projects.length} projects from ${source}:`, projects)
+      } catch (indexedDBError) {
+        console.warn("⚠️ IndexedDB error, falling back to localStorage:", indexedDBError)
+      }
       
       if (!projects || projects.length === 0) {
         projects = this.storage.getLocal("projects") || []
+        source = "localStorage"
+        console.log(`📖 Loaded ${projects.length} projects from ${source}:`, projects)
       }
 
-      console.log("Loaded projects:", projects) // Debug log
-
       if (projects.length === 0) {
+        console.log("📭 No projects found")
         if (this.projectsEmptyState) this.projectsEmptyState.style.display = "block"
         if (this.projectsList) this.projectsList.innerHTML = ""
         return
       }
+
+      console.log(`🎉 Found ${projects.length} projects from ${source}`)
 
       if (this.projectsEmptyState) this.projectsEmptyState.style.display = "none"
 
@@ -331,10 +370,13 @@ class ProjectsManager {
         `
           )
           .join("")
+        console.log("✅ Projects displayed in UI")
       }
     } catch (error) {
-      console.error("Error loading projects:", error)
+      console.error("❌ Error loading projects:", error)
       const localProjects = this.storage.getLocal("projects") || []
+      console.log("🔄 Final fallback to localStorage:", localProjects)
+      
       if (localProjects.length === 0) {
         if (this.projectsEmptyState) this.projectsEmptyState.style.display = "block"
       } else {
@@ -422,10 +464,23 @@ function initializeModals() {
 }
 
 // ... keep the rest of your initializeOtherModals function as it is ...
-// ... keep the DOMContentLoaded event listener as it is ...
+
+document.addEventListener("DOMContentLoaded", () => {
+  const storage = new StorageManager()
+  const browserAPIs = new BrowserAPIsManager(storage)
+  const youtubeManager = new YouTubeManager(storage)
+  const journalManager = new JournalManager(storage, browserAPIs)
+  const projectsManager = new ProjectsManager(storage, browserAPIs)
+
+  journalManager.setValidationManager(browserAPIs)
+
+  startPageDateTime()
+  initializeModals()
+  initializeOtherModals(storage)
+})
 
 // REMOVE THESE DUPLICATE CLASSES FROM THE BOTTOM:
-
+/*
 class BrowserAPIsManager {
   constructor(storage) {
     this.storage = storage
@@ -472,3 +527,4 @@ class StorageManager {
     localStorage.removeItem(key)
   }
 }
+*/
