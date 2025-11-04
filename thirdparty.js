@@ -11,7 +11,7 @@ class YouTubeManager {
     // Wait for YouTube API to be ready
     window.onYouTubeIframeAPIReady = () => {
       this.isAPIReady = true
-      console.log("[v0] YouTube API is ready")
+      console.log(" YouTube API is ready")
     }
 
     // Set up event listeners

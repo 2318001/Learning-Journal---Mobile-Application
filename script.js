@@ -1,3 +1,11 @@
+/* ===== cleaned script.js =====
+  - Single modal system (setupModalSystem)
+  - Managers keep form/DB logic but DO NOT bind nav open clicks themselves
+  - This file MUST be loaded after storage.js, browser.js, thirdparty.js
+*/
+
+// -------------------- Managers --------------------
+
 class JournalManager {
   constructor(storage, browserAPIs) {
     this.storage = storage
@@ -9,6 +17,7 @@ class JournalManager {
     this.resetJournalBtn = document.getElementById("resetJournalBtn")
     this.journalEntries = document.getElementById("journalEntries")
     this.journalEmptyState = document.getElementById("journalEmptyState")
+    this.validationManager = null
 
     this.init()
   }
@@ -16,9 +25,7 @@ class JournalManager {
   async init() {
     await this.loadJournals()
 
-    if (this.journalBtn) {
-      this.journalBtn.addEventListener("click", () => this.openModal())
-    }
+    // NOTE: we do NOT attach click to journalBtn here (global modal system does)
     if (this.journalSettingsBtn) {
       this.journalSettingsBtn.addEventListener("click", () => this.toggleForm())
     }
@@ -30,10 +37,16 @@ class JournalManager {
     }
   }
 
+  setValidationManager(manager) {
+    this.validationManager = manager
+  }
+
   openModal() {
     if (this.journalModal) {
       this.journalModal.style.display = "block"
       updateDateTime("journalDatetime")
+      // Hide the form initially if there are no entries or we want default collapsed
+      if (this.journalForm) this.journalForm.style.display = "none"
     }
   }
 
@@ -45,7 +58,7 @@ class JournalManager {
       if (isHidden && this.journalEmptyState) {
         this.journalEmptyState.style.display = "none"
       } else {
-        this.loadJournals() // Reload to show/hide empty state
+        this.loadJournals()
       }
     }
   }
@@ -53,7 +66,7 @@ class JournalManager {
   async handleSubmit(e) {
     e.preventDefault()
 
-    if (this.browserAPIs && !this.browserAPIs.validateForm(this.journalForm)) {
+    if (this.validationManager && !this.validationManager.validateForm(this.journalForm)) {
       alert("Please fix the errors in the form before submitting.")
       return
     }
@@ -63,21 +76,24 @@ class JournalManager {
 
     if (!titleInput || !contentInput) return
 
-    const title = titleInput.value
-    const content = contentInput.value
-
     const entry = {
-      title,
-      content,
+      title: titleInput.value,
+      content: contentInput.value,
       timestamp: new Date().toISOString(),
       dateString: new Date().toLocaleString(),
     }
 
     try {
-      await this.storage.addToIndexedDB("journals", entry)
+      if (this.storage && typeof this.storage.addToIndexedDB === "function") {
+        await this.storage.addToIndexedDB("journals", entry)
+      }
+      // keep a local copy as well (non-essential)
+      const localJournals = this.storage.getLocal("journals") || []
+      localJournals.unshift(entry)
+      this.storage.setLocal("journals", localJournals)
 
       this.journalForm.reset()
-      this.journalForm.style.display = "none"
+      if (this.journalForm) this.journalForm.style.display = "none"
       const charCount = document.getElementById("charCount")
       if (charCount) charCount.textContent = "0"
       await this.loadJournals()
@@ -89,9 +105,14 @@ class JournalManager {
 
   async loadJournals() {
     try {
-      const journals = await this.storage.getAllFromIndexedDB("journals")
+      let journals = []
+      if (this.storage && typeof this.storage.getAllFromIndexedDB === "function") {
+        journals = await this.storage.getAllFromIndexedDB("journals")
+      } else {
+        journals = this.storage.getLocal("journals") || []
+      }
 
-      if (journals.length === 0) {
+      if (!Array.isArray(journals) || journals.length === 0) {
         if (this.journalEmptyState) this.journalEmptyState.style.display = "block"
         if (this.journalEntries) this.journalEntries.innerHTML = ""
         return
@@ -99,19 +120,18 @@ class JournalManager {
 
       if (this.journalEmptyState) this.journalEmptyState.style.display = "none"
 
-      // Sort by date (newest first)
       journals.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
 
       if (this.journalEntries) {
         this.journalEntries.innerHTML = journals
           .map(
-            (entry, index) => `
-          <div class="journal-entry">
-            <h3>${this.escapeHtml(entry.title)}</h3>
-            <p>${this.escapeHtml(entry.content)}</p>
-            <small>Created: ${entry.dateString}</small>
-          </div>
-        `,
+            (entry) => `
+            <div class="journal-entry">
+              <h3>${this.escapeHtml(entry.title)}</h3>
+              <p>${this.escapeHtml(entry.content)}</p>
+              <small>Created: ${entry.dateString}</small>
+            </div>
+          `,
           )
           .join("")
       }
@@ -121,14 +141,16 @@ class JournalManager {
   }
 
   async resetJournals() {
-    if (confirm("Are you sure you want to delete all journal entries? This cannot be undone.")) {
-      try {
+    if (!confirm("Are you sure you want to delete all journal entries? This cannot be undone.")) return
+    try {
+      if (this.storage && typeof this.storage.clearIndexedDB === "function") {
         await this.storage.clearIndexedDB("journals")
-        await this.loadJournals()
-      } catch (error) {
-        console.error("Error clearing journals:", error)
-        alert("Error clearing journals. Please try again.")
       }
+      this.storage.removeLocal("journals")
+      await this.loadJournals()
+    } catch (error) {
+      console.error("Error clearing journals:", error)
+      alert("Error clearing journals. Please try again.")
     }
   }
 
@@ -157,9 +179,7 @@ class ProjectsManager {
   async init() {
     await this.loadProjects()
 
-    if (this.projectsBtn) {
-      this.projectsBtn.addEventListener("click", () => this.openModal())
-    }
+    // DO NOT attach click to projectsBtn here (global modal system does)
     if (this.projectsSettingsBtn) {
       this.projectsSettingsBtn.addEventListener("click", () => this.toggleForm())
     }
@@ -175,6 +195,7 @@ class ProjectsManager {
     if (this.projectsModal) {
       this.projectsModal.style.display = "block"
       updateDateTime("projectsDatetime")
+      if (this.projectForm) this.projectForm.style.display = "none"
     }
   }
 
@@ -182,11 +203,10 @@ class ProjectsManager {
     if (this.projectForm) {
       const isHidden = this.projectForm.style.display === "none"
       this.projectForm.style.display = isHidden ? "block" : "none"
-      // Hide empty state when form is shown
       if (isHidden && this.projectsEmptyState) {
         this.projectsEmptyState.style.display = "none"
       } else {
-        this.loadProjects() // Reload to show/hide empty state
+        this.loadProjects()
       }
     }
   }
@@ -212,9 +232,17 @@ class ProjectsManager {
     }
 
     try {
-      await this.storage.addToIndexedDB("projects", project)
+      if (this.storage && typeof this.storage.addToIndexedDB === "function") {
+        await this.storage.addToIndexedDB("projects", project)
+      }
       this.projectForm.reset()
-      this.projectForm.style.display = "none"
+      if (this.projectForm) this.projectForm.style.display = "none"
+
+      // Maintain local copy
+      const localProjects = this.storage.getLocal("projects") || []
+      localProjects.unshift(project)
+      this.storage.setLocal("projects", localProjects)
+
       await this.loadProjects()
     } catch (error) {
       console.error("Error saving project:", error)
@@ -224,9 +252,14 @@ class ProjectsManager {
 
   async loadProjects() {
     try {
-      const projects = await this.storage.getAllFromIndexedDB("projects")
+      let projects = []
+      if (this.storage && typeof this.storage.getAllFromIndexedDB === "function") {
+        projects = await this.storage.getAllFromIndexedDB("projects")
+      } else {
+        projects = this.storage.getLocal("projects") || []
+      }
 
-      if (projects.length === 0) {
+      if (!Array.isArray(projects) || projects.length === 0) {
         if (this.projectsEmptyState) this.projectsEmptyState.style.display = "block"
         if (this.projectsList) this.projectsList.innerHTML = ""
         return
@@ -234,19 +267,18 @@ class ProjectsManager {
 
       if (this.projectsEmptyState) this.projectsEmptyState.style.display = "none"
 
-      // Sort by date (newest first)
       projects.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
 
       if (this.projectsList) {
         this.projectsList.innerHTML = projects
           .map(
             (project) => `
-          <div class="project-card">
-            <h3>${this.escapeHtml(project.title)}</h3>
-            <p>${this.escapeHtml(project.description)}</p>
-            <small>Created: ${project.dateString}</small>
-          </div>
-        `,
+            <div class="project-card">
+              <h3>${this.escapeHtml(project.title)}</h3>
+              <p>${this.escapeHtml(project.description)}</p>
+              <small>Created: ${project.dateString}</small>
+            </div>
+          `,
           )
           .join("")
       }
@@ -256,14 +288,16 @@ class ProjectsManager {
   }
 
   async resetProjects() {
-    if (confirm("Are you sure you want to delete all projects? This cannot be undone.")) {
-      try {
+    if (!confirm("Are you sure you want to delete all projects? This cannot be undone.")) return
+    try {
+      if (this.storage && typeof this.storage.clearIndexedDB === "function") {
         await this.storage.clearIndexedDB("projects")
-        await this.loadProjects()
-      } catch (error) {
-        console.error("Error clearing projects:", error)
-        alert("Error clearing projects. Please try again.")
       }
+      this.storage.removeLocal("projects")
+      await this.loadProjects()
+    } catch (error) {
+      console.error("Error clearing projects:", error)
+      alert("Error clearing projects. Please try again.")
     }
   }
 
@@ -273,6 +307,8 @@ class ProjectsManager {
     return div.innerHTML
   }
 }
+
+// -------------------- Utility: Date/time --------------------
 
 function updateDateTime(elementId) {
   const element = document.getElementById(elementId)
@@ -295,16 +331,28 @@ function startPageDateTime() {
   setInterval(() => updateDateTime("pageDateTime"), 1000)
 }
 
-function initializeModals() {
-  const modals = document.querySelectorAll(".modal")
-  const closeButtons = document.querySelectorAll(".close-button")
+// -------------------- Single global modal system --------------------
 
-  closeButtons.forEach((button) => {
-    button.addEventListener("click", function () {
-      this.closest(".modal").style.display = "none"
+/*
+  - Handles:
+    * close-button elements
+    * click outside modal to close
+    * openers by data-open="modalId"
+    * fallback for nav ids: journalBtn/projectsBtn/aboutBtn/cvBtn
+    * when opening, it will call manager.openModal() if provided (keeps managers in control of their internal state)
+*/
+function setupModalSystem(managers = {}) {
+  const modals = document.querySelectorAll(".modal")
+
+  // Close buttons inside modals
+  document.querySelectorAll(".close-button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const modal = btn.closest(".modal")
+      if (modal) modal.style.display = "none"
     })
   })
 
+  // Click outside to close
   window.addEventListener("click", (event) => {
     modals.forEach((modal) => {
       if (event.target === modal) {
@@ -313,30 +361,59 @@ function initializeModals() {
     })
   })
 
-  // Initialize navigation buttons
-  const navButtons = {
+  // Generic openers: data-open="modalId"
+  document.querySelectorAll("[data-open]").forEach((el) => {
+    const modalId = el.getAttribute("data-open")
+    const modal = document.getElementById(modalId)
+    if (!modal) return
+
+    el.addEventListener("click", (e) => {
+      e.preventDefault()
+      // If a manager is provided for this modal (journal/projects), prefer calling its openModal()
+      if (modalId === "journalModal" && managers.journalManager && typeof managers.journalManager.openModal === "function") {
+        managers.journalManager.openModal()
+      } else if (modalId === "projectsModal" && managers.projectsManager && typeof managers.projectsManager.openModal === "function") {
+        managers.projectsManager.openModal()
+      } else {
+        modal.style.display = "block"
+        // update associated datetime if present
+        const dtId = modalId.replace("Modal", "Datetime")
+        updateDateTime(dtId)
+      }
+    })
+  })
+
+  // Fallback: support the existing nav ids without changing HTML
+  const navMap = {
     journalBtn: "journalModal",
     projectsBtn: "projectsModal",
     aboutBtn: "aboutModal",
-    cvBtn: "cvModal"
+    cvBtn: "cvModal",
   }
 
-  Object.entries(navButtons).forEach(([btnId, modalId]) => {
+  Object.entries(navMap).forEach(([btnId, modalId]) => {
     const button = document.getElementById(btnId)
     const modal = document.getElementById(modalId)
-    
-    if (button && modal) {
-      button.addEventListener("click", (e) => {
-        e.preventDefault()
+    if (!button || !modal) return
+
+    button.addEventListener("click", (e) => {
+      e.preventDefault()
+      if (modalId === "journalModal" && managers.journalManager && typeof managers.journalManager.openModal === "function") {
+        managers.journalManager.openModal()
+      } else if (modalId === "projectsModal" && managers.projectsManager && typeof managers.projectsManager.openModal === "function") {
+        managers.projectsManager.openModal()
+      } else {
         modal.style.display = "block"
         updateDateTime(modalId.replace("Modal", "Datetime"))
-      })
-    }
+      }
+    })
   })
 }
 
+// -------------------- initializeOtherModals (About/CV/Hero/YT) --------------------
+
 function initializeOtherModals(storage) {
-  // About section functionality
+  // About
   const editAboutBtn = document.getElementById("editAboutBtn")
   const uploadAboutBtn = document.getElementById("uploadAboutBtn")
   const aboutFileInput = document.getElementById("aboutFileInput")
@@ -384,7 +461,7 @@ function initializeOtherModals(storage) {
   const savedAbout = storage.getLocal("aboutContent")
   if (savedAbout && aboutContent) aboutContent.textContent = savedAbout
 
-  // CV section functionality
+  // CV
   const editCvBtn = document.getElementById("editCvBtn")
   const editCvModal = document.getElementById("editCvModal")
   const editCvForm = document.getElementById("editCvForm")
@@ -459,7 +536,7 @@ function initializeOtherModals(storage) {
     if (cvFileDisplay) cvFileDisplay.style.display = "block"
   }
 
-  // Hero section functionality
+  // Hero section edits
   const editHeroBtn = document.getElementById("editHeroBtn")
   const editHeroModal = document.getElementById("editHeroModal")
   const editHeroForm = document.getElementById("editHeroForm")
@@ -507,23 +584,35 @@ function initializeOtherModals(storage) {
   if (savedDesc && heroDesc) heroDesc.textContent = savedDesc
 }
 
-// Wait for all dependencies to be loaded
-window.addEventListener('DOMContentLoaded', () => {
-  // Check if required classes are available
-  if (typeof StorageManager === 'undefined' || typeof BrowserAPIsManager === 'undefined' || typeof YouTubeManager === 'undefined') {
-    console.error('Required classes not loaded. Check script order.')
-    return;
+// -------------------- DOMContentLoaded: bootstrapping --------------------
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Expect StorageManager, BrowserAPIsManager, YouTubeManager to be provided by other JS files
+  if (typeof StorageManager === "undefined") {
+    console.error("StorageManager not found. Make sure storage.js is loaded before script.js")
+    return
+  }
+  if (typeof BrowserAPIsManager === "undefined") {
+    console.error("BrowserAPIsManager not found. Make sure browser.js is loaded before script.js")
+    return
   }
 
   const storage = new StorageManager()
   const browserAPIs = new BrowserAPIsManager(storage)
-  const youtubeManager = new YouTubeManager(storage)
+  const youtubeManager = (typeof YouTubeManager !== "undefined") ? new YouTubeManager(storage) : null
   const journalManager = new JournalManager(storage, browserAPIs)
   const projectsManager = new ProjectsManager(storage, browserAPIs)
 
+  // Provide validation manager to journal
+  if (browserAPIs && typeof journalManager.setValidationManager === "function") {
+    journalManager.setValidationManager(browserAPIs)
+  }
+
+  // Start clocks and modals
   startPageDateTime()
-  initializeModals()
+  // Single modal system: pass managers so it can call their openModal() when appropriate
+  setupModalSystem({ journalManager, projectsManager })
   initializeOtherModals(storage)
-  
-  console.log('Learning Journal PWA initialized successfully')
+
+  console.log("Clean script.js initialized")
 })
