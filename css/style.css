@@ -1095,3 +1095,61 @@ body.dark-mode .youtube-section h3 {
     margin-bottom: 0.25rem;
   }
 }
+
+
+/* ============================================
+   ADDITIONAL RESPONSIVE STYLES
+   ============================================ */
+/* Responsive button styles */
+.modal-header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.button-group {
+  display: flex;
+  gap: 8px;
+}
+
+.settings-btn, .reset-btn, .edit-btn, .upload-btn {
+  min-width: 40px;
+  min-height: 40px;
+  padding: 8px 12px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .modal-header-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .button-group {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .settings-btn, .reset-btn, .edit-btn, .upload-btn {
+    flex: 1;
+    min-width: auto;
+    font-size: 12px;
+    padding: 10px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .button-group {
+    flex-wrap: wrap;
+  }
+  
+  .settings-btn, .reset-btn, .edit-btn, .upload-btn {
+    flex: 1 0 45%;
+    margin-bottom: 5px;
+  }
+}
