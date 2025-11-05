@@ -142,6 +142,7 @@ body.dark-mode .browser-api-btn:hover {
   background: #68d391;
   color: #1a202c;
 }
+/* Navigation with 3 consistent items */
 
 nav ul.nav-list {
   list-style: none;
@@ -186,6 +187,7 @@ nav ul.nav-list li a.active {
 }
 
 /* Added location display styling */
+
 .location-display {
   text-align: center;
   color: white;
@@ -212,7 +214,7 @@ nav ul.nav-list li a.active {
   background: #e2e8f0;
   transform: scale(1.05);
 }
-
+*/
 /* ============================================
    MAIN CONTENT - HOME PAGE
    ============================================ */
