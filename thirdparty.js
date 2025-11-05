@@ -11,7 +11,7 @@ class YouTubeManager {
     // Wait for YouTube API to be ready
     window.onYouTubeIframeAPIReady = () => {
       this.isAPIReady = true
-      console.log("[v0] YouTube API is ready")
+      console.log(" YouTube API is ready")
     }
 
     // Set up event listeners
@@ -26,7 +26,7 @@ class YouTubeManager {
     if (loadVideoBtn) {
       loadVideoBtn.addEventListener("click", (e) => {
         e.preventDefault()
-        console.log("[v0] Load video button clicked")
+        console.log("Load video button clicked")
         this.loadVideo()
       })
     }
@@ -42,7 +42,7 @@ class YouTubeManager {
     const videoInput = document.getElementById("youtubeVideoId")
     if (savedVideoId && videoInput) {
       videoInput.value = savedVideoId
-      console.log("[v0] Loaded saved YouTube video ID:", savedVideoId)
+      console.log("Loaded saved YouTube video ID:", savedVideoId)
     }
   }
 
@@ -50,7 +50,7 @@ class YouTubeManager {
     if (!input) return null
 
     input = input.trim()
-    console.log("[v0] Extracting video ID from:", input)
+    console.log(" Extracting video ID from:", input)
 
     // Check if it's already a video ID (11 characters with alphanumeric, dash, underscore)
     if (/^[a-zA-Z0-9_-]+$/.test(input)) {
@@ -61,25 +61,25 @@ class YouTubeManager {
     // Extract from full YouTube URL: https://www.youtube.com/watch?v=VIDEO_ID
     const urlMatch = input.match(/[?&]v=([a-zA-Z0-9_-]+)/)
     if (urlMatch && urlMatch[1]) {
-      console.log("[v0] Extracted from full URL:", urlMatch[1])
+      console.log(" Extracted from full URL:", urlMatch[1])
       return urlMatch[1]
     }
 
     // Extract from short URL: https://youtu.be/VIDEO_ID
     const shortMatch = input.match(/youtu\.be\/([a-zA-Z0-9_-]+)/)
     if (shortMatch && shortMatch[1]) {
-      console.log("[v0] Extracted from short URL:", shortMatch[1])
+      console.log("Extracted from short URL:", shortMatch[1])
       return shortMatch[1]
     }
 
     // Extract from youtube.com/watch format (alternative)
     const watchMatch = input.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/)
     if (watchMatch && watchMatch[1]) {
-      console.log("[v0] Extracted from watch URL:", watchMatch[1])
+      console.log("Extracted from watch URL:", watchMatch[1])
       return watchMatch[1]
     }
 
-    console.log("[v0] No valid video ID found")
+    console.log("No valid video ID found")
     return null
   }
 
@@ -88,16 +88,16 @@ class YouTubeManager {
     const videoStatus = document.getElementById("videoStatus")
 
     if (!videoInput || !videoStatus) {
-      console.error("[v0] Video input or status element not found")
+      console.error(" Video input or status element not found")
       return
     }
 
-    console.log("[v0] Video input value:", videoInput.value)
+    console.log("Video input value:", videoInput.value)
     const videoId = this.extractVideoId(videoInput.value)
-    console.log("[v0] Extracted video ID:", videoId)
+    console.log("Extracted video ID:", videoId)
 
     if (!videoId) {
-      videoStatus.textContent = "❌ Please enter a valid YouTube Video ID or URL"
+      videoStatus.textContent = " Please enter a valid YouTube Video ID or URL"
       videoStatus.style.color = "#e53e3e"
       console.error("[v0] Invalid video ID or URL")
       return
@@ -108,20 +108,20 @@ class YouTubeManager {
 
     // Create or update player
     if (this.player) {
-      console.log("[v0] Updating existing player with video ID:", videoId)
+      console.log(" Updating existing player with video ID:", videoId)
       this.player.loadVideoById(videoId)
-      videoStatus.textContent = "✅ Video loaded successfully!"
+      videoStatus.textContent = "Video loaded successfully!"
       videoStatus.style.color = "#48bb78"
     } else {
       const YT = window.YT
       if (!YT) {
-        videoStatus.textContent = "⏳ YouTube API is loading... Please try again in a moment."
+        videoStatus.textContent = "YouTube API is loading... Please try again in a moment."
         videoStatus.style.color = "#f6ad55"
-        console.warn("[v0] YouTube API not ready yet")
+        console.warn("YouTube API not ready yet")
         return
       }
 
-      console.log("[v0] Creating new YouTube player with video ID:", videoId)
+      console.log(" Creating new YouTube player with video ID:", videoId)
       this.player = new YT.Player("youtubePlayer", {
         height: "390",
         width: "100%",
@@ -131,10 +131,10 @@ class YouTubeManager {
         },
         events: {
           onReady: (event) => {
-            console.log("[v0] YouTube player is ready")
+            console.log(" YouTube player is ready")
             const controls = document.getElementById("videoControls")
             if (controls) controls.style.display = "flex"
-            videoStatus.textContent = "✅ Video loaded and ready to play!"
+            videoStatus.textContent = "Video loaded and ready to play!"
             videoStatus.style.color = "#48bb78"
           },
           onStateChange: (event) => {
@@ -142,7 +142,7 @@ class YouTubeManager {
           },
           onError: (event) => {
             console.error("[v0] YouTube player error:", event.data)
-            videoStatus.textContent = "❌ Error loading video. Please check the video ID or URL."
+            videoStatus.textContent = "Error loading video. Please check the video ID or URL."
             videoStatus.style.color = "#e53e3e"
           },
         },
