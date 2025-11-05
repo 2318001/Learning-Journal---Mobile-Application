@@ -327,14 +327,14 @@ class ProjectsManager {
                 <small>${project.dateString}</small>
               </div>
               <p>${this.escapeHtml(project.description)}</p>
-              <!-- ADDED: Added data-project-index and download button with proper event handling -->
+              <!-- Store entire project object as data attribute instead of just index -->
               ${
                 project.fileName
                   ? `
                 <div class="project-file">
                   <strong>File:</strong> ${this.escapeHtml(project.fileName)}
                   ${project.fileSize ? `<br><small>Size: ${this.formatFileSize(project.fileSize)}</small>` : ""}
-                  <button class="download-btn" data-project-index="${index}">Download</button>
+                  <button class="download-btn" data-project-json='${JSON.stringify(project)}'>Download</button>
                 </div>
               `
                   : ""
@@ -347,8 +347,9 @@ class ProjectsManager {
         document.querySelectorAll(".download-btn").forEach((btn) => {
           btn.addEventListener("click", (e) => {
             e.preventDefault()
-            const index = btn.getAttribute("data-project-index")
-            this.downloadProjectFile(index, projects)
+            const projectJson = btn.getAttribute("data-project-json")
+            const project = JSON.parse(projectJson)
+            this.downloadProjectFile(project)
           })
         })
       }
@@ -357,8 +358,7 @@ class ProjectsManager {
     }
   }
 
-  downloadProjectFile(index, projects) {
-    const project = projects[index]
+  downloadProjectFile(project) {
     if (!project || !project.fileData || !project.fileName) {
       alert("File data not found. Please try again.")
       return
@@ -777,4 +777,3 @@ document.addEventListener("DOMContentLoaded", () => {
 
   console.log("Learning Journal worked successfully")
 })
-new
