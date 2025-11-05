@@ -776,4 +776,3 @@ document.addEventListener("DOMContentLoaded", () => {
   initializeOtherModals(storage)
 
   console.log("Learning Journal worked successfully")
-}
