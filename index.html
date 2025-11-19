@@ -81,284 +81,9 @@
         </div>
     </main>
 
-    <!-- FOOTER -->
-    <footer class="site-footer">
-        <div class="container">
-            <p>&copy; 2025 Rajan KC - Learning Journal</p>
-        </div>
-    </footer>
-
-
-    <!--  HERO EDIT MODAL -->
-    <div id="editHeroModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-
-            <h2 class="gradient-text">Edit Introduction</h2>
-
-            <form id="editHeroForm" class="edit-form">
-                <div class="form-group">
-                    <label for="editHeroName">Name/Greeting <span class="required">*</span></label>
-                    <input type="text" id="editHeroName" required minlength="2" maxlength="100">
-                </div>
-
-                <div class="form-group">
-                    <label for="editHeroDesc">Description <span class="required">*</span></label>
-                    <textarea id="editHeroDesc" rows="5" required minlength="10" maxlength="500"></textarea>
-                </div>
-
-                <button type="submit" class="cta-btn primary">Save Changes</button>
-            </form>
-        </div>
-    </div>
-
-
-    <!--  JOURNAL MODAL -->
-    <div id="journalModal" class="modal">
-        <div class="modal-content">
-
-            <span class="close-button">&times;</span>
-
-            <div id="journalDatetime" class="datetime"></div>
-
-            <div class="modal-header-actions">
-                <h2 class="gradient-text">My Journal</h2>
-                <div class="button-group">
-                    <button class="settings-btn" id="journalSettingsBtn">Add</button>
-                    <button class="reset-btn" id="resetJournalBtn">Reset</button>
-                </div>
-            </div>
-
-            <form id="journalForm" class="journal-form" style="display: none;">
-
-                <div class="form-group">
-                    <label for="journalTitle">Title <span class="required">*</span></label>
-                    <input id="journalTitle" type="text" required minlength="3" maxlength="100"
-                        aria-describedby="titleError">
-                    <span class="error-message" id="titleError"></span>
-                </div>
-
-                <div class="form-group">
-                    <label for="journalContent">Reflection <span class="required">*</span></label>
-                    <textarea id="journalContent" rows="10" required minlength="10" maxlength="5000"
-                        aria-describedby="contentError"></textarea>
-
-                    <span class="error-message" id="contentError"></span>
-
-                    <div class="character-count">
-                        <span id="charCount">0</span> / 5000 characters
-                    </div>
-                </div>
-
-                <button type="submit" class="cta-btn primary">Submit</button>
-            </form>
-
-            <div id="journalEmptyState" class="empty-state">
-                <p>No journal entries yet. Click the Add button to add your first entry!</p>
-            </div>
-
-            <div id="journalEntries" class="journal-entries"></div>
-        </div>
-    </div>
-
-
-    <!-- PROJECTS MODAL -->
-    <div id="projectsModal" class="modal">
-        <div class="modal-content">
-
-            <span class="close-button">&times;</span>
-
-            <div id="projectsDatetime" class="datetime"></div>
-
-            <div class="modal-header-actions">
-                <h2 class="gradient-text">My Projects</h2>
-                <div class="button-group">
-                    <button class="settings-btn" id="projectsSettingsBtn">Add</button>
-                    <button class="reset-btn" id="resetProjectsBtn">Reset</button>
-                </div>
-            </div>
-
-            <form id="projectForm" class="project-form" style="display: none;">
-                <div class="form-group">
-                    <label for="projectTitle">Project Title <span class="required">*</span></label>
-                    <input id="projectTitle" type="text" required minlength="3" maxlength="100"
-                        aria-describedby="projectTitleError">
-                    <span class="error-message" id="projectTitleError"></span>
-                </div>
-
-                <div class="form-group">
-                    <label for="projectDescription">Project Description <span class="required">*</span></label>
-                    <textarea id="projectDescription" rows="5" required minlength="10" maxlength="2000"
-                        aria-describedby="projectDescError"></textarea>
-                    <span class="error-message" id="projectDescError"></span>
-                </div>
-                <!-- ADD THIS SECTION FOR FILE UPLOAD -->
-                <div class="form-group">
-                    <label for="projectFile">Project File (Optional)</label>
-                    <input type="file" id="projectFile" accept="*/*" style="display:none">
-                    <button type="button" id="projectFileBtn" class="cta-btn secondary">Choose File</button>
-                    <span id="projectFileName">No file chosen</span>
-                </div>
-                <!-- END OF FILE UPLOAD SECTION -->
-
-                <button type="submit" class="cta-btn primary">Submit</button>
-            </form>
-
-            <div id="projectsEmptyState" class="empty-state">
-                <p>No projects yet. Click the Add button to add your first project!</p>
-            </div>
-
-            <div id="projectsList" class="projects-list"></div>
-
-        </div>
-    </div>
-
-
-    <!-- ABOUT MODAL -->
-    <div id="aboutModal" class="modal">
-        <div class="modal-content">
-
-            <span class="close-button">&times;</span>
-
-            <div id="aboutDatetime" class="datetime"></div>
-
-            <div class="modal-header-actions">
-                <h2 class="gradient-text">About Me</h2>
-                <div class="button-group">
-                    <button class="edit-btn" id="editAboutBtn">Edit</button>
-                    <button class="upload-btn" id="uploadAboutBtn">Upload</button>
-                </div>
-            </div>
-
-            <input type="file" id="aboutFileInput" accept=".txt,.doc,.docx" style="display:none">
-
-            <div id="aboutContent" class="about-content">
-                <p>I am a passionate developer...</p>
-            </div>
-
-            <!-- YouTube section - removed 11 character restriction, accepts any URL or ID -->
-            <div class="youtube-section">
-                <h3>Featured Video</h3>
-
-                <div class="youtube-controls">
-                    <input type="text" id="youtubeVideoId" placeholder="Enter YouTube Video ID or URL (any format)">
-                    <button id="loadVideoBtn" class="cta-btn primary">Load Video</button>
-                </div>
-
-                <div id="youtubePlayer"></div>
-
-                <div id="videoControls" class="video-controls" style="display:none">
-                    <button id="playBtn" class="control-btn"> Play</button>
-                    <button id="pauseBtn" class="control-btn">Pause</button>
-                    <button id="stopBtn" class="control-btn"> Stop</button>
-                    <button id="muteBtn" class="control-btn"> Mute</button>
-                    <button id="unmuteBtn" class="control-btn"> Unmute</button>
-                    <button id="fullscreenBtn" class="control-btn"> Fullscreen</button>
-                </div>
-
-                <div id="videoStatus" class="video-status"></div>
-            </div>
-
-        </div>
-    </div>
-
-
-    <!-- CV MODAL -->
-    <div id="cvModal" class="modal">
-        <div class="modal-content">
-
-            <span class="close-button">&times;</span>
-
-            <div id="cvDatetime" class="datetime"></div>
-
-            <div class="modal-header-actions">
-                <h2 class="gradient-text">My CV</h2>
-
-                <div class="cv-actions">
-                    <button id="editCvBtn" class="edit-btn">Edit</button>
-                    <button id="uploadCvBtn" class="upload-btn">Upload File</button>
-                </div>
-            </div>
-
-            <input type="file" id="cvFileInput" accept=".pdf,.doc,.docx" style="display:none">
-
-            <div id="cvFileDisplay" class="cv-file-display" style="display:none">
-                <p><strong>Uploaded:</strong> <span id="cvFileName"></span></p>
-                <button id="viewCvBtn" class="cta-btn primary">View CV</button>
-            </div>
-
-            <!-- CV content with improved styling box -->
-            <div id="cvContent" class="cv-content">
-                <h3>Education</h3>
-                <p>Computer Science - University for Creative Arts</p>
-
-                <h3>Skills</h3>
-                <p>HTML, CSS, JavaScript, AI, Python, Git</p>
-
-                <h3>Experience</h3>
-                <p>Add your work experience here...</p>
-            </div>
-
-        </div>
-    </div>
-
-
-    <!--  ABOUT EDIT MODAL -->
-    <div id="editAboutModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-
-            <h2 class="gradient-text">Edit About</h2>
-
-            <form id="editAboutForm">
-                <div class="form-group">
-                    <label for="editAboutText">About Content <span class="required">*</span></label>
-                    <textarea id="editAboutText" rows="8" required minlength="10" maxlength="2000"></textarea>
-                </div>
-                <button type="submit" class="cta-btn primary">Save</button>
-            </form>
-        </div>
-    </div>
-
-
-    <!-- CV EDIT MODAL -->
-    <div id="editCvModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-
-            <h2 class="gradient-text">Edit CV</h2>
-
-            <form id="editCvForm">
-                <div class="form-group">
-                    <label for="editCvText">CV Content <span class="required">*</span></label>
-                    <textarea id="editCvText" rows="15" required minlength="10" maxlength="5000"></textarea>
-                </div>
-                <button type="submit" class="cta-btn primary">Save</button>
-            </form>
-        </div>
-    </div>
-
-    <script src="https://www.youtube.com/iframe_api"></script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     <!-- ========================================= -->
     <!-- JSON REFLECTIONS SECTION -->
-    <!-- Add this section to display Python JSON entries -->
+    <!-- This section displays Python JSON entries -->
     <!-- ========================================= -->
     <section class="json-section"
         style="margin: 3rem 0; padding: 2rem 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px;">
@@ -445,16 +170,257 @@
         </div>
     </section>
 
+    <!-- FOOTER -->
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 2025 Rajan KC - Learning Journal</p>
+        </div>
+    </footer>
 
+    <!--  HERO EDIT MODAL -->
+    <div id="editHeroModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
 
+            <h2 class="gradient-text">Edit Introduction</h2>
 
+            <form id="editHeroForm" class="edit-form">
+                <div class="form-group">
+                    <label for="editHeroName">Name/Greeting <span class="required">*</span></label>
+                    <input type="text" id="editHeroName" required minlength="2" maxlength="100">
+                </div>
 
+                <div class="form-group">
+                    <label for="editHeroDesc">Description <span class="required">*</span></label>
+                    <textarea id="editHeroDesc" rows="5" required minlength="10" maxlength="500"></textarea>
+                </div>
 
+                <button type="submit" class="cta-btn primary">Save Changes</button>
+            </form>
+        </div>
+    </div>
 
+    <!--  JOURNAL MODAL -->
+    <div id="journalModal" class="modal">
+        <div class="modal-content">
 
+            <span class="close-button">&times;</span>
 
+            <div id="journalDatetime" class="datetime"></div>
 
+            <div class="modal-header-actions">
+                <h2 class="gradient-text">My Journal</h2>
+                <div class="button-group">
+                    <button class="settings-btn" id="journalSettingsBtn">Add</button>
+                    <button class="reset-btn" id="resetJournalBtn">Reset</button>
+                </div>
+            </div>
 
+            <form id="journalForm" class="journal-form" style="display: none;">
+
+                <div class="form-group">
+                    <label for="journalTitle">Title <span class="required">*</span></label>
+                    <input id="journalTitle" type="text" required minlength="3" maxlength="100"
+                        aria-describedby="titleError">
+                    <span class="error-message" id="titleError"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="journalContent">Reflection <span class="required">*</span></label>
+                    <textarea id="journalContent" rows="10" required minlength="10" maxlength="5000"
+                        aria-describedby="contentError"></textarea>
+
+                    <span class="error-message" id="contentError"></span>
+
+                    <div class="character-count">
+                        <span id="charCount">0</span> / 5000 characters
+                    </div>
+                </div>
+
+                <button type="submit" class="cta-btn primary">Submit</button>
+            </form>
+
+            <div id="journalEmptyState" class="empty-state">
+                <p>No journal entries yet. Click the Add button to add your first entry!</p>
+            </div>
+
+            <div id="journalEntries" class="journal-entries"></div>
+        </div>
+    </div>
+
+    <!-- PROJECTS MODAL -->
+    <div id="projectsModal" class="modal">
+        <div class="modal-content">
+
+            <span class="close-button">&times;</span>
+
+            <div id="projectsDatetime" class="datetime"></div>
+
+            <div class="modal-header-actions">
+                <h2 class="gradient-text">My Projects</h2>
+                <div class="button-group">
+                    <button class="settings-btn" id="projectsSettingsBtn">Add</button>
+                    <button class="reset-btn" id="resetProjectsBtn">Reset</button>
+                </div>
+            </div>
+
+            <form id="projectForm" class="project-form" style="display: none;">
+                <div class="form-group">
+                    <label for="projectTitle">Project Title <span class="required">*</span></label>
+                    <input id="projectTitle" type="text" required minlength="3" maxlength="100"
+                        aria-describedby="projectTitleError">
+                    <span class="error-message" id="projectTitleError"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="projectDescription">Project Description <span class="required">*</span></label>
+                    <textarea id="projectDescription" rows="5" required minlength="10" maxlength="2000"
+                        aria-describedby="projectDescError"></textarea>
+                    <span class="error-message" id="projectDescError"></span>
+                </div>
+                <!-- ADD THIS SECTION FOR FILE UPLOAD -->
+                <div class="form-group">
+                    <label for="projectFile">Project File (Optional)</label>
+                    <input type="file" id="projectFile" accept="*/*" style="display:none">
+                    <button type="button" id="projectFileBtn" class="cta-btn secondary">Choose File</button>
+                    <span id="projectFileName">No file chosen</span>
+                </div>
+                <!-- END OF FILE UPLOAD SECTION -->
+
+                <button type="submit" class="cta-btn primary">Submit</button>
+            </form>
+
+            <div id="projectsEmptyState" class="empty-state">
+                <p>No projects yet. Click the Add button to add your first project!</p>
+            </div>
+
+            <div id="projectsList" class="projects-list"></div>
+
+        </div>
+    </div>
+
+    <!-- ABOUT MODAL -->
+    <div id="aboutModal" class="modal">
+        <div class="modal-content">
+
+            <span class="close-button">&times;</span>
+
+            <div id="aboutDatetime" class="datetime"></div>
+
+            <div class="modal-header-actions">
+                <h2 class="gradient-text">About Me</h2>
+                <div class="button-group">
+                    <button class="edit-btn" id="editAboutBtn">Edit</button>
+                    <button class="upload-btn" id="uploadAboutBtn">Upload</button>
+                </div>
+            </div>
+
+            <input type="file" id="aboutFileInput" accept=".txt,.doc,.docx" style="display:none">
+
+            <div id="aboutContent" class="about-content">
+                <p>I am a passionate developer...</p>
+            </div>
+
+            <!-- YouTube section - removed 11 character restriction, accepts any URL or ID -->
+            <div class="youtube-section">
+                <h3>Featured Video</h3>
+
+                <div class="youtube-controls">
+                    <input type="text" id="youtubeVideoId" placeholder="Enter YouTube Video ID or URL (any format)">
+                    <button id="loadVideoBtn" class="cta-btn primary">Load Video</button>
+                </div>
+
+                <div id="youtubePlayer"></div>
+
+                <div id="videoControls" class="video-controls" style="display:none">
+                    <button id="playBtn" class="control-btn"> Play</button>
+                    <button id="pauseBtn" class="control-btn">Pause</button>
+                    <button id="stopBtn" class="control-btn"> Stop</button>
+                    <button id="muteBtn" class="control-btn"> Mute</button>
+                    <button id="unmuteBtn" class="control-btn"> Unmute</button>
+                    <button id="fullscreenBtn" class="control-btn"> Fullscreen</button>
+                </div>
+
+                <div id="videoStatus" class="video-status"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- CV MODAL -->
+    <div id="cvModal" class="modal">
+        <div class="modal-content">
+
+            <span class="close-button">&times;</span>
+
+            <div id="cvDatetime" class="datetime"></div>
+
+            <div class="modal-header-actions">
+                <h2 class="gradient-text">My CV</h2>
+
+                <div class="cv-actions">
+                    <button id="editCvBtn" class="edit-btn">Edit</button>
+                    <button id="uploadCvBtn" class="upload-btn">Upload File</button>
+                </div>
+            </div>
+
+            <input type="file" id="cvFileInput" accept=".pdf,.doc,.docx" style="display:none">
+
+            <div id="cvFileDisplay" class="cv-file-display" style="display:none">
+                <p><strong>Uploaded:</strong> <span id="cvFileName"></span></p>
+                <button id="viewCvBtn" class="cta-btn primary">View CV</button>
+            </div>
+
+            <!-- CV content with improved styling box -->
+            <div id="cvContent" class="cv-content">
+                <h3>Education</h3>
+                <p>Computer Science - University for Creative Arts</p>
+
+                <h3>Skills</h3>
+                <p>HTML, CSS, JavaScript, AI, Python, Git</p>
+
+                <h3>Experience</h3>
+                <p>Add your work experience here...</p>
+            </div>
+
+        </div>
+    </div>
+
+    <!--  ABOUT EDIT MODAL -->
+    <div id="editAboutModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+
+            <h2 class="gradient-text">Edit About</h2>
+
+            <form id="editAboutForm">
+                <div class="form-group">
+                    <label for="editAboutText">About Content <span class="required">*</span></label>
+                    <textarea id="editAboutText" rows="8" required minlength="10" maxlength="2000"></textarea>
+                </div>
+                <button type="submit" class="cta-btn primary">Save</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- CV EDIT MODAL -->
+    <div id="editCvModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+
+            <h2 class="gradient-text">Edit CV</h2>
+
+            <form id="editCvForm">
+                <div class="form-group">
+                    <label for="editCvText">CV Content <span class="required">*</span></label>
+                    <textarea id="editCvText" rows="15" required minlength="10" maxlength="5000"></textarea>
+                </div>
+                <button type="submit" class="cta-btn primary">Save</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://www.youtube.com/iframe_api"></script>
 
 </body>
 

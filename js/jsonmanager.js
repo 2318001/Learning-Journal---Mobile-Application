@@ -83,15 +83,8 @@ class JSONManager {
 
             console.log("📥 Fetching JSON reflections from backend/reflections.json...");
             
-            // Add timeout for fetch
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
-            
-            const response = await fetch('backend/reflections.json', {
-                signal: controller.signal
-            });
-            
-            clearTimeout(timeoutId);
+            // Fetch JSON data from backend file
+            const response = await fetch('backend/reflections.json');
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -113,11 +106,7 @@ class JSONManager {
             
         } catch (error) {
             console.error('❌ Error loading JSON reflections:', error);
-            if (error.name === 'AbortError') {
-                this.showError('Request timeout: Failed to load JSON reflections within 5 seconds.');
-            } else {
-                this.showError('Failed to load JSON reflections. Make sure the backend/reflections.json file exists and contains valid JSON data.');
-            }
+            this.showError('Failed to load JSON reflections. Make sure the backend/reflections.json file exists and contains valid JSON data.');
         } finally {
             // Reset button state
             if (loadBtn) {
@@ -147,31 +136,65 @@ class JSONManager {
 
         // Create HTML for each entry
         const entriesHTML = this.filteredEntries.map(entry => `
-            <div class="json-entry-card">
+            <div class="json-entry-card" style="
+                background: white;
+                padding: 1.5rem;
+                border-radius: 12px;
+                border-left: 5px solid #10b981;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 15px rgba(0,0,0,0.15)';" 
+            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)';">
+                
                 <!-- Entry Header -->
-                <div class="entry-header">
-                    <div class="entry-header-content">
-                        <h3>${this.escapeHtml(entry.title)}</h3>
-                        <div class="entry-meta">
-                            <small class="entry-date">📅 ${entry.dateString}</small>
-                            <small class="entry-wordcount">📝 ${entry.wordCount || 'N/A'} words</small>
-                            ${entry.source ? `<small class="entry-source">🔧 ${entry.source}</small>` : ''}
+                <div class="entry-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                    <div style="flex: 1;">
+                        <h3 style="margin: 0 0 0.5rem 0; color: #1f2937; font-size: 1.25rem;">
+                            ${this.escapeHtml(entry.title)}
+                        </h3>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <small style="color: #6b7280;">
+                                📅 ${entry.dateString}
+                            </small>
+                            <small style="color: #10b981;">
+                                📝 ${entry.wordCount || 'N/A'} words
+                            </small>
+                            ${entry.source ? `<small style="color: #3b82f6;">🔧 ${entry.source}</small>` : ''}
                         </div>
                     </div>
-                    <span class="entry-id">ID: ${entry.id}</span>
+                    <span class="entry-id" style="
+                        background: #e5e7eb; 
+                        padding: 0.25rem 0.75rem; 
+                        border-radius: 20px; 
+                        font-size: 0.8rem; 
+                        color: #4b5563;
+                        font-family: monospace;
+                    ">
+                        ID: ${entry.id}
+                    </span>
                 </div>
 
                 <!-- Entry Content -->
-                <div class="entry-content">
-                    <p>${this.escapeHtml(entry.content)}</p>
+                <div class="entry-content" style="margin-bottom: 1rem;">
+                    <p style="margin: 0; line-height: 1.6; color: #374151; font-size: 1rem;">
+                        ${this.escapeHtml(entry.content)}
+                    </p>
                 </div>
 
                 <!-- Entry Footer -->
-                <div class="entry-footer">
-                    <small class="entry-source-info">
+                <div class="entry-footer" style="display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid #f3f4f6;">
+                    <small style="color: #9ca3af;">
                         Added via: ${entry.source === 'python' ? '🐍 Python Script' : '🌐 Web Interface'}
                     </small>
-                    <button onclick="jsonManager.deleteEntry(${entry.id})" class="delete-btn">
+                    <button onclick="window.jsonManager.deleteEntry(${entry.id})" class="delete-btn" style="
+                        background: #ef4444;
+                        color: white;
+                        border: none;
+                        padding: 0.25rem 0.75rem;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-size: 0.8rem;
+                    ">
                         🗑️ Delete
                     </button>
                 </div>
@@ -397,11 +420,18 @@ class JSONManager {
         const jsonEntriesContainer = document.getElementById('jsonEntries');
         if (jsonEntriesContainer) {
             jsonEntriesContainer.innerHTML = `
-                <div class="error-message">
-                    <div class="error-icon">❌</div>
-                    <h4>Error Loading JSON Data</h4>
-                    <p>${message}</p>
-                    <p class="error-tip">
+                <div class="error-message" style="
+                    background: #fee2e2; 
+                    color: #dc2626; 
+                    padding: 2rem; 
+                    border-radius: 8px; 
+                    text-align: center;
+                    border: 1px solid #fecaca;
+                ">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">❌</div>
+                    <h4 style="margin: 0 0 1rem 0;">Error Loading JSON Data</h4>
+                    <p style="margin: 0;">${message}</p>
+                    <p style="margin: 1rem 0 0 0; font-size: 0.9rem;">
                         Make sure you have run the Python script to create reflections.json first!
                     </p>
                 </div>
