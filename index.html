@@ -87,83 +87,187 @@
 
 
       <!-- QUIZ GAME MODAL -->
-    <div id="quizModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-
-            <div id="quizDatetime" class="datetime"></div>
-
-            <div class="modal-header-actions">
-                <h2 class="gradient-text">Quiz Game</h2>
+<div id="quizModal" class="modal fullscreen-modal">
+    <div class="quiz-container">
+        <!-- Quiz Navigation Bar -->
+        <nav class="quiz-nav">
+            <div class="quiz-nav-header">
+                <button class="quiz-menu-btn" id="quizMenuBtn">☰</button>
+                <h2>Quiz Game</h2>
+                <button class="quiz-close-btn" id="quizCloseBtn">✕</button>
             </div>
- <!-- Player Setup -->
+ <!-- Navigation Menu -->
+            <div class="quiz-nav-menu" id="quizNavMenu">
+                <div class="nav-section">
+                    <h3>Game Info</h3>
+                    <button class="nav-item" data-section="playerSetup">Start Game</button>
+                    <button class="nav-item" data-section="rulesSection">Rules</button>
+                    <button class="nav-item" data-section="leaderboard">Leaderboard</button>
+                </div>
+            </div>
+        </nav>
+
+ <!-- Main Quiz Content -->
+        <div class="quiz-content">
+            <!-- Rules Section -->
+            <div id="rulesSection" class="quiz-section active">
+                <h3>📋 Rules of Engagement</h3>
+                <div class="rules-content">
+                    <div class="rule-item">
+                        <h4>🎯 How to Play</h4>
+                        <ul>
+                            <li>Enter your name to start the game</li>
+                            <li>Choose from 3 difficulty levels: Easy, Medium, Hard</li>
+                            <li>Answer multiple-choice questions within the time limit</li>
+                            <li>Earn points for correct answers: Easy(10), Medium(20), Hard(30)</li>
+                            <li>Try to achieve the highest score!</li>
+                        </ul>
+                    </div>
+                    <div class="rule-item">
+                        <h4>🏆 Scoring System</h4>
+                        <ul>
+                            <li><strong>Easy:</strong> 10 points per correct answer</li>
+                            <li><strong>Medium:</strong> 20 points per correct answer</li>
+                            <li><strong>Hard:</strong> 30 points per correct answer</li>
+                            <li>No penalty for wrong answers</li>
+                        </ul>
+                    </div>
+                    <div class="rule-item">
+                        <h4>⏰ Time Limit</h4>
+                        <ul>
+                            <li>60 seconds per game session</li>
+                            <li>Timer starts when you begin answering questions</li>
+                            <li>Game ends when time runs out or all questions are answered</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Player Setup -->
             <div id="playerSetup" class="quiz-section">
-                <h3>Enter Your Name</h3>
-                <div class="form-group">
-                    <input type="text" id="playerName" placeholder="Enter your name" maxlength="20">
-                </div>
-                <button id="startGameBtn" class="cta-btn primary">Start Game</button>
-            </div>
-
-
- <!-- Level Selection -->
-            <div id="levelSelection" class="quiz-section" style="display: none;">
-                <h3>Select Difficulty Level</h3>
-                <div class="level-buttons">
-                    <button class="level-btn easy" data-level="easy">Easy</button>
-                    <button class="level-btn medium" data-level="medium">Medium</button>
-                    <button class="level-btn hard" data-level="hard">Hard</button>
+                <div class="setup-container">
+                    <h3>🎮 Start New Game</h3>
+                    <div class="form-group">
+                        <label for="playerName">Enter Your Name</label>
+                        <input type="text" id="playerName" placeholder="Enter your name" maxlength="20" required>
+                        <span class="error-message" id="nameError"></span>
+                    </div>
+                    <button id="startGameBtn" class="cta-btn primary large-btn">Start Game</button>
                 </div>
             </div>
 
- <!-- Game Area -->
-            <div id="gameArea" class="quiz-section" style="display: none;">
+            <!-- Level Selection -->
+            <div id="levelSelection" class="quiz-section">
+                <div class="level-container">
+                    <h3>Select Difficulty Level</h3>
+                    <p class="level-subtitle">Choose your challenge level</p>
+                    <div class="level-buttons">
+                        <button class="level-btn easy" data-level="easy">
+                            <span class="level-icon">🎯</span>
+                            <span class="level-title">Easy</span>
+                            <span class="level-points">10 pts/question</span>
+                            <span class="level-desc">Basic web development questions</span>
+                        </button>
+                        <button class="level-btn medium" data-level="medium">
+                            <span class="level-icon">⚡</span>
+                            <span class="level-title">Medium</span>
+                            <span class="level-points">20 pts/question</span>
+                            <span class="level-desc">Intermediate concepts</span>
+                        </button>
+                        <button class="level-btn hard" data-level="hard">
+                            <span class="level-icon">🚀</span>
+                            <span class="level-title">Hard</span>
+                            <span class="level-points">30 pts/question</span>
+                            <span class="level-desc">Advanced topics</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Area -->
+            <div id="gameArea" class="quiz-section">
                 <div class="game-header">
                     <div class="player-info">
-                        Player: <span id="currentPlayerName"></span> | 
-                        Level: <span id="currentLevel"></span> | 
-                        Score: <span id="currentScore">0</span>
+                        <span>Player: <strong id="currentPlayerName"></strong></span>
+                        <span>Level: <strong id="currentLevel"></strong></span>
+                        <span>Score: <strong id="currentScore">0</strong></span>
                     </div>
-                    <div class="timer">Time: <span id="timer">60</span>s</div>
+                    <div class="timer-container">
+                        <div class="timer">⏱️ <span id="timer">60</span>s</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="question-area">
-                    <h3 id="questionText"></h3>
+                    <div class="question-header">
+                        <span class="question-number">Question <span id="currentQuestionNum">1</span>/<span id="totalQuestions">5</span></span>
+                    </div>
+                    <h3 id="questionText" class="question-text"></h3>
                     <div id="optionsContainer" class="options-container"></div>
                 </div>
 
-
- <div class="game-controls">
-                    <button id="nextQuestionBtn" class="cta-btn secondary" style="display: none;">Next Question</button>
+                <div class="game-controls">
+                    <button id="nextQuestionBtn" class="cta-btn secondary" style="display: none;">Next Question →</button>
                     <button id="endGameBtn" class="cta-btn danger">End Game</button>
                 </div>
             </div>
 
-
-<!-- Results -->
-            <div id="resultsArea" class="quiz-section" style="display: none;">
-                <h3>Game Over!</h3>
-                <div class="results-summary">
-                    <p>Player: <span id="resultPlayerName"></span></p>
-                    <p>Level: <span id="resultLevel"></span></p>
-                    <p>Final Score: <span id="finalScore"></span></p>
-                    <p id="highScoreMessage" class="high-score-message"></p>
+            <!-- Results -->
+            <div id="resultsArea" class="quiz-section">
+                <div class="results-container">
+                    <h3>🎊 Game Over!</h3>
+                    <div class="results-summary">
+                        <div class="result-item">
+                            <span class="result-label">Player:</span>
+                            <span class="result-value" id="resultPlayerName"></span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Level:</span>
+                            <span class="result-value" id="resultLevel"></span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Final Score:</span>
+                            <span class="result-value score-display" id="finalScore"></span>
+                        </div>
+                        <div id="highScoreMessage" class="high-score-message"></div>
+                    </div>
+                    <div class="results-actions">
+                        <button id="playAgainBtn" class="cta-btn primary">Play Again</button>
+                        <button id="viewLeaderboardBtn" class="cta-btn secondary">View Leaderboard</button>
+                    </div>
                 </div>
-                <button id="playAgainBtn" class="cta-btn primary">Play Again</button>
             </div>
 
-
-
- <!-- Leaderboard -->
+            <!-- Leaderboard -->
             <div id="leaderboard" class="quiz-section">
-                <h3>Top Scores</h3>
-                <div id="leaderboardContent" class="leaderboard-content">
-                    <!-- Leaderboard will be populated here -->
+                <div class="leaderboard-container">
+                    <h3>🏆 Top Scores</h3>
+                    <div id="leaderboardContent" class="leaderboard-content">
+                        <!-- Leaderboard will be populated here -->
+                    </div>
+                    <div class="leaderboard-actions">
+                        <button id="resetScoresBtn" class="cta-btn danger">Reset All Scores</button>
+                        <button id="backToMenuBtn" class="cta-btn secondary">Back to Menu</button>
+                    </div>
                 </div>
-                <button id="resetScoresBtn" class="cta-btn danger">Reset All Scores</button>
             </div>
         </div>
     </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
