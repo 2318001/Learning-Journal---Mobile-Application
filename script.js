@@ -736,32 +736,4 @@ document.addEventListener("DOMContentLoaded", () => {
   initializeOtherModals(storage)
 
   console.log("Learning Journal worked successfully")
-
-
-
-
-
-
-
-
-
-// =========================================
-    // Initialize JSON Manager for Python JSON integration
-    // =========================================
-    let jsonManager
-    try {
-        // Check if JSONManager class exists (loaded from js/jsonmanager.js)
-        if (typeof window.JSONManager !== "undefined") {
-            jsonManager = new window.JSONManager(storage)
-            // Make it globally available for the delete function
-            window.jsonManager = jsonManager
-            console.log("✅ JSON Manager initialized successfully")
-        } else {
-            console.warn("⚠️ JSONManager not found. Make sure js/jsonmanager.js is loaded")
-        }
-    } catch (error) {
-        console.error("❌ Failed to initialize JSON Manager:", error)
-    }
-
-    console.log("🚀 Learning Journal PWA with Python JSON integration loaded successfully!")
 })
