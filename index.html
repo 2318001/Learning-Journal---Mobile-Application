@@ -31,6 +31,7 @@
                     <li><a href="index.html" class="active">Home</a></li>
                     <li><a href="#" id="journalBtn" data-open="journalModal">Journal</a></li>
                     <li><a href="#" id="projectsBtn" data-open="projectsModal">Projects</a></li>
+                     <li><a href="#" id="quizBtn" data-open="quizModal">Quiz Game</a></li>
                     <li><a href="#" id="aboutBtn" data-open="aboutModal">About</a></li>
                     <li><a href="#" id="cvBtn" data-open="cvModal">CV</a></li>
                 </ul>
@@ -83,6 +84,91 @@
             <p>&copy; 2025 Rajan KC - Learning Journal</p>
         </div>
     </footer>
+
+
+      <!-- QUIZ GAME MODAL -->
+    <div id="quizModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+
+            <div id="quizDatetime" class="datetime"></div>
+
+            <div class="modal-header-actions">
+                <h2 class="gradient-text">Quiz Game</h2>
+            </div>
+ <!-- Player Setup -->
+            <div id="playerSetup" class="quiz-section">
+                <h3>Enter Your Name</h3>
+                <div class="form-group">
+                    <input type="text" id="playerName" placeholder="Enter your name" maxlength="20">
+                </div>
+                <button id="startGameBtn" class="cta-btn primary">Start Game</button>
+            </div>
+
+
+ <!-- Level Selection -->
+            <div id="levelSelection" class="quiz-section" style="display: none;">
+                <h3>Select Difficulty Level</h3>
+                <div class="level-buttons">
+                    <button class="level-btn easy" data-level="easy">Easy</button>
+                    <button class="level-btn medium" data-level="medium">Medium</button>
+                    <button class="level-btn hard" data-level="hard">Hard</button>
+                </div>
+            </div>
+
+ <!-- Game Area -->
+            <div id="gameArea" class="quiz-section" style="display: none;">
+                <div class="game-header">
+                    <div class="player-info">
+                        Player: <span id="currentPlayerName"></span> | 
+                        Level: <span id="currentLevel"></span> | 
+                        Score: <span id="currentScore">0</span>
+                    </div>
+                    <div class="timer">Time: <span id="timer">60</span>s</div>
+                </div>
+
+                <div class="question-area">
+                    <h3 id="questionText"></h3>
+                    <div id="optionsContainer" class="options-container"></div>
+                </div>
+
+
+ <div class="game-controls">
+                    <button id="nextQuestionBtn" class="cta-btn secondary" style="display: none;">Next Question</button>
+                    <button id="endGameBtn" class="cta-btn danger">End Game</button>
+                </div>
+            </div>
+
+
+<!-- Results -->
+            <div id="resultsArea" class="quiz-section" style="display: none;">
+                <h3>Game Over!</h3>
+                <div class="results-summary">
+                    <p>Player: <span id="resultPlayerName"></span></p>
+                    <p>Level: <span id="resultLevel"></span></p>
+                    <p>Final Score: <span id="finalScore"></span></p>
+                    <p id="highScoreMessage" class="high-score-message"></p>
+                </div>
+                <button id="playAgainBtn" class="cta-btn primary">Play Again</button>
+            </div>
+
+
+
+ <!-- Leaderboard -->
+            <div id="leaderboard" class="quiz-section">
+                <h3>Top Scores</h3>
+                <div id="leaderboardContent" class="leaderboard-content">
+                    <!-- Leaderboard will be populated here -->
+                </div>
+                <button id="resetScoresBtn" class="cta-btn danger">Reset All Scores</button>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
 
 
     <!--  HERO EDIT MODAL -->
