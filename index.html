@@ -13,6 +13,7 @@
     <script src="storage.js" defer></script>
     <script src="browser.js" defer></script>
     <script src="thirdparty.js" defer></script>
+    <script src="js/jsonManager.js" defer></script>
     <script src="script.js" defer></script>
 </head>
 
@@ -338,6 +339,114 @@
     </div>
 
     <script src="https://www.youtube.com/iframe_api"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- ========================================= -->
+<!-- JSON REFLECTIONS SECTION -->
+<!-- Add this section to display Python JSON entries -->
+<!-- ========================================= -->
+<section class="json-section" style="margin: 3rem 0; padding: 2rem 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px;">
+    <div class="container">
+        <div class="section-header" style="text-align: center; margin-bottom: 2rem;">
+            <h2 style="color: white; margin-bottom: 0.5rem;">📁 Python JSON Reflections</h2>
+            <p style="color: rgba(255,255,255,0.8);">Reflections stored in JSON file via Python</p>
+        </div>
+
+        <!-- JSON Controls -->
+        <div class="json-controls" style="background: white; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; justify-content: center;">
+                <button id="loadJsonBtn" class="cta-btn primary" style="background: #10b981;">
+                    📥 Load JSON Reflections
+                </button>
+                <button id="exportJsonBtn" class="cta-btn secondary">
+                    💾 Export JSON File
+                </button>
+                <button id="importJsonBtn" class="cta-btn secondary">
+                    📤 Import JSON File  
+                </button>
+                <input type="file" id="jsonFileInput" accept=".json" style="display: none;">
+            </div>
+
+            <!-- Search and Filter -->
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; justify-content: center;">
+                <input type="text" id="searchReflections" placeholder="🔍 Search reflections..." 
+                       style="padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; min-width: 250px;">
+                <select id="sortReflections" style="padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px;">
+                    <option value="newest">🆕 Newest First</option>
+                    <option value="oldest">🕐 Oldest First</option>
+                    <option value="title">📝 By Title</option>
+                </select>
+                <button id="clearSearch" class="cta-btn secondary" style="background: #6b7280;">
+                    🗑️ Clear
+                </button>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="json-stats" style="background: rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; backdrop-filter: blur(10px);">
+            <h4 style="color: white; margin-bottom: 1rem; text-align: center;">📊 Reflection Statistics</h4>
+            <div id="jsonStats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; text-align: center;">
+                <div style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 6px;">
+                    <div style="color: white; font-size: 0.9rem;">Total Entries</div>
+                    <div style="color: #10b981; font-size: 2rem; font-weight: bold;" id="totalEntries">0</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 6px;">
+                    <div style="color: white; font-size: 0.9rem;">Total Words</div>
+                    <div style="color: #3b82f6; font-size: 2rem; font-weight: bold;" id="totalWords">0</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 6px;">
+                    <div style="color: white; font-size: 0.9rem;">Average Length</div>
+                    <div style="color: #f59e0b; font-size: 2rem; font-weight: bold;" id="avgLength">0</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 6px;">
+                    <div style="color: white; font-size: 0.9rem;">Last Updated</div>
+                    <div style="color: #ef4444; font-size: 1.2rem; font-weight: bold;" id="lastUpdated">Never</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- JSON Entries Display -->
+        <div id="jsonEntries" class="json-entries" style="display: grid; gap: 1.5rem;">
+            <!-- JSON entries will be dynamically inserted here -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="jsonEmptyState" class="empty-state" style="text-align: center; padding: 3rem; color: rgba(255,255,255,0.8);">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">📄</div>
+            <h3 style="color: white; margin-bottom: 1rem;">No JSON Reflections Loaded</h3>
+            <p>Click "Load JSON Reflections" to load reflections from the Python JSON file.</p>
+            <p style="font-size: 0.9rem; margin-top: 1rem;">
+                💡 <strong>Tip:</strong> Run <code style="background: rgba(0,0,0,0.3); padding: 0.2rem 0.5rem; border-radius: 4px;">python save_entry.py</code> in the backend folder to add new reflections!
+            </p>
+        </div>
+    </div>
+</section>
+
+
+
+
+
+
+
+
+
+
+
 
 </body>
 </html>

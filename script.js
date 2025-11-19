@@ -736,4 +736,28 @@ document.addEventListener("DOMContentLoaded", () => {
   initializeOtherModals(storage)
 
   console.log("Learning Journal worked successfully")
-})
+
+
+
+
+
+
+
+
+
+
+   // =========================================
+    // Initialize JSON Manager for Python JSON integration
+    // =========================================
+    let jsonManager;
+    try {
+        jsonManager = new window.JSONManager(storage);
+        // Make it globally available for the delete function
+        window.jsonManager = jsonManager;
+        console.log("✅ JSON Manager initialized successfully");
+    } catch (error) {
+        console.error("❌ Failed to initialize JSON Manager:", error);
+    }
+
+    console.log("🚀 Learning Journal PWA with Python JSON integration loaded successfully!");
+});
