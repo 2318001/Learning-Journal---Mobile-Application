@@ -907,7 +907,7 @@ body.dark-mode .youtube-section h3 {
 }
 
 /* 
-   QUIZ GAME STYLES - IMPROVED & POLISHED
+   QUIZ GAME STYLES - FIXED ALIGNMENT & SCROLL
    ================================= */
 
 /* Fullscreen Modal */
@@ -940,7 +940,7 @@ body.modal-open {
     overflow: hidden;
 }
 
-/* Quiz Container */
+/* Quiz Container - FIXED */
 .quiz-container {
     display: flex;
     flex-direction: column;
@@ -953,11 +953,12 @@ body.modal-open {
 .quiz-main {
     display: flex;
     flex: 1;
+    min-height: 0; /* FIX: Crucial for proper flexbox scrolling */
     overflow: hidden;
     background: var(--bg-primary);
 }
 
-/* Quiz Navigation - IMPROVED */
+/* Quiz Navigation - FIXED */
 .quiz-nav {
     width: 280px;
     background: rgba(255, 255, 255, 0.98);
@@ -968,6 +969,7 @@ body.modal-open {
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
     flex-shrink: 0;
     transition: all 0.3s ease;
+    min-height: 0; /* FIX: Allow proper flexbox sizing */
 }
 
 .quiz-nav-header {
@@ -1015,6 +1017,7 @@ body.modal-open {
     padding: 1rem 0;
     overflow-y: auto;
     display: block;
+    min-height: 0; /* FIX: Allow scrolling */
 }
 
 .nav-section {
@@ -1061,7 +1064,7 @@ body.modal-open {
     border-left-color: var(--primary-color);
 }
 
-/* Quiz Content - IMPROVED */
+/* Quiz Content - FIXED */
 .quiz-content {
     flex: 1;
     padding: 2rem;
@@ -1070,6 +1073,7 @@ body.modal-open {
     display: flex;
     flex-direction: column;
     position: relative;
+    min-height: 0; /* FIX: Crucial for proper scrolling */
 }
 
 .quiz-section {
@@ -1079,6 +1083,7 @@ body.modal-open {
     flex: 1;
     width: 100%;
     padding: 1rem;
+    min-height: 0; /* FIX: Allow proper flexbox sizing */
 }
 
 .quiz-section.active {
@@ -1098,7 +1103,7 @@ body.modal-open {
     }
 }
 
-/* Quiz Footer - IMPROVED */
+/* Quiz Footer - FIXED */
 .quiz-footer {
     background: var(--footer-bg);
     color: white;
@@ -1122,12 +1127,13 @@ body.modal-open {
     font-weight: 500;
 }
 
-/* Rules Section - IMPROVED */
+/* Rules Section - FIXED */
 .rules-content {
     display: grid;
     gap: 1.5rem;
     margin-top: 1rem;
     flex: 1;
+    min-height: 0; /* FIX: Allow proper scrolling */
 }
 
 .rule-item {
@@ -1178,10 +1184,10 @@ body.modal-open {
     font-size: 1.1rem;
 }
 
-/* Player Setup - IMPROVED */
+/* Player Setup - FIXED ALIGNMENT */
 .setup-container {
     text-align: center;
-    padding: 3rem 2rem;
+    padding: 2rem;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -1190,8 +1196,10 @@ body.modal-open {
     background: white;
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    margin: 2rem auto;
+    margin: auto; /* FIX: Center alignment */
     max-width: 500px;
+    width: 100%;
+    min-height: auto; /* FIX: Remove fixed height */
 }
 
 .setup-container h3 {
@@ -1209,6 +1217,7 @@ body.modal-open {
     width: 100%;
     max-width: 400px;
     text-align: left;
+    margin-bottom: 1.5rem;
 }
 
 .setup-container .form-group label {
@@ -1216,6 +1225,7 @@ body.modal-open {
     font-weight: 600;
     color: var(--text-color);
     margin-bottom: 0.75rem;
+    display: block;
 }
 
 .setup-container .form-group input {
@@ -1224,17 +1234,20 @@ body.modal-open {
     border: 2px solid var(--border-color);
     border-radius: 12px;
     transition: all 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .setup-container .form-group input:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+    outline: none;
 }
 
 .large-btn {
     padding: 1.25rem 3rem;
     font-size: 1.3rem;
-    margin-top: 2rem;
+    margin-top: 1rem;
     border-radius: 12px;
     font-weight: 700;
     background: linear-gradient(135deg, var(--primary-color), #0d9488);
@@ -1242,6 +1255,9 @@ body.modal-open {
     color: white;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+    cursor: pointer;
+    width: 100%;
+    max-width: 400px;
 }
 
 .large-btn:hover {
@@ -1249,13 +1265,15 @@ body.modal-open {
     box-shadow: 0 8px 25px rgba(14, 165, 233, 0.4);
 }
 
-/* Level Selection - IMPROVED */
+/* Level Selection - FIXED */
 .level-container {
     text-align: center;
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start; /* FIX: Changed from center to flex-start */
+    padding: 1rem 0;
+    min-height: 0; /* FIX: Allow scrolling */
 }
 
 .level-container h3 {
@@ -1267,7 +1285,7 @@ body.modal-open {
 
 .level-subtitle {
     color: var(--muted-color);
-    margin-bottom: 3rem;
+    margin-bottom: 2rem;
     font-size: 1.2rem;
     font-weight: 500;
 }
@@ -1276,7 +1294,7 @@ body.modal-open {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 2rem;
-    margin-top: 2rem;
+    margin-top: 1rem;
 }
 
 .level-btn {
@@ -1356,7 +1374,7 @@ body.modal-open {
     line-height: 1.5;
 }
 
-/* Game Area - IMPROVED */
+/* Game Area - FIXED */
 .game-area {
     flex: 1;
     display: flex;
@@ -1365,6 +1383,7 @@ body.modal-open {
     border-radius: 20px;
     padding: 2rem;
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    min-height: 0; /* FIX: Allow proper flexbox sizing */
 }
 
 .game-header {
@@ -1433,6 +1452,7 @@ body.modal-open {
     padding: 2rem;
     border-radius: 16px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    min-height: 0; /* FIX: Allow proper flexbox sizing */
 }
 
 .question-header {
@@ -1524,7 +1544,7 @@ body.modal-open {
     font-size: 1.1rem;
 }
 
-/* Results - IMPROVED */
+/* Results - FIXED */
 .results-container {
     text-align: center;
     padding: 2rem;
@@ -1533,6 +1553,7 @@ body.modal-open {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    min-height: 0; /* FIX: Allow proper flexbox sizing */
 }
 
 .results-container h3 {
@@ -1631,13 +1652,14 @@ body.modal-open {
     font-weight: 700;
 }
 
-/* Leaderboard - IMPROVED */
+/* Leaderboard - FIXED */
 .leaderboard-container {
     max-width: 700px;
     margin: 0 auto;
     flex: 1;
     display: flex;
     flex-direction: column;
+    min-height: 0; /* FIX: Allow proper flexbox sizing */
 }
 
 .leaderboard-container h3 {
@@ -1657,6 +1679,7 @@ body.modal-open {
     flex: 1;
     background: white;
     box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    min-height: 0; /* FIX: Allow scrolling */
 }
 
 .leaderboard-entry {
@@ -1778,6 +1801,7 @@ body.modal-open {
     background: var(--surface-color);
     border-radius: 12px;
     border: 2px solid var(--border-color);
+    flex-shrink: 0;
 }
 
 .game-controls .cta-btn {
@@ -1789,7 +1813,7 @@ body.modal-open {
 }
 
 /* 
-   RESPONSIVE DESIGN - IMPROVED
+   RESPONSIVE DESIGN - FIXED
    ================================= */
 @media (max-width: 768px) {
   header .container {
@@ -1859,7 +1883,7 @@ body.modal-open {
     width: 100%;
   }
 
-  /* Quiz Mobile Responsive - IMPROVED */
+  /* Quiz Mobile Responsive - FIXED */
   .quiz-container {
     height: 100vh;
   }
@@ -1872,6 +1896,7 @@ body.modal-open {
     width: 100%;
     height: auto;
     max-height: 40vh;
+    order: -1; /* FIX: Move navigation to top on mobile */
   }
   
   .quiz-nav-menu {
@@ -1885,6 +1910,7 @@ body.modal-open {
   .quiz-content {
     padding: 1rem;
     flex: 1;
+    order: 1; /* FIX: Move content below navigation */
   }
 
   .quiz-section {
@@ -2005,6 +2031,14 @@ body.modal-open {
   .game-controls .cta-btn {
     width: 100%;
   }
+
+  .timer-container {
+    width: 100%;
+  }
+
+  .progress-bar {
+    width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
@@ -2042,7 +2076,7 @@ body.modal-open {
     font-size: 1.2rem;
   }
 
-  /* Quiz Mobile Small - IMPROVED */
+  /* Quiz Mobile Small - FIXED */
   .quiz-nav-header {
     padding: 1rem;
   }
@@ -2100,14 +2134,6 @@ body.modal-open {
     font-size: 1rem;
   }
 
-  .timer-container {
-    width: 100%;
-  }
-
-  .progress-bar {
-    width: 100%;
-  }
-
   .player-info {
     flex-direction: column;
     gap: 0.75rem;
@@ -2116,5 +2142,19 @@ body.modal-open {
 
   .player-info span {
     width: 100%;
+  }
+
+  .setup-container {
+    margin: 0.5rem;
+    padding: 1.5rem 1rem;
+  }
+
+  .setup-container h3 {
+    font-size: 1.6rem;
+  }
+
+  .large-btn {
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
   }
 }
