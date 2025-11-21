@@ -574,19 +574,21 @@ class QuizGameManager {
     }
 
     openModal() {
-        if (this.quizModal) {
-            this.quizModal.style.display = "block";
-            document.body.style.overflow = "hidden";
-            this.showSection('rulesSection');
-            this.resetGame();
+         if (this.quizModal) {
+        this.quizModal.style.display = "block";
+        document.body.classList.add("modal-open"); // Add this line
+        document.body.style.overflow = "hidden";
+        this.showSection('rulesSection');
+        this.resetGame();
         }
     }
 
     closeModal() {
         if (this.quizModal) {
-            this.quizModal.style.display = "none";
-            document.body.style.overflow = "auto";
-            this.resetGame();
+        this.quizModal.style.display = "none";
+        document.body.classList.remove("modal-open"); // Add this line
+        document.body.style.overflow = "auto";
+        this.resetGame();
         }
     }
 

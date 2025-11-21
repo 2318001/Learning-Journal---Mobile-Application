@@ -966,7 +966,7 @@ body.dark-mode .youtube-section h3 {
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    height:calc(100vh - 80px);
     background: var(--surface-color);
     z-index: 1000;
     padding: 0;
@@ -980,7 +980,16 @@ body.dark-mode .youtube-section h3 {
     max-width: none;
     max-height: none;
 }
+/* Make sure the main content stays visible */
+body.modal-open {
+    overflow: hidden;
+}
 
+/* Ensure footer stays at bottom and is visible */
+.site-footer {
+    position: relative;
+    z-index: 1; /* Ensure footer is above modal background */
+}
 /* Quiz Container */
 .quiz-container {
     display: flex;
