@@ -991,21 +991,22 @@ body.dark-mode .youtube-section h3 {
 /* Quiz Navigation */
 .quiz-nav {
     width: 280px;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.98);
     backdrop-filter: blur(10px);
-    border-right: 1px solid var(--border-color);
+    border-right: 2px solid var(--border-color);
     display: flex;
     flex-direction: column;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .quiz-nav-header {
-    padding: 1.5rem;
-    border-bottom: 1px solid var(--border-color);
+   padding: 1.5rem;
+    border-bottom: 2px solid var(--border-color); 
     display: flex;
     align-items: center;
     justify-content: space-between;
     background: var(--primary-color);
-    color: rgb(227, 4, 4);
+    color: white;
 }
 
 .quiz-nav-header h2 {
@@ -1021,16 +1022,17 @@ body.dark-mode .youtube-section h3 {
     color: white;
     padding: 0.5rem;
     border-radius: 4px;
-    transition: background 0.3s ease;
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
     min-width: 40px;
     min-height: 40px;
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .quiz-menu-btn:hover, .quiz-close-btn:hover {
-    background: rgba(95, 240, 5, 0.2);
+    background: rgba(90, 226, 5, 0.2);
 }
 
 /* Quiz Navigation Menu Display */
@@ -1070,7 +1072,7 @@ body.dark-mode .youtube-section h3 {
 
 .nav-item:hover {
     background: var(--primary-color);
-    color: white;
+    color: rgb(10, 206, 75);
     border-left-color: var(--primary-color);
 }
 
@@ -1174,7 +1176,7 @@ body.dark-mode .youtube-section h3 {
 }
 
 .level-btn {
-    padding: 2rem;
+   padding: 2rem;
     border: none;
     border-radius: 16px;
     cursor: pointer;
@@ -1187,6 +1189,7 @@ body.dark-mode .youtube-section h3 {
     background: white;
     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     border: 3px solid transparent;
+    color: #1a202c; 
 }
 
 .level-btn:hover {
@@ -1213,11 +1216,12 @@ body.dark-mode .youtube-section h3 {
 .level-title {
     font-size: 1.5rem;
     font-weight: bold;
+    color: #1a202c;
 }
 
 .level-points {
     font-size: 1.1rem;
-    color: var(--muted-color);
+    color:#535e70;
 }
 
 .level-desc {
