@@ -22,6 +22,12 @@
   --shadow-color: rgba(0, 0, 0, 0.1);
   --header-bg: white;
   --footer-bg: #4f6ea3;
+  
+  /* ADD THESE MISSING VARIABLES FOR QUIZ GAME */
+  --primary-color: #0ea5e9;
+  --surface-color: #ffffff;
+  --text-color: #1f2937;
+  --muted-color: #6b7280;
 }
 
 /* Dark mode theme variables */
@@ -39,6 +45,12 @@ body.dark-mode {
   --shadow-color: rgba(0, 0, 0, 0.3);
   --header-bg: #2d3748;
   --footer-bg: #1a202c;
+  
+  /* ADD THESE MISSING DARK MODE VARIABLES FOR QUIZ GAME */
+  --primary-color: #4fd1c5;
+  --surface-color: #2d3748;
+  --text-color: #cbd5e0;
+  --muted-color: #a0aec0;
 }
 
 body {
@@ -217,7 +229,7 @@ body.dark-mode .profile-image {
   width: 50px;
   height: 50px;
   background: #f80303;
-  color: rgb(171, 6, 6);
+  color: white;
   border: 3px solid white;
   border-radius: 50%;
   font-size: 1.5rem;
@@ -267,6 +279,38 @@ body.dark-mode .edit-profile-pic-btn {
 
 .cta-btn.primary:hover {
   background: #2a4365;
+  transform: translateY(-2px);
+}
+
+.cta-btn.secondary {
+  background: #64748b;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.cta-btn.secondary:hover {
+  background: #475569;
+}
+
+.cta-btn.danger {
+  background: #e53e3e;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cta-btn.danger:hover {
+  background: #c53030;
   transform: translateY(-2px);
 }
 
@@ -879,113 +923,6 @@ body.dark-mode .youtube-section h3 {
   transition: all 0.3s ease;
 }
 
-/* 
-   RESPONSIVE DESIGN
-   */
-@media (max-width: 768px) {
-  header .container {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .nav-box {
-    width: 100%;
-  }
-
-  nav ul.nav-list {
-    justify-content: center;
-  }
-
-  .third-section h1 {
-    font-size: 2rem;
-  }
-
-  .second-section {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .profile-image {
-    width: 200px;
-    height: 200px;
-  }
-
-  .modal-content {
-    width: 95%;
-    padding: 1.5rem;
-  }
-
-  .edit-section-header,
-  .modal-header-actions {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
-  }
-
-  .button-group {
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  .settings-btn,
-  .reset-btn {
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-  }
-
-  .youtube-controls {
-    flex-direction: column;
-  }
-
-  .youtube-controls input {
-    width: 100%;
-  }
-
-  .video-controls {
-    flex-direction: column;
-  }
-
-  .control-btn {
-    width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  .logo-text {
-    font-size: 1.25rem;
-  }
-
-  .third-section h1 {
-    font-size: 1.75rem;
-  }
-
-  .first-section {
-    padding: 1.5rem;
-  }
-
-  .gradient-text {
-    font-size: 1.5rem;
-  }
-
-  .entry-header,
-  .project-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-
-  .entry-header h3,
-  .project-header h3 {
-    margin-bottom: 0.25rem;
-  }
-
-  .edit-profile-pic-btn {
-    width: 40px;
-    height: 40px;
-    font-size: 1.2rem;
-  }
-}
 /* Project file upload styles */
 .project-file {
   margin-top: 15px;
@@ -1012,29 +949,15 @@ body.dark-mode .youtube-section h3 {
   background: #0284c7;
 }
 
-.cta-btn.secondary {
-  background: #64748b;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.2s;
-}
-
-.cta-btn.secondary:hover {
-  background: #475569;
-}
-
 #projectFileName {
   margin-left: 10px;
   font-size: 14px;
   color: #64748b;
 }
 
-
-
+/* 
+   QUIZ GAME STYLES
+   */
 
 /* Fullscreen Modal */
 .fullscreen-modal {
@@ -1099,16 +1022,23 @@ body.dark-mode .youtube-section h3 {
     padding: 0.5rem;
     border-radius: 4px;
     transition: background 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    min-height: 40px;
 }
 
 .quiz-menu-btn:hover, .quiz-close-btn:hover {
     background: rgba(255, 255, 255, 0.2);
 }
 
+/* Quiz Navigation Menu Display */
 .quiz-nav-menu {
     flex: 1;
     padding: 1rem 0;
     overflow-y: auto;
+    display: block; /* Ensure it's visible by default on desktop */
 }
 
 .nav-section {
@@ -1134,6 +1064,8 @@ body.dark-mode .youtube-section h3 {
     transition: all 0.3s ease;
     color: var(--text-color);
     border-left: 3px solid transparent;
+    font-size: 1rem;
+    font-weight: 500;
 }
 
 .nav-item:hover {
@@ -1572,51 +1504,157 @@ body.dark-mode .youtube-section h3 {
     justify-content: center;
 }
 
-/* Responsive Design */
+/* 
+   RESPONSIVE DESIGN
+   */
 @media (max-width: 768px) {
-    .quiz-container {
-        flex-direction: column;
-    }
-    
-    .quiz-nav {
-        width: 100%;
-        height: auto;
-    }
-    
-    .quiz-nav-menu {
-        display: none;
-    }
-    
-    .quiz-nav-menu.active {
-        display: block;
-    }
-    
-    .game-header {
-        flex-direction: column;
-        gap: 1rem;
-        text-align: center;
-    }
-    
-    .player-info {
-        justify-content: center;
-    }
-    
-    .level-buttons {
-        grid-template-columns: 1fr;
-    }
-    
-    .results-actions,
-    .leaderboard-actions {
-        flex-direction: column;
-    }
-    
-    .leaderboard-entry {
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-    
-    .leaderboard-entry .level,
-    .leaderboard-entry .date {
-        min-width: auto;
-    }
+  header .container {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .nav-box {
+    width: 100%;
+  }
+
+  nav ul.nav-list {
+    justify-content: center;
+  }
+
+  .third-section h1 {
+    font-size: 2rem;
+  }
+
+  .second-section {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .profile-image {
+    width: 200px;
+    height: 200px;
+  }
+
+  .modal-content {
+    width: 95%;
+    padding: 1.5rem;
+  }
+
+  .edit-section-header,
+  .modal-header-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .button-group {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .settings-btn,
+  .reset-btn {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .youtube-controls {
+    flex-direction: column;
+  }
+
+  .youtube-controls input {
+    width: 100%;
+  }
+
+  .video-controls {
+    flex-direction: column;
+  }
+
+  .control-btn {
+    width: 100%;
+  }
+
+  /* Quiz Mobile Responsive */
+  .quiz-container {
+    flex-direction: column;
+  }
+  
+  .quiz-nav {
+    width: 100%;
+    height: auto;
+  }
+  
+  .quiz-nav-menu {
+    display: none;
+  }
+  
+  .quiz-nav-menu.active {
+    display: block;
+  }
+  
+  .game-header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .player-info {
+    justify-content: center;
+  }
+  
+  .level-buttons {
+    grid-template-columns: 1fr;
+  }
+  
+  .results-actions,
+  .leaderboard-actions {
+    flex-direction: column;
+  }
+  
+  .leaderboard-entry {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .leaderboard-entry .level,
+  .leaderboard-entry .date {
+    min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-text {
+    font-size: 1.25rem;
+  }
+
+  .third-section h1 {
+    font-size: 1.75rem;
+  }
+
+  .first-section {
+    padding: 1.5rem;
+  }
+
+  .gradient-text {
+    font-size: 1.5rem;
+  }
+
+  .entry-header,
+  .project-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .entry-header h3,
+  .project-header h3 {
+    margin-bottom: 0.25rem;
+  }
+
+  .edit-profile-pic-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
 }
