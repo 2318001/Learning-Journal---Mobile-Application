@@ -906,7 +906,6 @@ body.dark-mode .youtube-section h3 {
   color: #64748b;
 }
 
-
 /* 
    QUIZ GAME STYLES - PERFECT SIDE-BY-SIDE LAYOUT
    ================================= */
@@ -941,12 +940,12 @@ body.modal-open {
     overflow: hidden;
 }
 
-/* Quiz Container - PERFECT SIDE-BY-SIDE */
+/* Quiz Container - REMOVED BLUE BACKGROUND */
 .quiz-container {
     display: flex;
     flex-direction: column;
     height: 100vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--bg-primary);
     position: relative;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
@@ -960,10 +959,10 @@ body.modal-open {
     background: var(--bg-primary);
 }
 
-/* Quiz Navigation - PERFECT SIDE-BY-SIDE */
+/* Quiz Navigation - UPDATED COLORS */
 .quiz-nav {
     width: 320px;
-    background: rgba(255, 255, 255, 0.98);
+    background: var(--bg-secondary);
     backdrop-filter: blur(10px);
     border-right: 2px solid var(--border-color);
     display: flex;
@@ -980,8 +979,8 @@ body.modal-open {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: linear-gradient(135deg, var(--primary-color), #0d9488);
-    color: white;
+    background: var(--bg-secondary);
+    color: var(--text-color);
     flex-shrink: 0;
 }
 
@@ -989,7 +988,7 @@ body.modal-open {
     margin: 0;
     font-size: 1.4rem;
     font-weight: 700;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    color: var(--text-heading);
 }
 
 .quiz-menu-btn, .quiz-close-btn {
@@ -997,7 +996,7 @@ body.modal-open {
     border: none;
     font-size: 1.5rem;
     cursor: pointer;
-    color: white;
+    color: var(--text-color);
     padding: 0.5rem;
     border-radius: 6px;
     transition: all 0.3s ease;
@@ -1006,11 +1005,12 @@ body.modal-open {
     justify-content: center;
     min-width: 40px;
     min-height: 40px;
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--bg-accent);
 }
 
 .quiz-menu-btn:hover, .quiz-close-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: var(--primary-color);
+    color: white;
     transform: scale(1.1);
 }
 
@@ -1066,18 +1066,18 @@ body.modal-open {
     border-left-color: var(--primary-color);
 }
 
-/* Quiz Content - PERFECT SIDE-BY-SIDE WITH SETUP */
+/* Quiz Content - UPDATED BACKGROUND */
 .quiz-content {
     flex: 1;
     padding: 0;
     overflow: hidden;
-    background: white;
+    background: var(--bg-secondary);
     display: flex;
     position: relative;
     min-height: 0;
 }
 
-/* Player Setup - PERFECT SIDE-BY-SIDE LAYOUT */
+/* Player Setup - NEW STYLES FOR NAME INPUT */
 #playerSetup.quiz-section {
     display: none;
     width: 100%;
@@ -1101,12 +1101,12 @@ body.modal-open {
     width: 100%;
     height: 100%;
     padding: 2rem;
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    background: var(--bg-primary);
     text-align: center;
 }
 
 .setup-content {
-    background: white;
+    background: var(--bg-secondary);
     padding: 3rem;
     border-radius: 20px;
     box-shadow: 0 20px 40px rgba(0,0,0,0.1);
@@ -1118,12 +1118,8 @@ body.modal-open {
 .setup-container h3 {
     font-size: 2.5rem;
     margin-bottom: 2rem;
-    color: var(--text-color);
+    color: var(--text-heading);
     font-weight: 800;
-    background: linear-gradient(135deg, var(--primary-color), #0d9488);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
 }
 
 .setup-container .form-group {
@@ -1148,6 +1144,8 @@ body.modal-open {
     transition: all 0.3s ease;
     width: 100%;
     box-sizing: border-box;
+    background: var(--bg-primary);
+    color: var(--text-color);
 }
 
 .setup-container .form-group input:focus {
@@ -1163,7 +1161,7 @@ body.modal-open {
     margin-top: 1rem;
     border-radius: 15px;
     font-weight: 800;
-    background: linear-gradient(135deg, var(--primary-color), #0d9488);
+    background: var(--primary-color);
     border: none;
     color: white;
     transition: all 0.3s ease;
@@ -1204,6 +1202,7 @@ body.modal-open {
     flex-direction: column;
     min-height: 0;
     overflow-y: auto;
+    background: var(--bg-secondary);
 }
 
 .quiz-section.active {
@@ -1222,10 +1221,10 @@ body.modal-open {
     }
 }
 
-/* Quiz Footer */
+/* Quiz Footer - UPDATED COLORS */
 .quiz-footer {
     background: var(--footer-bg);
-    color: white;
+    color: var(--text-primary);
     text-align: center;
     padding: 1rem 0;
     border-top: 2px solid var(--border-color);
@@ -1412,12 +1411,12 @@ body.modal-open {
     line-height: 1.5;
 }
 
-/* Game Area */
+/* Game Area - UPDATED COLORS */
 .game-area {
     flex: 1;
     display: flex;
     flex-direction: column;
-    background: white;
+    background: var(--bg-secondary);
     border-radius: 20px;
     padding: 2rem;
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
@@ -1430,12 +1429,12 @@ body.modal-open {
     align-items: center;
     margin-bottom: 2.5rem;
     padding: 1.5rem 2rem;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: var(--bg-accent);
     border-radius: 16px;
     border: none;
     flex-shrink: 0;
-    color: white;
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+    color: var(--text-color);
+    box-shadow: 0 6px 20px var(--shadow-color);
 }
 
 .player-info {
@@ -1447,38 +1446,38 @@ body.modal-open {
 }
 
 .player-info span {
-    background: rgba(255,255,255,0.2);
+    background: var(--bg-primary);
     padding: 0.5rem 1rem;
     border-radius: 8px;
-    backdrop-filter: blur(10px);
+    color: var(--text-color);
 }
 
 .timer-container {
     text-align: center;
-    background: rgba(255,255,255,0.2);
+    background: var(--bg-primary);
     padding: 1rem;
     border-radius: 12px;
-    backdrop-filter: blur(10px);
+    color: var(--text-color);
 }
 
 .timer {
     font-size: 1.8rem;
     font-weight: bold;
     margin-bottom: 0.75rem;
-    color: white;
+    color: var(--text-color);
 }
 
 .progress-bar {
     width: 250px;
     height: 10px;
-    background: rgba(255,255,255,0.3);
+    background: var(--border-color);
     border-radius: 5px;
     overflow: hidden;
 }
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #10b981, #34d399);
+    background: var(--primary-color);
     transition: width 1s linear;
     border-radius: 5px;
 }
@@ -1524,13 +1523,14 @@ body.modal-open {
     padding: 1.5rem;
     border: 3px solid var(--border-color);
     border-radius: 15px;
-    background: white;
+    background: var(--bg-secondary);
     cursor: pointer;
     transition: all 0.3s ease;
     text-align: left;
     font-size: 1.1rem;
     font-weight: 500;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    color: var(--text-color);
 }
 
 .option-btn:hover:not(:disabled) {
@@ -1571,6 +1571,7 @@ body.modal-open {
     justify-content: center;
     background: var(--bg-accent);
     border-radius: 8px;
+    color: var(--text-color);
 }
 
 .option-btn:hover .option-letter {
@@ -1582,7 +1583,7 @@ body.modal-open {
     font-size: 1.1rem;
 }
 
-/* Results */
+/* Results - UPDATED COLORS */
 .results-container {
     text-align: center;
     padding: 2rem;
@@ -1602,15 +1603,15 @@ body.modal-open {
 }
 
 .results-summary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: var(--bg-accent);
+    color: var(--text-color);
     padding: 3rem;
     border-radius: 25px;
     margin: 2rem 0;
     flex: 1;
     width: 100%;
     max-width: 600px;
-    box-shadow: 0 15px 35px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 15px 35px var(--shadow-color);
     position: relative;
     overflow: hidden;
 }
