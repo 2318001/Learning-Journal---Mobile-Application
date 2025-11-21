@@ -993,6 +993,7 @@ body.modal-open {
 /* Quiz Container */
 .quiz-container {
     display: flex;
+    flex-direction: column;
     height: 100vh;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
@@ -1097,6 +1098,7 @@ body.modal-open {
     display: none;
     max-width: 800px;
     margin: 0 auto;
+    min-height: 100%;
 }
 
 .quiz-section.active {
@@ -1670,4 +1672,43 @@ body.modal-open {
     height: 40px;
     font-size: 1.2rem;
   }
+}
+
+
+
+
+
+
+
+
+/* Quiz Footer Styles */
+
+/* Responsive design for quiz footer */
+@media (max-width: 768px) {
+    .quiz-footer {
+        padding: 0.75rem 0;
+    }
+    
+    .quiz-footer p {
+        font-size: 0.8rem;
+    }
+}
+.quiz-footer {
+    background: var(--footer-bg);
+    color: white;
+    text-align: center;
+    padding: 1rem 0;
+    border-top: 2px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.quiz-footer .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.quiz-footer p {
+    margin: 0;
+    font-size: 0.9rem;
 }
