@@ -945,7 +945,7 @@ body.modal-open {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: linear-gradient(135deg,#576297);
+  background: linear-gradient(135deg,#667eea 0%);
   position: relative;
 }
 
