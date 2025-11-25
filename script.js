@@ -387,19 +387,7 @@ class ProjectsManager {
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-// Quiz Game Manager - Handles quiz game functionality
+// Quiz Game Manager - Handles quiz game functionality (FIXED)
 class QuizGameManager {
     constructor(storage) {
         this.storage = storage;
@@ -579,11 +567,17 @@ class QuizGameManager {
             this.quizCloseBtn.addEventListener("click", () => this.closeModal());
         }
         
+        // FIXED: Navigation event listeners
         this.navItems.forEach(item => {
             item.addEventListener("click", (e) => {
-                const section = e.target.dataset.section;
-                this.showSection(section);
-                this.quizNavMenu.classList.remove("active");
+                e.preventDefault();
+                const section = item.getAttribute('data-target');
+                if (section) {
+                    this.showSection(section);
+                }
+                if (this.quizNavMenu) {
+                    this.quizNavMenu.classList.remove("active");
+                }
             });
         });
 
@@ -591,9 +585,16 @@ class QuizGameManager {
         if (this.startGameBtn) {
             this.startGameBtn.addEventListener("click", () => this.startGameSetup());
         }
+        
         this.levelButtons.forEach(btn => {
-            btn.addEventListener("click", (e) => this.selectLevel(e.target.closest('.level-btn').dataset.level));
+            btn.addEventListener("click", (e) => {
+                const level = btn.getAttribute('data-level');
+                if (level) {
+                    this.selectLevel(level);
+                }
+            });
         });
+        
         if (this.nextQuestionBtn) {
             this.nextQuestionBtn.addEventListener("click", () => this.nextQuestion());
         }
@@ -621,21 +622,20 @@ class QuizGameManager {
         this.loadLeaderboard();
     }
 
+    // FIXED: Modal methods
     openModal() {
         if (this.quizModal) {
-            this.quizModal.style.display = "block";
+            this.quizModal.classList.add("active");
             document.body.classList.add("modal-open");
-            document.body.style.overflow = "hidden";
-            this.showSection('rulesSection');
+            this.showSection('playerSetup');
             this.resetGame();
         }
     }
 
     closeModal() {
         if (this.quizModal) {
-            this.quizModal.style.display = "none";
+            this.quizModal.classList.remove("active");
             document.body.classList.remove("modal-open");
-            document.body.style.overflow = "auto";
             this.resetGame();
         }
     }
@@ -646,8 +646,11 @@ class QuizGameManager {
         }
     }
 
+    // FIXED: Section display logic
     showSection(sectionName) {
-        // Hide all sections - use class-based approach to avoid CSS conflicts
+        console.log(`Showing section: ${sectionName}`);
+        
+        // Hide all quiz sections
         const sections = document.querySelectorAll('.quiz-section');
         sections.forEach(section => {
             section.classList.remove('active');
@@ -658,6 +661,16 @@ class QuizGameManager {
         if (targetSection) {
             targetSection.classList.add('active');
         }
+        
+        // Update active nav item
+        this.navItems.forEach(item => {
+            const itemSection = item.getAttribute('data-target');
+            if (itemSection === sectionName) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
         
         // Close nav menu on mobile
         if (window.innerWidth <= 768 && this.quizNavMenu) {
@@ -672,11 +685,12 @@ class QuizGameManager {
         if (name.length < 2) {
             if (this.nameError) {
                 this.nameError.textContent = "Name must be at least 2 characters long";
+                this.nameError.style.display = "block";
             }
             return false;
         } else {
             if (this.nameError) {
-                this.nameError.textContent = "";
+                this.nameError.style.display = "none";
             }
             return true;
         }
@@ -865,6 +879,7 @@ class QuizGameManager {
         clearInterval(this.timer);
         if (this.nameError) {
             this.nameError.textContent = "";
+            this.nameError.style.display = "none";
         }
     }
 
@@ -882,23 +897,13 @@ class QuizGameManager {
         
         // Sort by score descending and keep top 10
         leaderboard.sort((a, b) => b.score - a.score);
-        const uniqueLeaderboard = [];
-        const playerSet = new Set();
+        const topLeaderboard = leaderboard.slice(0, 10);
         
-        for (const entry of leaderboard) {
-            if (!playerSet.has(entry.player) || entry.score > Math.max(...leaderboard.filter(e => e.player === entry.player).map(e => e.score))) {
-                if (uniqueLeaderboard.length < 10) {
-                    uniqueLeaderboard.push(entry);
-                    playerSet.add(entry.player);
-                }
-            }
-        }
-        
-        this.storage.setLocal("quizLeaderboard", uniqueLeaderboard);
+        this.storage.setLocal("quizLeaderboard", topLeaderboard);
         this.loadLeaderboard();
         
         // Check if this is a high score
-        const topScore = uniqueLeaderboard[0];
+        const topScore = topLeaderboard[0];
         if (this.highScoreMessage) {
             if (topScore && topScore.player === this.currentPlayer && topScore.score === this.score) {
                 this.highScoreMessage.innerHTML = "🎉 <strong>New High Score!</strong> 🎉";
@@ -975,7 +980,7 @@ function startPageDateTime() {
   setInterval(() => updateDateTime("pageDateTime"), 1000)
 }
 
-// Modal system setup
+// FIXED: Modal system setup
 function setupModalSystem(managers = {}) {
   const modals = document.querySelectorAll(".modal")
 
@@ -983,7 +988,14 @@ function setupModalSystem(managers = {}) {
   document.querySelectorAll(".close-button").forEach((btn) => {
     btn.addEventListener("click", () => {
       const modal = btn.closest(".modal")
-      if (modal) modal.style.display = "none"
+      if (modal) {
+        // Handle quiz modal differently
+        if (modal.id === "quizModal" && managers.quizManager) {
+          managers.quizManager.closeModal();
+        } else {
+          modal.style.display = "none"
+        }
+      }
     })
   })
 
@@ -991,7 +1003,12 @@ function setupModalSystem(managers = {}) {
   window.addEventListener("click", (event) => {
     modals.forEach((modal) => {
       if (event.target === modal) {
-        modal.style.display = "none"
+        // Handle quiz modal differently
+        if (modal.id === "quizModal" && managers.quizManager) {
+          managers.quizManager.closeModal();
+        } else {
+          modal.style.display = "none"
+        }
       }
     })
   })
@@ -1072,9 +1089,6 @@ function setupModalSystem(managers = {}) {
     })
   })
 }
-
-
-
 
 // Initialize other modals (About, CV, Hero, Profile Picture)
 function initializeOtherModals(storage) {
@@ -1336,7 +1350,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const storage = new StorageManager()
     const browserAPIs = new window.BrowserAPIsManager(storage)
     
-    // Remove YouTubeManager reference if it doesn't exist
     const journalManager = new JournalManager(storage, browserAPIs)
     const projectsManager = new ProjectsManager(storage, browserAPIs)
     const quizManager = new QuizGameManager(storage)
