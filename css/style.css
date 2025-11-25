@@ -940,7 +940,7 @@ body.modal-open {
     overflow: hidden;
 }
 
-/* Quiz Container - REMOVED BLUE BACKGROUND */
+/* Quiz Container */
 .quiz-container {
     display: flex;
     flex-direction: column;
@@ -950,9 +950,9 @@ body.modal-open {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* Main Content Area - PERFECT SIDE-BY-SIDE */
+/* Main Content Area - FIXED SIDE-BY-SIDE LAYOUT */
 .quiz-main {
-   display: flex;
+    display: flex;
     flex: 1;
     min-height: 0;
     overflow: hidden;
@@ -960,11 +960,10 @@ body.modal-open {
     position: relative;
 }
 
-/* Quiz Navigation - UPDATED COLORS */
+/* Quiz Navigation */
 .quiz-nav {
     width: 320px;
     background: var(--bg-secondary);
-    backdrop-filter: blur(10px);
     border-right: 2px solid var(--border-color);
     display: flex;
     flex-direction: column;
@@ -1067,7 +1066,7 @@ body.modal-open {
     border-left-color: var(--primary-color);
 }
 
-/* Quiz Content - UPDATED BACKGROUND */
+/* Quiz Content - FIXED LAYOUT */
 .quiz-content {
     flex: 1;
     padding: 0;
@@ -1076,10 +1075,41 @@ body.modal-open {
     display: flex;
     position: relative;
     min-height: 0;
-     width: 100%;
+    width: 100%;
 }
 
-/* Player Setup - NEW STYLES FOR NAME INPUT */
+/* Quiz Sections - FIXED DISPLAY */
+.quiz-section {
+    display: none;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 2rem;
+    flex-direction: column;
+    min-height: 0;
+    overflow-y: auto;
+    background: var(--bg-secondary);
+}
+
+.quiz-section.active {
+    display: flex !important;
+    animation: fadeInUp 0.5s ease;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+@keyframes fadeInUp {
+    from { 
+        opacity: 0; 
+        transform: translateY(30px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+/* Player Setup - FIXED POSITIONING */
 #playerSetup.quiz-section {
     display: none;
     width: 100%;
@@ -1100,7 +1130,7 @@ body.modal-open {
 }
 
 .setup-container {
-   display: flex !important;
+    display: flex !important;
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -1202,37 +1232,7 @@ body.modal-open {
     box-shadow: 0 15px 35px rgba(14, 165, 233, 0.6);
 }
 
-/* Other Quiz Sections */
-.quiz-section {
-    display: none;
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 2rem;
-    flex-direction: column;
-    min-height: 0;
-    overflow-y: auto;
-    background: var(--bg-secondary);
-}
-
-.quiz-section.active {
-   display: flex !important;
-    animation: fadeInUp 0.5s ease;
-    visibility: visible !important;
-}
-
-@keyframes fadeInUp {
-    from { 
-        opacity: 0; 
-        transform: translateY(30px); 
-    }
-    to { 
-        opacity: 1; 
-        transform: translateY(0); 
-    }
-}
-
-/* Quiz Footer - UPDATED COLORS */
+/* Quiz Footer */
 .quiz-footer {
     background: var(--footer-bg);
     color: var(--text-primary);
@@ -1422,7 +1422,7 @@ body.modal-open {
     line-height: 1.5;
 }
 
-/* Game Area - UPDATED COLORS */
+/* Game Area */
 .game-area {
     flex: 1;
     display: flex;
@@ -1594,7 +1594,7 @@ body.modal-open {
     font-size: 1.1rem;
 }
 
-/* Results - UPDATED COLORS */
+/* Results */
 .results-container {
     text-align: center;
     padding: 2rem;
@@ -1860,11 +1860,13 @@ body.modal-open {
     border-radius: 10px;
     font-weight: 600;
     min-width: 160px;
-}/* 
+}
+
+/* 
    RESPONSIVE DESIGN - FIXED FOR SETUP SECTION
    ================================= */
 @media (max-width: 768px) {
-  /* Quiz Mobile Responsive - FIXED STACKING */
+  /* Quiz Mobile Responsive - STACKED LAYOUT */
   .quiz-container {
     height: 100vh;
   }
@@ -1903,7 +1905,7 @@ body.modal-open {
     min-height: 100%;
   }
   
-  /* FIX: Setup container should always be visible */
+  /* Setup container mobile styles */
   .setup-container {
     padding: 1.5rem;
     height: 100%;
@@ -2040,7 +2042,7 @@ body.modal-open {
     width: 100%;
   }
 
-  /* Small screen adjustments within the same media query */
+  /* Small screen adjustments */
   .quiz-nav-header {
     padding: 1rem;
   }
@@ -2114,7 +2116,7 @@ body.modal-open {
   }
 }
 
-/* ADD THIS: Desktop-specific styles to ensure setup section works on large screens */
+/* Desktop-specific styles for proper side-by-side layout */
 @media (min-width: 769px) {
   .quiz-section.active {
     display: flex !important;
@@ -2132,7 +2134,27 @@ body.modal-open {
     height: 100%;
   }
 
-  /* Ensure the setup section is properly displayed on desktop */
+  /* Ensure proper side-by-side layout */
+  .quiz-main {
+    display: flex;
+    flex-direction: row;
+  }
+  
+  .quiz-nav {
+    width: 320px;
+    flex-shrink: 0;
+  }
+  
+  .quiz-content {
+    flex: 1;
+    display: flex;
+  }
+  
+  .quiz-section.active {
+    display: flex !important;
+    width: 100%;
+  }
+  
   #playerSetup.quiz-section.active {
     display: flex !important;
     visibility: visible !important;
