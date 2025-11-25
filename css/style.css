@@ -907,7 +907,7 @@ body.dark-mode .youtube-section h3 {
 }
 
 /* 
-   QUIZ GAME STYLES - PERFECT SIDE-BY-SIDE LAYOUT
+   QUIZ GAME STYLES - FIXED SIDE-BY-SIDE LAYOUT
    ================================= */
 
 /* Fullscreen Modal */
@@ -922,6 +922,10 @@ body.dark-mode .youtube-section h3 {
     z-index: 1000;
     padding: 0;
     overflow: hidden;
+}
+
+.fullscreen-modal.active {
+    display: block;
 }
 
 .fullscreen-modal .modal-content {
@@ -958,9 +962,10 @@ body.modal-open {
     overflow: hidden;
     background: var(--bg-primary);
     position: relative;
+    height: calc(100vh - 120px);
 }
 
-/* Quiz Navigation */
+/* Quiz Navigation - FIXED */
 .quiz-nav {
     width: 320px;
     background: var(--bg-secondary);
@@ -971,6 +976,7 @@ body.modal-open {
     flex-shrink: 0;
     transition: all 0.3s ease;
     height: 100%;
+    overflow: hidden;
 }
 
 .quiz-nav-header {
@@ -1018,7 +1024,7 @@ body.modal-open {
     flex: 1;
     padding: 1.5rem 0;
     overflow-y: auto;
-    display: block;
+    display: block !important;
     min-height: 0;
 }
 
@@ -1066,7 +1072,7 @@ body.modal-open {
     border-left-color: var(--primary-color);
 }
 
-/* Quiz Content - FIXED LAYOUT */
+/* Quiz Content - FIXED */
 .quiz-content {
     flex: 1;
     padding: 0;
@@ -1078,7 +1084,7 @@ body.modal-open {
     width: 100%;
 }
 
-/* Quiz Sections - FIXED DISPLAY */
+/* Quiz Sections - CRITICAL FIX */
 .quiz-section {
     display: none;
     width: 100%;
@@ -1089,13 +1095,20 @@ body.modal-open {
     min-height: 0;
     overflow-y: auto;
     background: var(--bg-secondary);
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .quiz-section.active {
     display: flex !important;
-    animation: fadeInUp 0.5s ease;
-    visibility: visible !important;
     opacity: 1 !important;
+    visibility: visible !important;
+    position: relative;
+    animation: fadeInUp 0.5s ease;
 }
 
 @keyframes fadeInUp {
@@ -1109,8 +1122,8 @@ body.modal-open {
     }
 }
 
-/* Player Setup - FIXED POSITIONING */
-#playerSetup.quiz-section {
+/* Player Setup - CRITICAL FIX */
+#playerSetup {
     display: none;
     width: 100%;
     height: 100%;
@@ -1119,14 +1132,14 @@ body.modal-open {
     max-width: none;
 }
 
-#playerSetup.quiz-section.active {
+#playerSetup.active {
     display: flex !important;
     flex-direction: column;
     animation: fadeInUp 0.5s ease;
     width: 100%;
     height: 100%;
-    visibility: visible !important;
     opacity: 1 !important;
+    visibility: visible !important;
 }
 
 .setup-container {
@@ -1139,8 +1152,8 @@ body.modal-open {
     padding: 2rem;
     background: var(--bg-primary);
     text-align: center;
-    visibility: visible !important;
     opacity: 1 !important;
+    visibility: visible !important;
 }
 
 .setup-content {
@@ -1863,7 +1876,7 @@ body.modal-open {
 }
 
 /* 
-   RESPONSIVE DESIGN - FIXED FOR SETUP SECTION
+   RESPONSIVE DESIGN - FIXED FOR ALL SECTIONS
    ================================= */
 @media (max-width: 768px) {
   /* Quiz Mobile Responsive - STACKED LAYOUT */
@@ -1873,27 +1886,25 @@ body.modal-open {
   
   .quiz-main {
     flex-direction: column;
+    height: calc(100vh - 100px);
   }
   
   .quiz-nav {
     width: 100%;
     height: auto;
-    max-height: 50vh;
+    max-height: 40vh;
     order: -1;
     border-right: none;
     border-bottom: 2px solid var(--border-color);
+    flex-shrink: 0;
   }
   
   .quiz-nav-menu {
-    display: none;
-  }
-  
-  .quiz-nav-menu.active {
-    display: block;
+    display: block !important;
   }
   
   .quiz-content {
-    padding: 1rem;
+    padding: 0;
     flex: 1;
     order: 1;
     height: auto;
@@ -1903,11 +1914,12 @@ body.modal-open {
     padding: 1rem;
     height: auto;
     min-height: 100%;
+    position: relative;
   }
   
   /* Setup container mobile styles */
   .setup-container {
-    padding: 1.5rem;
+    padding: 1rem;
     height: 100%;
     display: flex !important;
     visibility: visible !important;
@@ -2155,7 +2167,7 @@ body.modal-open {
     width: 100%;
   }
   
-  #playerSetup.quiz-section.active {
+  #playerSetup.active {
     display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
