@@ -67,10 +67,16 @@ class JournalManager {
     if (!titleInput || !contentInput) return
 
     const entry = {
-      title: titleInput.value,
-      content: contentInput.value,
+      title: titleInput.value.trim(),
+      content: contentInput.value.trim(),
       timestamp: new Date().toISOString(),
       dateString: new Date().toLocaleString(),
+    }
+
+    // Validate required fields
+    if (!entry.title || !entry.content) {
+      alert("Please fill in all required fields.")
+      return
     }
 
     try {
@@ -165,7 +171,7 @@ class ProjectsManager {
     this.projectsList = document.getElementById("projectsList")
     this.projectsEmptyState = document.getElementById("projectsEmptyState")
 
-    // ADDED: File upload elements
+    // File upload elements
     this.projectFileInput = document.getElementById("projectFile")
     this.projectFileBtn = document.getElementById("projectFileBtn")
     this.projectFileName = document.getElementById("projectFileName")
@@ -185,7 +191,7 @@ class ProjectsManager {
     if (this.resetProjectsBtn) {
       this.resetProjectsBtn.addEventListener("click", () => this.resetProjects())
     }
-    // ADDED: File upload event listeners
+    // File upload event listeners
     if (this.projectFileBtn && this.projectFileInput) {
       this.projectFileBtn.addEventListener("click", () => {
         this.projectFileInput.click()
@@ -226,25 +232,37 @@ class ProjectsManager {
   async handleSubmit(e) {
     e.preventDefault()
 
-    if (this.browserAPIs && !this.browserAPIs.validateForm(this.projectForm)) {
-      alert("Please fix the errors in the form before submitting.")
-      return
-    }
-
+    // Use basic validation if browserAPIs validation is not available
     const titleInput = document.getElementById("projectTitle")
     const descInput = document.getElementById("projectDescription")
 
     if (!titleInput || !descInput) return
 
+    const title = titleInput.value.trim()
+    const description = descInput.value.trim()
+
+    if (!title || !description) {
+      alert("Please fill in all required fields.")
+      return
+    }
+
     const project = {
-      title: titleInput.value,
-      description: descInput.value,
+      title: title,
+      description: description,
       timestamp: new Date().toISOString(),
       dateString: new Date().toLocaleString(),
     }
-    // ADDED: Handle file upload
+
+    // Handle file upload
     if (this.projectFileInput && this.projectFileInput.files.length > 0) {
       const file = this.projectFileInput.files[0]
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert("File size must be less than 5MB.")
+        return
+      }
+
       project.fileName = file.name
       project.fileType = file.type
       project.fileSize = file.size
@@ -258,6 +276,7 @@ class ProjectsManager {
         return
       }
     }
+
     try {
       if (this.storage && typeof this.storage.addToIndexedDB === "function") {
         await this.storage.addToIndexedDB("projects", project)
@@ -278,7 +297,7 @@ class ProjectsManager {
     }
   }
 
-  // ADDED: Method to read file as data URL
+  // Method to read file as data URL
   readFileAsDataURL(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader()
@@ -288,7 +307,7 @@ class ProjectsManager {
     })
   }
 
-  // ADDED: Method to reset file input
+  // Method to reset file input
   resetFileInput() {
     if (this.projectFileInput) {
       this.projectFileInput.value = ""
@@ -338,7 +357,7 @@ class ProjectsManager {
     }
   }
 
-  // ADDED: Method to format file size
+  // Method to format file size
   formatFileSize(bytes) {
     if (bytes === 0) return "0 Bytes"
     const k = 1024
@@ -367,9 +386,6 @@ class ProjectsManager {
     return div.innerHTML
   }
 }
-
-
-
 
 // Quiz Game Manager - Handles quiz game functionality
 class QuizGameManager {
@@ -543,9 +559,13 @@ class QuizGameManager {
     }
 
     init() {
-        // Event listeners for navigation
-        this.quizMenuBtn.addEventListener("click", () => this.toggleNavMenu());
-        this.quizCloseBtn.addEventListener("click", () => this.closeModal());
+        // Event listeners for navigation with null checks
+        if (this.quizMenuBtn) {
+            this.quizMenuBtn.addEventListener("click", () => this.toggleNavMenu());
+        }
+        if (this.quizCloseBtn) {
+            this.quizCloseBtn.addEventListener("click", () => this.closeModal());
+        }
         
         this.navItems.forEach(item => {
             item.addEventListener("click", (e) => {
@@ -555,79 +575,104 @@ class QuizGameManager {
             });
         });
 
-        // Game event listeners
-        this.startGameBtn.addEventListener("click", () => this.startGameSetup());
+        // Game event listeners with null checks
+        if (this.startGameBtn) {
+            this.startGameBtn.addEventListener("click", () => this.startGameSetup());
+        }
         this.levelButtons.forEach(btn => {
             btn.addEventListener("click", (e) => this.selectLevel(e.target.closest('.level-btn').dataset.level));
         });
-        this.nextQuestionBtn.addEventListener("click", () => this.nextQuestion());
-        this.endGameBtn.addEventListener("click", () => this.endGame());
-        this.playAgainBtn.addEventListener("click", () => this.resetGame());
-        this.viewLeaderboardBtn.addEventListener("click", () => this.showSection('leaderboard'));
-        this.backToMenuBtn.addEventListener("click", () => this.showSection('rulesSection'));
-        this.resetScoresBtn.addEventListener("click", () => this.resetLeaderboard());
+        if (this.nextQuestionBtn) {
+            this.nextQuestionBtn.addEventListener("click", () => this.nextQuestion());
+        }
+        if (this.endGameBtn) {
+            this.endGameBtn.addEventListener("click", () => this.endGame());
+        }
+        if (this.playAgainBtn) {
+            this.playAgainBtn.addEventListener("click", () => this.resetGame());
+        }
+        if (this.viewLeaderboardBtn) {
+            this.viewLeaderboardBtn.addEventListener("click", () => this.showSection('leaderboard'));
+        }
+        if (this.backToMenuBtn) {
+            this.backToMenuBtn.addEventListener("click", () => this.showSection('rulesSection'));
+        }
+        if (this.resetScoresBtn) {
+            this.resetScoresBtn.addEventListener("click", () => this.resetLeaderboard());
+        }
 
         // Input validation
-        this.playerNameInput.addEventListener("input", () => this.validateName());
+        if (this.playerNameInput) {
+            this.playerNameInput.addEventListener("input", () => this.validateName());
+        }
         
         this.loadLeaderboard();
     }
 
     openModal() {
-         if (this.quizModal) {
-        this.quizModal.style.display = "block";
-        document.body.classList.add("modal-open"); // Add this line
-        document.body.style.overflow = "hidden";
-        this.showSection('rulesSection');
-        this.resetGame();
+        if (this.quizModal) {
+            this.quizModal.style.display = "block";
+            document.body.classList.add("modal-open");
+            document.body.style.overflow = "hidden";
+            this.showSection('rulesSection');
+            this.resetGame();
         }
     }
 
     closeModal() {
         if (this.quizModal) {
-        this.quizModal.style.display = "none";
-        document.body.classList.remove("modal-open"); // Add this line
-        document.body.style.overflow = "auto";
-        this.resetGame();
+            this.quizModal.style.display = "none";
+            document.body.classList.remove("modal-open");
+            document.body.style.overflow = "auto";
+            this.resetGame();
         }
     }
 
     toggleNavMenu() {
-        this.quizNavMenu.classList.toggle("active");
+        if (this.quizNavMenu) {
+            this.quizNavMenu.classList.toggle("active");
+        }
     }
 
     showSection(sectionName) {
-       // Hide all sections
-    const sections = document.querySelectorAll('.quiz-section');
-    sections.forEach(section => {
-        section.classList.remove('active');
-        section.style.display = 'none'; // Add this line for extra safety
-    });
+        // Hide all sections - use class-based approach to avoid CSS conflicts
+        const sections = document.querySelectorAll('.quiz-section');
+        sections.forEach(section => {
+            section.classList.remove('active');
+        });
+        
         // Show selected section
-    const targetSection = document.getElementById(sectionName);
-    if (targetSection) {
-        targetSection.classList.add('active');
-        targetSection.style.display = 'flex'; // Add this line for extra safety
-    }
+        const targetSection = document.getElementById(sectionName);
+        if (targetSection) {
+            targetSection.classList.add('active');
+        }
         
         // Close nav menu on mobile
-        if (window.innerWidth <= 768) {
+        if (window.innerWidth <= 768 && this.quizNavMenu) {
             this.quizNavMenu.classList.remove("active");
         }
     }
 
     validateName() {
+        if (!this.playerNameInput) return false;
+        
         const name = this.playerNameInput.value.trim();
         if (name.length < 2) {
-            this.nameError.textContent = "Name must be at least 2 characters long";
+            if (this.nameError) {
+                this.nameError.textContent = "Name must be at least 2 characters long";
+            }
             return false;
         } else {
-            this.nameError.textContent = "";
+            if (this.nameError) {
+                this.nameError.textContent = "";
+            }
             return true;
         }
     }
 
     startGameSetup() {
+        if (!this.playerNameInput) return;
+        
         const playerName = this.playerNameInput.value.trim();
         
         if (!this.validateName()) {
@@ -643,12 +688,20 @@ class QuizGameManager {
         this.currentDifficulty = level;
         this.showSection('gameArea');
         
-        this.currentPlayerName.textContent = this.currentPlayer;
-        this.currentLevel.textContent = level.charAt(0).toUpperCase() + level.slice(1);
-        this.currentScore.textContent = "0";
+        if (this.currentPlayerName) {
+            this.currentPlayerName.textContent = this.currentPlayer;
+        }
+        if (this.currentLevel) {
+            this.currentLevel.textContent = level.charAt(0).toUpperCase() + level.slice(1);
+        }
+        if (this.currentScore) {
+            this.currentScore.textContent = "0";
+        }
         
         // Set total questions
-        this.totalQuestions.textContent = this.questions[level].length;
+        if (this.totalQuestions) {
+            this.totalQuestions.textContent = this.questions[level].length;
+        }
         
         this.startGame();
     }
@@ -657,8 +710,13 @@ class QuizGameManager {
         this.score = 0;
         this.currentQuestionIndex = 0;
         this.timeLeft = this.totalTime;
-        this.timerDisplay.textContent = this.timeLeft;
-        this.progressFill.style.width = '100%';
+        
+        if (this.timerDisplay) {
+            this.timerDisplay.textContent = this.timeLeft;
+        }
+        if (this.progressFill) {
+            this.progressFill.style.width = '100%';
+        }
         
         this.startTimer();
         this.showQuestion();
@@ -668,22 +726,28 @@ class QuizGameManager {
         clearInterval(this.timer);
         this.timer = setInterval(() => {
             this.timeLeft--;
-            this.timerDisplay.textContent = this.timeLeft;
+            
+            if (this.timerDisplay) {
+                this.timerDisplay.textContent = this.timeLeft;
+            }
             
             // Update progress bar
             const progressPercent = (this.timeLeft / this.totalTime) * 100;
-            this.progressFill.style.width = `${progressPercent}%`;
-            
-            // Change color when time is running out
-            if (this.timeLeft <= 10) {
-                this.progressFill.style.background = '#ef4444';
-            } else if (this.timeLeft <= 30) {
-                this.progressFill.style.background = '#f59e0b';
-            } else {
-                this.progressFill.style.background = '#10b981';
+            if (this.progressFill) {
+                this.progressFill.style.width = `${progressPercent}%`;
+                
+                // Change color when time is running out
+                if (this.timeLeft <= 10) {
+                    this.progressFill.style.background = '#ef4444';
+                } else if (this.timeLeft <= 30) {
+                    this.progressFill.style.background = '#f59e0b';
+                } else {
+                    this.progressFill.style.background = '#10b981';
+                }
             }
             
             if (this.timeLeft <= 0) {
+                clearInterval(this.timer);
                 this.endGame();
             }
         }, 1000);
@@ -697,22 +761,31 @@ class QuizGameManager {
         }
         
         const question = questions[this.currentQuestionIndex];
-        this.currentQuestionNum.textContent = this.currentQuestionIndex + 1;
-        this.questionText.textContent = question.question;
         
-        this.optionsContainer.innerHTML = "";
-        question.options.forEach((option, index) => {
-            const button = document.createElement("button");
-            button.className = "option-btn";
-            button.innerHTML = `
-                <span class="option-letter">${String.fromCharCode(65 + index)}</span>
-                <span class="option-text">${option}</span>
-            `;
-            button.addEventListener("click", () => this.checkAnswer(index));
-            this.optionsContainer.appendChild(button);
-        });
+        if (this.currentQuestionNum) {
+            this.currentQuestionNum.textContent = this.currentQuestionIndex + 1;
+        }
+        if (this.questionText) {
+            this.questionText.textContent = question.question;
+        }
         
-        this.nextQuestionBtn.style.display = "none";
+        if (this.optionsContainer) {
+            this.optionsContainer.innerHTML = "";
+            question.options.forEach((option, index) => {
+                const button = document.createElement("button");
+                button.className = "option-btn";
+                button.innerHTML = `
+                    <span class="option-letter">${String.fromCharCode(65 + index)}</span>
+                    <span class="option-text">${option}</span>
+                `;
+                button.addEventListener("click", () => this.checkAnswer(index));
+                this.optionsContainer.appendChild(button);
+            });
+        }
+        
+        if (this.nextQuestionBtn) {
+            this.nextQuestionBtn.style.display = "none";
+        }
     }
 
     checkAnswer(selectedIndex) {
@@ -736,10 +809,14 @@ class QuizGameManager {
         if (selectedIndex === question.correct) {
             this.score += this.currentDifficulty === "easy" ? 10 : 
                          this.currentDifficulty === "medium" ? 20 : 30;
-            this.currentScore.textContent = this.score;
+            if (this.currentScore) {
+                this.currentScore.textContent = this.score;
+            }
         }
         
-        this.nextQuestionBtn.style.display = "block";
+        if (this.nextQuestionBtn) {
+            this.nextQuestionBtn.style.display = "block";
+        }
     }
 
     nextQuestion() {
@@ -751,22 +828,32 @@ class QuizGameManager {
         clearInterval(this.timer);
         this.showSection('resultsArea');
         
-        this.resultPlayerName.textContent = this.currentPlayer;
-        this.resultLevel.textContent = this.currentDifficulty.charAt(0).toUpperCase() + this.currentDifficulty.slice(1);
-        this.finalScore.textContent = this.score;
+        if (this.resultPlayerName) {
+            this.resultPlayerName.textContent = this.currentPlayer;
+        }
+        if (this.resultLevel) {
+            this.resultLevel.textContent = this.currentDifficulty.charAt(0).toUpperCase() + this.currentDifficulty.slice(1);
+        }
+        if (this.finalScore) {
+            this.finalScore.textContent = this.score;
+        }
         
         this.updateLeaderboard();
     }
 
     resetGame() {
         this.showSection('playerSetup');
-        this.playerNameInput.value = "";
+        if (this.playerNameInput) {
+            this.playerNameInput.value = "";
+        }
         this.score = 0;
         this.currentQuestionIndex = 0;
         this.timeLeft = this.totalTime;
         
         clearInterval(this.timer);
-        this.nameError.textContent = "";
+        if (this.nameError) {
+            this.nameError.textContent = "";
+        }
     }
 
     updateLeaderboard() {
@@ -800,17 +887,21 @@ class QuizGameManager {
         
         // Check if this is a high score
         const topScore = uniqueLeaderboard[0];
-        if (topScore && topScore.player === this.currentPlayer && topScore.score === this.score) {
-            this.highScoreMessage.innerHTML = "🎉 <strong>New High Score!</strong> 🎉";
-            this.highScoreMessage.className = "high-score-message success";
-        } else {
-            this.highScoreMessage.innerHTML = "Great effort! Try again to beat the high score!";
-            this.highScoreMessage.className = "high-score-message";
+        if (this.highScoreMessage) {
+            if (topScore && topScore.player === this.currentPlayer && topScore.score === this.score) {
+                this.highScoreMessage.innerHTML = "🎉 <strong>New High Score!</strong> 🎉";
+                this.highScoreMessage.className = "high-score-message success";
+            } else {
+                this.highScoreMessage.innerHTML = "Great effort! Try again to beat the high score!";
+                this.highScoreMessage.className = "high-score-message";
+            }
         }
     }
 
     loadLeaderboard() {
         const leaderboard = this.storage.getLocal("quizLeaderboard") || [];
+        
+        if (!this.leaderboardContent) return;
         
         if (leaderboard.length === 0) {
             this.leaderboardContent.innerHTML = `
@@ -826,7 +917,7 @@ class QuizGameManager {
             .map((entry, index) => `
                 <div class="leaderboard-entry ${index === 0 ? 'top-score' : ''} ${index < 3 ? 'podium' : ''}">
                     <span class="rank">${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}</span>
-                    <span class="player">${entry.player}</span>
+                    <span class="player">${this.escapeHtml(entry.player)}</span>
                     <span class="score">${entry.score} pts</span>
                     <span class="level ${entry.level}">${entry.level}</span>
                     <span class="date">${entry.date}</span>
@@ -842,15 +933,13 @@ class QuizGameManager {
             alert("All scores have been reset!");
         }
     }
+
+    escapeHtml(text) {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+    }
 }
-
-
-
-
-
-
-
-
 
 // Utility: Date/time update
 function updateDateTime(elementId) {
@@ -997,6 +1086,10 @@ function initializeOtherModals(storage) {
           storage.setLocal("profilePicture", event.target.result)
           console.log("Profile picture updated")
         }
+        reader.onerror = (error) => {
+          console.error("Error reading profile picture:", error)
+          alert("Error reading the image file. Please try again.")
+        }
         reader.readAsDataURL(file)
       } else {
         alert("Please select a valid image file")
@@ -1052,6 +1145,10 @@ function initializeOtherModals(storage) {
           storage.setLocal("aboutContent", content)
           alert(`File "${file.name}" uploaded successfully!`)
         }
+        reader.onerror = (error) => {
+          console.error("Error reading about file:", error)
+          alert("Error reading the file. Please try again.")
+        }
         reader.readAsText(file)
       }
     })
@@ -1106,6 +1203,10 @@ function initializeOtherModals(storage) {
           storage.setLocal("cvFileData", event.target.result)
           alert(`CV file "${file.name}" uploaded successfully!`)
         }
+        reader.onerror = (error) => {
+          console.error("Error reading CV file:", error)
+          alert("Error reading the CV file. Please try again.")
+        }
         reader.readAsDataURL(file)
       }
     })
@@ -1143,7 +1244,7 @@ function initializeOtherModals(storage) {
       if (cvFileDisplay) cvFileDisplay.style.display = "none"
       if (cvFileName) cvFileName.textContent = ""
       alert("CV file deleted successfully!")
-      console.log(" CV deleted")
+      console.log("CV deleted")
     }
   })
 
@@ -1216,22 +1317,27 @@ document.addEventListener("DOMContentLoaded", () => {
     return
   }
 
-  const storage = new StorageManager()
-  const browserAPIs = new window.BrowserAPIsManager(storage)
-  const youtubeManager = typeof window.YouTubeManager !== "undefined" ? new window.YouTubeManager(storage) : null
-  const journalManager = new JournalManager(storage, browserAPIs)
-  const projectsManager = new ProjectsManager(storage, browserAPIs)
-  const quizManager = new QuizGameManager(storage) // Add quiz manager
+  try {
+    const storage = new StorageManager()
+    const browserAPIs = new window.BrowserAPIsManager(storage)
+    
+    // Remove YouTubeManager reference if it doesn't exist
+    const journalManager = new JournalManager(storage, browserAPIs)
+    const projectsManager = new ProjectsManager(storage, browserAPIs)
+    const quizManager = new QuizGameManager(storage)
 
-  // Provide validation manager to journal
-  if (browserAPIs && typeof journalManager.setValidationManager === "function") {
-    journalManager.setValidationManager(browserAPIs)
+    // Provide validation manager to journal
+    if (browserAPIs && typeof journalManager.setValidationManager === "function") {
+      journalManager.setValidationManager(browserAPIs)
+    }
+
+    // Start everything
+    startPageDateTime()
+    setupModalSystem({ journalManager, projectsManager, quizManager })
+    initializeOtherModals(storage)
+
+    console.log("Learning Journal initialized successfully")
+  } catch (error) {
+    console.error("Error initializing Learning Journal:", error)
   }
-
-  // Start everything
-  startPageDateTime()
-  setupModalSystem({ journalManager, projectsManager, quizManager }) // Include quiz manager
-  initializeOtherModals(storage)
-
-  console.log("Learning Journal worked successfully")
 })
