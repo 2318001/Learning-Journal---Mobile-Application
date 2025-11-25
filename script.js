@@ -597,15 +597,18 @@ class QuizGameManager {
     }
 
     showSection(sectionName) {
-        // Hide all sections
-        const sections = document.querySelectorAll('.quiz-section');
-        sections.forEach(section => section.classList.remove('active'));
-        
+       // Hide all sections
+    const sections = document.querySelectorAll('.quiz-section');
+    sections.forEach(section => {
+        section.classList.remove('active');
+        section.style.display = 'none'; // Add this line for extra safety
+    });
         // Show selected section
-        const targetSection = document.getElementById(sectionName);
-        if (targetSection) {
-            targetSection.classList.add('active');
-        }
+    const targetSection = document.getElementById(sectionName);
+    if (targetSection) {
+        targetSection.classList.add('active');
+        targetSection.style.display = 'flex'; // Add this line for extra safety
+    }
         
         // Close nav menu on mobile
         if (window.innerWidth <= 768) {

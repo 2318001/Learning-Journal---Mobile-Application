@@ -1096,10 +1096,11 @@ body.modal-open {
     width: 100%;
     height: 100%;
     visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .setup-container {
-   display: flex;
+   display: flex !important;
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -1109,6 +1110,7 @@ body.modal-open {
     background: var(--bg-primary);
     text-align: center;
     visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .setup-content {
@@ -1858,8 +1860,7 @@ body.modal-open {
     border-radius: 10px;
     font-weight: 600;
     min-width: 160px;
-}
-/* 
+}/* 
    RESPONSIVE DESIGN - FIXED FOR SETUP SECTION
    ================================= */
 @media (max-width: 768px) {
@@ -1907,6 +1908,8 @@ body.modal-open {
     padding: 1.5rem;
     height: 100%;
     display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 
   .setup-content {
@@ -1917,6 +1920,11 @@ body.modal-open {
 
   .setup-container h3 {
     font-size: 2rem;
+  }
+
+  .setup-container .form-group input {
+    padding: 1rem;
+    font-size: 1.1rem;
   }
 
   .large-btn {
@@ -2031,10 +2039,8 @@ body.modal-open {
   .progress-bar {
     width: 100%;
   }
-}
 
-@media (max-width: 480px) {
-  /* Quiz Mobile Small - FIXED STACKING */
+  /* Small screen adjustments within the same media query */
   .quiz-nav-header {
     padding: 1rem;
   }
@@ -2049,31 +2055,6 @@ body.modal-open {
 
   .quiz-section {
     padding: 0.5rem;
-  }
-  
-  /* FIX: Ensure setup container is always visible */
-  .setup-container {
-    padding: 1rem;
-    height: 100%;
-    display: flex !important;
-  }
-
-  .setup-content {
-    padding: 1.5rem;
-  }
-
-  .setup-container h3 {
-    font-size: 1.8rem;
-  }
-
-  .setup-container .form-group input {
-    padding: 1rem;
-    font-size: 1.1rem;
-  }
-
-  .large-btn {
-    padding: 1rem 1.5rem;
-    font-size: 1.1rem;
   }
 
   .question-text {
@@ -2138,14 +2119,23 @@ body.modal-open {
   .quiz-section.active {
     display: flex !important;
     visibility: visible !important;
+    opacity: 1 !important;
   }
   
   .setup-container {
     display: flex !important;
     visibility: visible !important;
+    opacity: 1 !important;
   }
   
   .quiz-content {
     height: 100%;
+  }
+
+  /* Ensure the setup section is properly displayed on desktop */
+  #playerSetup.quiz-section.active {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 }
