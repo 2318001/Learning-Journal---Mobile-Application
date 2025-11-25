@@ -67,16 +67,10 @@ class JournalManager {
     if (!titleInput || !contentInput) return
 
     const entry = {
-      title: titleInput.value.trim(),
-      content: contentInput.value.trim(),
+      title: titleInput.value,
+      content: contentInput.value,
       timestamp: new Date().toISOString(),
       dateString: new Date().toLocaleString(),
-    }
-
-    // Validate required fields
-    if (!entry.title || !entry.content) {
-      alert("Please fill in all required fields.")
-      return
     }
 
     try {
@@ -171,7 +165,7 @@ class ProjectsManager {
     this.projectsList = document.getElementById("projectsList")
     this.projectsEmptyState = document.getElementById("projectsEmptyState")
 
-    // File upload elements
+    // ADDED: File upload elements
     this.projectFileInput = document.getElementById("projectFile")
     this.projectFileBtn = document.getElementById("projectFileBtn")
     this.projectFileName = document.getElementById("projectFileName")
@@ -191,7 +185,7 @@ class ProjectsManager {
     if (this.resetProjectsBtn) {
       this.resetProjectsBtn.addEventListener("click", () => this.resetProjects())
     }
-    // File upload event listeners
+    // ADDED: File upload event listeners
     if (this.projectFileBtn && this.projectFileInput) {
       this.projectFileBtn.addEventListener("click", () => {
         this.projectFileInput.click()
@@ -232,37 +226,25 @@ class ProjectsManager {
   async handleSubmit(e) {
     e.preventDefault()
 
-    // Use basic validation if browserAPIs validation is not available
+    if (this.browserAPIs && !this.browserAPIs.validateForm(this.projectForm)) {
+      alert("Please fix the errors in the form before submitting.")
+      return
+    }
+
     const titleInput = document.getElementById("projectTitle")
     const descInput = document.getElementById("projectDescription")
 
     if (!titleInput || !descInput) return
 
-    const title = titleInput.value.trim()
-    const description = descInput.value.trim()
-
-    if (!title || !description) {
-      alert("Please fill in all required fields.")
-      return
-    }
-
     const project = {
-      title: title,
-      description: description,
+      title: titleInput.value,
+      description: descInput.value,
       timestamp: new Date().toISOString(),
       dateString: new Date().toLocaleString(),
     }
-
-    // Handle file upload
+    // ADDED: Handle file upload
     if (this.projectFileInput && this.projectFileInput.files.length > 0) {
       const file = this.projectFileInput.files[0]
-      
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        alert("File size must be less than 5MB.")
-        return
-      }
-
       project.fileName = file.name
       project.fileType = file.type
       project.fileSize = file.size
@@ -276,7 +258,6 @@ class ProjectsManager {
         return
       }
     }
-
     try {
       if (this.storage && typeof this.storage.addToIndexedDB === "function") {
         await this.storage.addToIndexedDB("projects", project)
@@ -297,7 +278,7 @@ class ProjectsManager {
     }
   }
 
-  // Method to read file as data URL
+  // ADDED: Method to read file as data URL
   readFileAsDataURL(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader()
@@ -307,7 +288,7 @@ class ProjectsManager {
     })
   }
 
-  // Method to reset file input
+  // ADDED: Method to reset file input
   resetFileInput() {
     if (this.projectFileInput) {
       this.projectFileInput.value = ""
@@ -357,7 +338,7 @@ class ProjectsManager {
     }
   }
 
-  // Method to format file size
+  // ADDED: Method to format file size
   formatFileSize(bytes) {
     if (bytes === 0) return "0 Bytes"
     const k = 1024
@@ -387,577 +368,6 @@ class ProjectsManager {
   }
 }
 
-// Quiz Game Manager - Handles quiz game functionality (FIXED)
-class QuizGameManager {
-    constructor(storage) {
-        this.storage = storage;
-        this.quizBtn = document.getElementById("quizBtn");
-        this.quizModal = document.getElementById("quizModal");
-        this.quizCloseBtn = document.getElementById("quizCloseBtn");
-        this.quizMenuBtn = document.getElementById("quizMenuBtn");
-        this.quizNavMenu = document.getElementById("quizNavMenu");
-        
-        // Navigation items
-        this.navItems = document.querySelectorAll(".nav-item");
-        
-        // Game elements
-        this.rulesSection = document.getElementById("rulesSection");
-        this.playerSetup = document.getElementById("playerSetup");
-        this.levelSelection = document.getElementById("levelSelection");
-        this.gameArea = document.getElementById("gameArea");
-        this.resultsArea = document.getElementById("resultsArea");
-        this.leaderboard = document.getElementById("leaderboard");
-        
-        // Inputs and buttons
-        this.playerNameInput = document.getElementById("playerName");
-        this.startGameBtn = document.getElementById("startGameBtn");
-        this.levelButtons = document.querySelectorAll(".level-btn");
-        this.nextQuestionBtn = document.getElementById("nextQuestionBtn");
-        this.endGameBtn = document.getElementById("endGameBtn");
-        this.playAgainBtn = document.getElementById("playAgainBtn");
-        this.resetScoresBtn = document.getElementById("resetScoresBtn");
-        this.viewLeaderboardBtn = document.getElementById("viewLeaderboardBtn");
-        this.backToMenuBtn = document.getElementById("backToMenuBtn");
-        
-        // Display elements
-        this.currentPlayerName = document.getElementById("currentPlayerName");
-        this.currentLevel = document.getElementById("currentLevel");
-        this.currentScore = document.getElementById("currentScore");
-        this.timerDisplay = document.getElementById("timer");
-        this.progressFill = document.getElementById("progressFill");
-        this.questionText = document.getElementById("questionText");
-        this.optionsContainer = document.getElementById("optionsContainer");
-        this.currentQuestionNum = document.getElementById("currentQuestionNum");
-        this.totalQuestions = document.getElementById("totalQuestions");
-        this.resultPlayerName = document.getElementById("resultPlayerName");
-        this.resultLevel = document.getElementById("resultLevel");
-        this.finalScore = document.getElementById("finalScore");
-        this.highScoreMessage = document.getElementById("highScoreMessage");
-        this.leaderboardContent = document.getElementById("leaderboardContent");
-        this.nameError = document.getElementById("nameError");
-        
-        // Game state
-        this.currentPlayer = "";
-        this.currentDifficulty = "";
-        this.score = 0;
-        this.currentQuestionIndex = 0;
-        this.timer = null;
-        this.timeLeft = 60;
-        this.totalTime = 60;
-        
-        // Quiz questions by difficulty
-        this.questions = {
-            easy: [
-                {
-                    question: "What does HTML stand for?",
-                    options: [
-                        "Hyper Text Markup Language",
-                        "High Tech Modern Language",
-                        "Hyper Transfer Markup Language",
-                        "Home Tool Markup Language"
-                    ],
-                    correct: 0
-                },
-                {
-                    question: "Which language is used for styling web pages?",
-                    options: ["HTML", "JavaScript", "CSS", "Python"],
-                    correct: 2
-                },
-                {
-                    question: "What is the latest version of HTML?",
-                    options: ["HTML4", "XHTML", "HTML5", "HTML2023"],
-                    correct: 2
-                },
-                {
-                    question: "Which tag is used to create a hyperlink?",
-                    options: ["<link>", "<a>", "<href>", "<hyperlink>"],
-                    correct: 1
-                },
-                {
-                    question: "What does CSS stand for?",
-                    options: [
-                        "Computer Style Sheets",
-                        "Creative Style System",
-                        "Cascading Style Sheets",
-                        "Colorful Style Sheets"
-                    ],
-                    correct: 2
-                }
-            ],
-            medium: [
-                {
-                    question: "Which symbol is used for comments in JavaScript?",
-                    options: ["//", "<!-- -->", "**", "%%"],
-                    correct: 0
-                },
-                {
-                    question: "Which method adds an element to the end of an array?",
-                    options: ["push()", "pop()", "shift()", "unshift()"],
-                    correct: 0
-                },
-                {
-                    question: "What is the result of 2 + '2' in JavaScript?",
-                    options: ["4", "22", "NaN", "Error"],
-                    correct: 1
-                },
-                {
-                    question: "Which HTML5 element is used for drawing graphics?",
-                    options: ["<graphic>", "<canvas>", "<draw>", "<svg>"],
-                    correct: 1
-                },
-                {
-                    question: "What does API stand for?",
-                    options: [
-                        "Application Programming Interface",
-                        "Advanced Programming Instruction",
-                        "Automated Program Integration",
-                        "Application Process Integration"
-                    ],
-                    correct: 0
-                }
-            ],
-            hard: [
-                {
-                    question: "What is the time complexity of binary search?",
-                    options: ["O(n)", "O(log n)", "O(n²)", "O(1)"],
-                    correct: 1
-                },
-                {
-                    question: "Which is NOT a JavaScript framework?",
-                    options: ["React", "Vue", "Angular", "Flask"],
-                    correct: 3
-                },
-                {
-                    question: "What is a closure in JavaScript?",
-                    options: [
-                        "A function that has access to its outer function's scope",
-                        "A way to close a browser window",
-                        "A method to end a program",
-                        "A type of loop"
-                    ],
-                    correct: 0
-                },
-                {
-                    question: "Which HTTP status code means 'Not Found'?",
-                    options: ["200", "301", "404", "500"],
-                    correct: 2
-                },
-                {
-                    question: "What is the purpose of the 'virtual DOM' in React?",
-                    options: [
-                        "To improve rendering performance",
-                        "To create 3D effects",
-                        "To handle virtual reality",
-                        "To manage server-side rendering"
-                    ],
-                    correct: 0
-                }
-            ]
-        };
-
-        this.init();
-    }
-
-    init() {
-        // Event listeners for navigation with null checks
-        if (this.quizMenuBtn) {
-            this.quizMenuBtn.addEventListener("click", () => this.toggleNavMenu());
-        }
-        if (this.quizCloseBtn) {
-            this.quizCloseBtn.addEventListener("click", () => this.closeModal());
-        }
-        
-        // FIXED: Navigation event listeners
-        this.navItems.forEach(item => {
-            item.addEventListener("click", (e) => {
-                e.preventDefault();
-                const section = item.getAttribute('data-target');
-                if (section) {
-                    this.showSection(section);
-                }
-                if (this.quizNavMenu) {
-                    this.quizNavMenu.classList.remove("active");
-                }
-            });
-        });
-
-        // Game event listeners with null checks
-        if (this.startGameBtn) {
-            this.startGameBtn.addEventListener("click", () => this.startGameSetup());
-        }
-        
-        this.levelButtons.forEach(btn => {
-            btn.addEventListener("click", (e) => {
-                const level = btn.getAttribute('data-level');
-                if (level) {
-                    this.selectLevel(level);
-                }
-            });
-        });
-        
-        if (this.nextQuestionBtn) {
-            this.nextQuestionBtn.addEventListener("click", () => this.nextQuestion());
-        }
-        if (this.endGameBtn) {
-            this.endGameBtn.addEventListener("click", () => this.endGame());
-        }
-        if (this.playAgainBtn) {
-            this.playAgainBtn.addEventListener("click", () => this.resetGame());
-        }
-        if (this.viewLeaderboardBtn) {
-            this.viewLeaderboardBtn.addEventListener("click", () => this.showSection('leaderboard'));
-        }
-        if (this.backToMenuBtn) {
-            this.backToMenuBtn.addEventListener("click", () => this.showSection('rulesSection'));
-        }
-        if (this.resetScoresBtn) {
-            this.resetScoresBtn.addEventListener("click", () => this.resetLeaderboard());
-        }
-
-        // Input validation
-        if (this.playerNameInput) {
-            this.playerNameInput.addEventListener("input", () => this.validateName());
-        }
-        
-        this.loadLeaderboard();
-    }
-
-    // FIXED: Modal methods
-    openModal() {
-        if (this.quizModal) {
-            this.quizModal.classList.add("active");
-            document.body.classList.add("modal-open");
-            this.showSection('playerSetup');
-            this.resetGame();
-        }
-    }
-
-    closeModal() {
-        if (this.quizModal) {
-            this.quizModal.classList.remove("active");
-            document.body.classList.remove("modal-open");
-            this.resetGame();
-        }
-    }
-
-    toggleNavMenu() {
-        if (this.quizNavMenu) {
-            this.quizNavMenu.classList.toggle("active");
-        }
-    }
-
-    // FIXED: Section display logic
-    showSection(sectionName) {
-        console.log(`Showing section: ${sectionName}`);
-        
-        // Hide all quiz sections
-        const sections = document.querySelectorAll('.quiz-section');
-        sections.forEach(section => {
-            section.classList.remove('active');
-        });
-        
-        // Show selected section
-        const targetSection = document.getElementById(sectionName);
-        if (targetSection) {
-            targetSection.classList.add('active');
-        }
-        
-        // Update active nav item
-        this.navItems.forEach(item => {
-            const itemSection = item.getAttribute('data-target');
-            if (itemSection === sectionName) {
-                item.classList.add('active');
-            } else {
-                item.classList.remove('active');
-            }
-        });
-        
-        // Close nav menu on mobile
-        if (window.innerWidth <= 768 && this.quizNavMenu) {
-            this.quizNavMenu.classList.remove("active");
-        }
-    }
-
-    validateName() {
-        if (!this.playerNameInput) return false;
-        
-        const name = this.playerNameInput.value.trim();
-        if (name.length < 2) {
-            if (this.nameError) {
-                this.nameError.textContent = "Name must be at least 2 characters long";
-                this.nameError.style.display = "block";
-            }
-            return false;
-        } else {
-            if (this.nameError) {
-                this.nameError.style.display = "none";
-            }
-            return true;
-        }
-    }
-
-    startGameSetup() {
-        if (!this.playerNameInput) return;
-        
-        const playerName = this.playerNameInput.value.trim();
-        
-        if (!this.validateName()) {
-            alert("Please enter a valid name (at least 2 characters)!");
-            return;
-        }
-        
-        this.currentPlayer = playerName;
-        this.showSection('levelSelection');
-    }
-
-    selectLevel(level) {
-        this.currentDifficulty = level;
-        this.showSection('gameArea');
-        
-        if (this.currentPlayerName) {
-            this.currentPlayerName.textContent = this.currentPlayer;
-        }
-        if (this.currentLevel) {
-            this.currentLevel.textContent = level.charAt(0).toUpperCase() + level.slice(1);
-        }
-        if (this.currentScore) {
-            this.currentScore.textContent = "0";
-        }
-        
-        // Set total questions
-        if (this.totalQuestions) {
-            this.totalQuestions.textContent = this.questions[level].length;
-        }
-        
-        this.startGame();
-    }
-
-    startGame() {
-        this.score = 0;
-        this.currentQuestionIndex = 0;
-        this.timeLeft = this.totalTime;
-        
-        if (this.timerDisplay) {
-            this.timerDisplay.textContent = this.timeLeft;
-        }
-        if (this.progressFill) {
-            this.progressFill.style.width = '100%';
-        }
-        
-        this.startTimer();
-        this.showQuestion();
-    }
-
-    startTimer() {
-        clearInterval(this.timer);
-        this.timer = setInterval(() => {
-            this.timeLeft--;
-            
-            if (this.timerDisplay) {
-                this.timerDisplay.textContent = this.timeLeft;
-            }
-            
-            // Update progress bar
-            const progressPercent = (this.timeLeft / this.totalTime) * 100;
-            if (this.progressFill) {
-                this.progressFill.style.width = `${progressPercent}%`;
-                
-                // Change color when time is running out
-                if (this.timeLeft <= 10) {
-                    this.progressFill.style.background = '#ef4444';
-                } else if (this.timeLeft <= 30) {
-                    this.progressFill.style.background = '#f59e0b';
-                } else {
-                    this.progressFill.style.background = '#10b981';
-                }
-            }
-            
-            if (this.timeLeft <= 0) {
-                clearInterval(this.timer);
-                this.endGame();
-            }
-        }, 1000);
-    }
-
-    showQuestion() {
-        const questions = this.questions[this.currentDifficulty];
-        if (this.currentQuestionIndex >= questions.length) {
-            this.endGame();
-            return;
-        }
-        
-        const question = questions[this.currentQuestionIndex];
-        
-        if (this.currentQuestionNum) {
-            this.currentQuestionNum.textContent = this.currentQuestionIndex + 1;
-        }
-        if (this.questionText) {
-            this.questionText.textContent = question.question;
-        }
-        
-        if (this.optionsContainer) {
-            this.optionsContainer.innerHTML = "";
-            question.options.forEach((option, index) => {
-                const button = document.createElement("button");
-                button.className = "option-btn";
-                button.innerHTML = `
-                    <span class="option-letter">${String.fromCharCode(65 + index)}</span>
-                    <span class="option-text">${option}</span>
-                `;
-                button.addEventListener("click", () => this.checkAnswer(index));
-                this.optionsContainer.appendChild(button);
-            });
-        }
-        
-        if (this.nextQuestionBtn) {
-            this.nextQuestionBtn.style.display = "none";
-        }
-    }
-
-    checkAnswer(selectedIndex) {
-        const questions = this.questions[this.currentDifficulty];
-        const question = questions[this.currentQuestionIndex];
-        const optionButtons = this.optionsContainer.querySelectorAll(".option-btn");
-        
-        // Disable all buttons
-        optionButtons.forEach(btn => btn.disabled = true);
-        
-        // Highlight correct and wrong answers
-        optionButtons.forEach((btn, index) => {
-            if (index === question.correct) {
-                btn.classList.add("correct");
-            } else if (index === selectedIndex && index !== question.correct) {
-                btn.classList.add("wrong");
-            }
-        });
-        
-        // Update score
-        if (selectedIndex === question.correct) {
-            this.score += this.currentDifficulty === "easy" ? 10 : 
-                         this.currentDifficulty === "medium" ? 20 : 30;
-            if (this.currentScore) {
-                this.currentScore.textContent = this.score;
-            }
-        }
-        
-        if (this.nextQuestionBtn) {
-            this.nextQuestionBtn.style.display = "block";
-        }
-    }
-
-    nextQuestion() {
-        this.currentQuestionIndex++;
-        this.showQuestion();
-    }
-
-    endGame() {
-        clearInterval(this.timer);
-        this.showSection('resultsArea');
-        
-        if (this.resultPlayerName) {
-            this.resultPlayerName.textContent = this.currentPlayer;
-        }
-        if (this.resultLevel) {
-            this.resultLevel.textContent = this.currentDifficulty.charAt(0).toUpperCase() + this.currentDifficulty.slice(1);
-        }
-        if (this.finalScore) {
-            this.finalScore.textContent = this.score;
-        }
-        
-        this.updateLeaderboard();
-    }
-
-    resetGame() {
-        this.showSection('playerSetup');
-        if (this.playerNameInput) {
-            this.playerNameInput.value = "";
-        }
-        this.score = 0;
-        this.currentQuestionIndex = 0;
-        this.timeLeft = this.totalTime;
-        
-        clearInterval(this.timer);
-        if (this.nameError) {
-            this.nameError.textContent = "";
-            this.nameError.style.display = "none";
-        }
-    }
-
-    updateLeaderboard() {
-        const leaderboard = this.storage.getLocal("quizLeaderboard") || [];
-        const newScore = {
-            player: this.currentPlayer,
-            score: this.score,
-            level: this.currentDifficulty,
-            date: new Date().toLocaleDateString(),
-            timestamp: new Date().getTime()
-        };
-        
-        leaderboard.push(newScore);
-        
-        // Sort by score descending and keep top 10
-        leaderboard.sort((a, b) => b.score - a.score);
-        const topLeaderboard = leaderboard.slice(0, 10);
-        
-        this.storage.setLocal("quizLeaderboard", topLeaderboard);
-        this.loadLeaderboard();
-        
-        // Check if this is a high score
-        const topScore = topLeaderboard[0];
-        if (this.highScoreMessage) {
-            if (topScore && topScore.player === this.currentPlayer && topScore.score === this.score) {
-                this.highScoreMessage.innerHTML = "🎉 <strong>New High Score!</strong> 🎉";
-                this.highScoreMessage.className = "high-score-message success";
-            } else {
-                this.highScoreMessage.innerHTML = "Great effort! Try again to beat the high score!";
-                this.highScoreMessage.className = "high-score-message";
-            }
-        }
-    }
-
-    loadLeaderboard() {
-        const leaderboard = this.storage.getLocal("quizLeaderboard") || [];
-        
-        if (!this.leaderboardContent) return;
-        
-        if (leaderboard.length === 0) {
-            this.leaderboardContent.innerHTML = `
-                <div class="empty-leaderboard">
-                    <p>🏆 No scores yet!</p>
-                    <p>Be the first to play and claim the top spot!</p>
-                </div>
-            `;
-            return;
-        }
-        
-        this.leaderboardContent.innerHTML = leaderboard
-            .map((entry, index) => `
-                <div class="leaderboard-entry ${index === 0 ? 'top-score' : ''} ${index < 3 ? 'podium' : ''}">
-                    <span class="rank">${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}</span>
-                    <span class="player">${this.escapeHtml(entry.player)}</span>
-                    <span class="score">${entry.score} pts</span>
-                    <span class="level ${entry.level}">${entry.level}</span>
-                    <span class="date">${entry.date}</span>
-                </div>
-            `)
-            .join("");
-    }
-
-    resetLeaderboard() {
-        if (confirm("Are you sure you want to reset all scores? This cannot be undone.")) {
-            this.storage.removeLocal("quizLeaderboard");
-            this.loadLeaderboard();
-            alert("All scores have been reset!");
-        }
-    }
-
-    escapeHtml(text) {
-        const div = document.createElement("div");
-        div.textContent = text;
-        return div.innerHTML;
-    }
-}
-
 // Utility: Date/time update
 function updateDateTime(elementId) {
   const element = document.getElementById(elementId)
@@ -975,12 +385,945 @@ function updateDateTime(elementId) {
   }
 }
 
+
+// Quiz Game Functionality
+class QuizGame {
+    constructor(storage) {
+        this.storage = storage;
+        this.questions = {
+            easy: [],
+            medium: [],
+            hard: []
+        };
+        this.currentQuestions = [];
+        this.currentQuestionIndex = 0;
+        this.score = 0;
+        this.timer = null;
+        this.timeLeft = 0;
+        this.selectedDifficulty = 'easy';
+        this.leaderboard = this.loadLeaderboard();
+        this.startTime = null;
+        this.totalTime = 0;
+        
+        this.initializeQuizData();
+        this.bindQuizEvents();
+    }
+    
+    initializeQuizData() {
+        // Easy questions
+        this.questions.easy = [
+            {
+                question: "What does HTML stand for?",
+                options: [
+                    "Hyper Text Markup Language",
+                    "High Tech Modern Language",
+                    "Hyper Transfer Markup Language",
+                    "Home Tool Markup Language"
+                ],
+                correct: 0
+            },
+            {
+                question: "Which language is used for styling web pages?",
+                options: [
+                    "HTML",
+                    "JavaScript",
+                    "CSS",
+                    "Python"
+                ],
+                correct: 2
+            },
+            {
+                question: "What does CSS stand for?",
+                options: [
+                    "Computer Style Sheets",
+                    "Creative Style System",
+                    "Cascading Style Sheets",
+                    "Colorful Style Sheets"
+                ],
+                correct: 2
+            },
+            {
+                question: "Which tag is used to create a hyperlink in HTML?",
+                options: [
+                    "<link>",
+                    "<a>",
+                    "<href>",
+                    "<hyperlink>"
+                ],
+                correct: 1
+            },
+            {
+                question: "Which property is used to change the background color in CSS?",
+                options: [
+                    "color",
+                    "bgcolor",
+                    "background-color",
+                    "background"
+                ],
+                correct: 2
+            },
+            {
+                question: "What is the correct way to comment in JavaScript?",
+                options: [
+                    "// This is a comment",
+                    "<!-- This is a comment -->",
+                    "/* This is a comment */",
+                    "Both 1 and 3"
+                ],
+                correct: 3
+            },
+            {
+                question: "Which symbol is used for single-line comments in JavaScript?",
+                options: [
+                    "//",
+                    "#",
+                    "/*",
+                    "--"
+                ],
+                correct: 0
+            },
+            {
+                question: "What does DOM stand for?",
+                options: [
+                    "Document Object Model",
+                    "Digital Object Management",
+                    "Desktop Object Model",
+                    "Data Object Model"
+                ],
+                correct: 0
+            },
+            {
+                question: "Which method is used to output data in JavaScript?",
+                options: [
+                    "print()",
+                    "console.log()",
+                    "output()",
+                    "display()"
+                ],
+                correct: 1
+            },
+            {
+                question: "Which HTML tag is used for the largest heading?",
+                options: [
+                    "<h6>",
+                    "<heading>",
+                    "<h1>",
+                    "<head>"
+                ],
+                correct: 2
+            }
+        ];
+        
+        // Medium questions
+        this.questions.medium = [
+            {
+                question: "What is the purpose of the 'this' keyword in JavaScript?",
+                options: [
+                    "Refers to the current object",
+                    "Refers to the parent object",
+                    "Refers to the global object",
+                    "Refers to the previous object"
+                ],
+                correct: 0
+            },
+            {
+                question: "What does API stand for?",
+                options: [
+                    "Application Programming Interface",
+                    "Advanced Programming Interface",
+                    "Application Protocol Interface",
+                    "Automated Programming Interface"
+                ],
+                correct: 0
+            },
+            {
+                question: "Which CSS property is used to control the space between elements?",
+                options: [
+                    "spacing",
+                    "margin",
+                    "padding",
+                    "Both 2 and 3"
+                ],
+                correct: 3
+            },
+            {
+                question: "What is a closure in JavaScript?",
+                options: [
+                    "A function that has access to its outer function's scope",
+                    "A way to close a browser window",
+                    "A method to end a program",
+                    "A type of loop"
+                ],
+                correct: 0
+            },
+            {
+                question: "Which method is used to add an element to the end of an array?",
+                options: [
+                    "push()",
+                    "append()",
+                    "addToEnd()",
+                    "insert()"
+                ],
+                correct: 0
+            },
+            {
+                question: "What is the purpose of media queries in CSS?",
+                options: [
+                    "To apply styles based on device characteristics",
+                    "To query media files",
+                    "To create animations",
+                    "To optimize images"
+                ],
+                correct: 0
+            },
+            {
+                question: "What does JSON stand for?",
+                options: [
+                    "JavaScript Object Notation",
+                    "Java Standard Object Notation",
+                    "JavaScript Oriented Notation",
+                    "Java Simple Object Notation"
+                ],
+                correct: 0
+            },
+            {
+                question: "Which HTML5 element is used for drawing graphics?",
+                options: [
+                    "<draw>",
+                    "<canvas>",
+                    "<graphic>",
+                    "<svg>"
+                ],
+                correct: 1
+            },
+            {
+                question: "What is event bubbling in JavaScript?",
+                options: [
+                    "When an event starts from the target element and bubbles up to the root",
+                    "When multiple events occur simultaneously",
+                    "When an event creates visual effects",
+                    "When events are cancelled"
+                ],
+                correct: 0
+            },
+            {
+                question: "Which CSS property is used to create rounded corners?",
+                options: [
+                    "border-radius",
+                    "corner-radius",
+                    "rounded-corners",
+                    "border-round"
+                ],
+                correct: 0
+            }
+        ];
+        
+        // Hard questions
+        this.questions.hard = [
+            {
+                question: "What is the time complexity of accessing an element in an array by index?",
+                options: [
+                    "O(1)",
+                    "O(n)",
+                    "O(log n)",
+                    "O(n^2)"
+                ],
+                correct: 0
+            },
+            {
+                question: "What is the purpose of the 'use strict' directive in JavaScript?",
+                options: [
+                    "Enforces stricter parsing and error handling",
+                    "Improves performance",
+                    "Enables new features",
+                    "Makes code more readable"
+                ],
+                correct: 0
+            },
+            {
+                question: "What does the 'box-sizing: border-box' CSS property do?",
+                options: [
+                    "Includes padding and border in element's total width/height",
+                    "Excludes margin from element's total width/height",
+                    "Creates a box shadow",
+                    "Changes the box model completely"
+                ],
+                correct: 0
+            },
+            {
+                question: "What is a promise in JavaScript?",
+                options: [
+                    "An object representing the eventual completion of an asynchronous operation",
+                    "A guarantee that code will execute",
+                    "A type of variable",
+                    "A method to make code faster"
+                ],
+                correct: 0
+            },
+            {
+                question: "What is the difference between 'let' and 'var' in JavaScript?",
+                options: [
+                    "'let' has block scope, 'var' has function scope",
+                    "'let' is older than 'var'",
+                    "'var' is more secure than 'let'",
+                    "There is no difference"
+                ],
+                correct: 0
+            },
+            {
+                question: "What is the purpose of the 'fetch' API in JavaScript?",
+                options: [
+                    "To make HTTP requests",
+                    "To retrieve data from local storage",
+                    "To fetch CSS files",
+                    "To get user input"
+                ],
+                correct: 0
+            },
+            {
+                question: "What is the CSS Grid layout system used for?",
+                options: [
+                    "Creating two-dimensional layouts",
+                    "Creating one-dimensional layouts",
+                    "Creating table-like structures",
+                    "Creating responsive images"
+                ],
+                correct: 0
+            },
+            {
+                question: "What is the purpose of the 'async' and 'await' keywords in JavaScript?",
+                options: [
+                    "To write asynchronous code in a synchronous manner",
+                    "To make code execute faster",
+                    "To create animations",
+                    "To handle errors"
+                ],
+                correct: 0
+            },
+            {
+                question: "What is the difference between '==' and '===' in JavaScript?",
+                options: [
+                    "'==' checks value, '===' checks value and type",
+                    "'===' is faster than '=='",
+                    "'==' is newer than '==='",
+                    "There is no difference"
+                ],
+                correct: 0
+            },
+            {
+                question: "What is the purpose of the 'virtual DOM' in React?",
+                options: [
+                    "To improve performance by minimizing direct DOM manipulation",
+                    "To create virtual reality experiences",
+                    "To simulate DOM elements",
+                    "To test DOM operations"
+                ],
+                correct: 0
+            }
+        ];
+    }
+    
+    bindQuizEvents() {
+        // Quiz modal open
+        const quizBtn = document.getElementById('quizBtn');
+        if (quizBtn) {
+            quizBtn.addEventListener('click', () => {
+                this.showSection('quizMenu');
+            });
+        }
+        
+        // Difficulty selection
+        document.querySelectorAll('.difficulty-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                this.selectedDifficulty = e.target.dataset.level;
+            });
+        });
+        
+        // Start quiz
+        const startQuizBtn = document.getElementById('startQuizBtn');
+        if (startQuizBtn) {
+            startQuizBtn.addEventListener('click', () => {
+                this.startQuiz();
+            });
+        }
+        
+        // Show rules
+        const quizSettingsBtn = document.getElementById('quizSettingsBtn');
+        if (quizSettingsBtn) {
+            quizSettingsBtn.addEventListener('click', () => {
+                this.showSection('quizRules');
+            });
+        }
+        
+        // Back to menu from rules
+        const backToMenuBtn = document.getElementById('backToMenuBtn');
+        if (backToMenuBtn) {
+            backToMenuBtn.addEventListener('click', () => {
+                this.showSection('quizMenu');
+            });
+        }
+        
+        // Show leaderboard
+        const leaderboardBtn = document.getElementById('leaderboardBtn');
+        if (leaderboardBtn) {
+            leaderboardBtn.addEventListener('click', () => {
+                this.showLeaderboard();
+            });
+        }
+        
+        // Back to menu from leaderboard
+        const backToMenuFromLeaderboardBtn = document.getElementById('backToMenuFromLeaderboardBtn');
+        if (backToMenuFromLeaderboardBtn) {
+            backToMenuFromLeaderboardBtn.addEventListener('click', () => {
+                this.showSection('quizMenu');
+            });
+        }
+        
+        // Answer selection
+        document.querySelectorAll('.option-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                this.selectAnswer(parseInt(e.target.dataset.index));
+            });
+        });
+        
+        // Next question
+        const nextQuestionBtn = document.getElementById('nextQuestionBtn');
+        if (nextQuestionBtn) {
+            nextQuestionBtn.addEventListener('click', () => {
+                this.nextQuestion();
+            });
+        }
+        
+        // End quiz
+        const endQuizBtn = document.getElementById('endQuizBtn');
+        if (endQuizBtn) {
+            endQuizBtn.addEventListener('click', () => {
+                this.endQuiz();
+            });
+        }
+        
+        // Play again
+        const playAgainBtn = document.getElementById('playAgainBtn');
+        if (playAgainBtn) {
+            playAgainBtn.addEventListener('click', () => {
+                this.showSection('quizMenu');
+            });
+        }
+        
+        // Back to menu from results
+        const backToMenuFromResultsBtn = document.getElementById('backToMenuFromResultsBtn');
+        if (backToMenuFromResultsBtn) {
+            backToMenuFromResultsBtn.addEventListener('click', () => {
+                this.showSection('quizMenu');
+            });
+        }
+        
+        // Leaderboard tabs
+        document.querySelectorAll('.leaderboard-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                document.querySelectorAll('.leaderboard-tab').forEach(t => t.classList.remove('active'));
+                e.target.classList.add('active');
+                
+                document.querySelectorAll('.leaderboard-list').forEach(list => {
+                    list.style.display = 'none';
+                });
+                
+                const difficultyList = document.getElementById(`${e.target.dataset.difficulty}Leaderboard`);
+                if (difficultyList) {
+                    difficultyList.style.display = 'block';
+                }
+            });
+        });
+        
+        // Reset quiz data
+        const resetQuizBtn = document.getElementById('resetQuizBtn');
+        if (resetQuizBtn) {
+            resetQuizBtn.addEventListener('click', () => {
+                if (confirm('Are you sure you want to reset all quiz data and leaderboard?')) {
+                    this.resetQuizData();
+                }
+            });
+        }
+    }
+    
+    showSection(sectionId) {
+        // Hide all sections
+        const sections = ['quizMenu', 'quizRules', 'quizGame', 'quizResults', 'quizLeaderboard'];
+        sections.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.style.display = 'none';
+            }
+        });
+        
+        // Show selected section
+        const selectedSection = document.getElementById(sectionId);
+        if (selectedSection) {
+            selectedSection.style.display = 'block';
+        }
+    }
+    
+    startQuiz() {
+        this.currentQuestions = [...this.questions[this.selectedDifficulty]];
+        this.shuffleArray(this.currentQuestions);
+        this.currentQuestionIndex = 0;
+        this.score = 0;
+        this.timeLeft = 15;
+        this.startTime = new Date();
+        
+        // Update UI
+        const quizDifficulty = document.getElementById('quizDifficulty');
+        const quizScore = document.getElementById('quizScore');
+        
+        if (quizDifficulty) {
+            quizDifficulty.textContent = `Difficulty: ${this.selectedDifficulty.charAt(0).toUpperCase() + this.selectedDifficulty.slice(1)}`;
+        }
+        if (quizScore) {
+            quizScore.textContent = `Score: ${this.score}`;
+        }
+        
+        this.showSection('quizGame');
+        this.displayQuestion();
+        this.startTimer();
+    }
+    
+    displayQuestion() {
+        if (this.currentQuestionIndex >= this.currentQuestions.length) {
+            this.endQuiz();
+            return;
+        }
+        
+        const question = this.currentQuestions[this.currentQuestionIndex];
+        
+        // Update progress
+        const quizProgress = document.getElementById('quizProgress');
+        const progressFill = document.getElementById('progressFill');
+        
+        if (quizProgress) {
+            quizProgress.textContent = `Question ${this.currentQuestionIndex + 1}/${this.currentQuestions.length}`;
+        }
+        if (progressFill) {
+            progressFill.style.width = `${((this.currentQuestionIndex + 1) / this.currentQuestions.length) * 100}%`;
+        }
+        
+        // Display question
+        const questionText = document.getElementById('questionText');
+        if (questionText) {
+            questionText.textContent = question.question;
+        }
+        
+        // Display options
+        const optionButtons = document.querySelectorAll('.option-btn');
+        optionButtons.forEach((btn, index) => {
+            if (index < question.options.length) {
+                btn.textContent = question.options[index];
+                btn.classList.remove('correct', 'incorrect');
+                btn.disabled = false;
+            }
+        });
+        
+        // Reset feedback and controls
+        const quizFeedback = document.getElementById('quizFeedback');
+        const nextQuestionBtn = document.getElementById('nextQuestionBtn');
+        const endQuizBtn = document.getElementById('endQuizBtn');
+        
+        if (quizFeedback) {
+            quizFeedback.textContent = '';
+            quizFeedback.className = 'quiz-feedback';
+        }
+        if (nextQuestionBtn) {
+            nextQuestionBtn.style.display = 'none';
+        }
+        if (endQuizBtn) {
+            endQuizBtn.style.display = 'inline-block';
+        }
+        
+        // Reset timer
+        this.timeLeft = 15;
+        const quizTimer = document.getElementById('quizTimer');
+        if (quizTimer) {
+            quizTimer.textContent = this.timeLeft;
+        }
+    }
+    
+    startTimer() {
+        if (this.timer) {
+            clearInterval(this.timer);
+        }
+        
+        this.timer = setInterval(() => {
+            this.timeLeft--;
+            const quizTimer = document.getElementById('quizTimer');
+            if (quizTimer) {
+                quizTimer.textContent = this.timeLeft;
+            }
+            
+            if (this.timeLeft <= 0) {
+                clearInterval(this.timer);
+                this.selectAnswer(-1); // Time's up
+            }
+        }, 1000);
+    }
+    
+    selectAnswer(selectedIndex) {
+        clearInterval(this.timer);
+        
+        const question = this.currentQuestions[this.currentQuestionIndex];
+        const optionButtons = document.querySelectorAll('.option-btn');
+        const feedback = document.getElementById('quizFeedback');
+        const nextQuestionBtn = document.getElementById('nextQuestionBtn');
+        const endQuizBtn = document.getElementById('endQuizBtn');
+        const quizScore = document.getElementById('quizScore');
+        
+        // Disable all buttons
+        optionButtons.forEach(btn => {
+            btn.disabled = true;
+        });
+        
+        // Show correct answer
+        if (question.correct < optionButtons.length) {
+            optionButtons[question.correct].classList.add('correct');
+        }
+        
+        // Check if answer is correct
+        if (selectedIndex === question.correct) {
+            // Calculate points based on difficulty
+            let points = 1;
+            if (this.selectedDifficulty === 'medium') points = 2;
+            if (this.selectedDifficulty === 'hard') points = 3;
+            
+            this.score += points;
+            if (quizScore) {
+                quizScore.textContent = `Score: ${this.score}`;
+            }
+            
+            if (feedback) {
+                feedback.textContent = `Correct! +${points} points`;
+                feedback.className = 'quiz-feedback correct';
+            }
+        } else {
+            if (selectedIndex === -1) {
+                if (feedback) {
+                    feedback.textContent = "Time's up!";
+                }
+            } else {
+                if (selectedIndex < optionButtons.length) {
+                    optionButtons[selectedIndex].classList.add('incorrect');
+                }
+                if (feedback) {
+                    feedback.textContent = "Incorrect!";
+                }
+            }
+            if (feedback) {
+                feedback.className = 'quiz-feedback incorrect';
+            }
+        }
+        
+        // Show next question button
+        if (nextQuestionBtn) {
+            nextQuestionBtn.style.display = 'inline-block';
+        }
+        if (endQuizBtn) {
+            endQuizBtn.style.display = 'none';
+        }
+    }
+    
+    nextQuestion() {
+        this.currentQuestionIndex++;
+        this.displayQuestion();
+        this.startTimer();
+    }
+    
+    endQuiz() {
+        clearInterval(this.timer);
+        
+        // Calculate total time
+        if (this.startTime) {
+            this.totalTime = Math.floor((new Date() - this.startTime) / 1000);
+        }
+        
+        // Calculate max possible score
+        let maxScore = this.currentQuestions.length;
+        if (this.selectedDifficulty === 'medium') maxScore *= 2;
+        if (this.selectedDifficulty === 'hard') maxScore *= 3;
+        
+        // Calculate percentage
+        const percentage = Math.round((this.score / maxScore) * 100);
+        
+        // Update results
+        const resultDifficulty = document.getElementById('resultDifficulty');
+        const resultScore = document.getElementById('resultScore');
+        const resultMaxScore = document.getElementById('resultMaxScore');
+        const resultPercentage = document.getElementById('resultPercentage');
+        const resultTime = document.getElementById('resultTime');
+        
+        if (resultDifficulty) {
+            resultDifficulty.textContent = this.selectedDifficulty.charAt(0).toUpperCase() + this.selectedDifficulty.slice(1);
+        }
+        if (resultScore) {
+            resultScore.textContent = this.score;
+        }
+        if (resultMaxScore) {
+            resultMaxScore.textContent = maxScore;
+        }
+        if (resultPercentage) {
+            resultPercentage.textContent = `${percentage}%`;
+        }
+        if (resultTime) {
+            resultTime.textContent = this.totalTime;
+        }
+        
+        // Save to leaderboard if score > 0
+        if (this.score > 0) {
+            this.saveToLeaderboard(this.score, percentage);
+        }
+        
+        this.showSection('quizResults');
+    }
+    
+    saveToLeaderboard(score, percentage) {
+        const entry = {
+            score: score,
+            percentage: percentage,
+            date: new Date().toLocaleDateString(),
+            time: new Date().toLocaleTimeString(),
+            timestamp: new Date().toISOString()
+        };
+        
+        if (!this.leaderboard[this.selectedDifficulty]) {
+            this.leaderboard[this.selectedDifficulty] = [];
+        }
+        
+        this.leaderboard[this.selectedDifficulty].push(entry);
+        
+        // Sort by score (descending)
+        this.leaderboard[this.selectedDifficulty].sort((a, b) => b.score - a.score);
+        
+        // Keep only top 10
+        if (this.leaderboard[this.selectedDifficulty].length > 10) {
+            this.leaderboard[this.selectedDifficulty] = this.leaderboard[this.selectedDifficulty].slice(0, 10);
+        }
+        
+        this.saveLeaderboard();
+    }
+    
+    showLeaderboard() {
+        // Update each leaderboard list
+        ['easy', 'medium', 'hard'].forEach(difficulty => {
+            const listElement = document.getElementById(`${difficulty}Leaderboard`);
+            
+            if (!listElement) return;
+            
+            if (!this.leaderboard[difficulty] || this.leaderboard[difficulty].length === 0) {
+                listElement.innerHTML = '<p>No scores yet. Be the first!</p>';
+                return;
+            }
+            
+            let html = '';
+            this.leaderboard[difficulty].forEach((entry, index) => {
+                html += `
+                    <div class="leaderboard-item">
+                        <span class="leaderboard-rank">${index + 1}.</span>
+                        <span class="leaderboard-score">${entry.score} points (${entry.percentage}%)</span>
+                        <span class="leaderboard-date">${entry.date} ${entry.time}</span>
+                    </div>
+                `;
+            });
+            
+            listElement.innerHTML = html;
+        });
+        
+        this.showSection('quizLeaderboard');
+    }
+    
+    loadLeaderboard() {
+        if (this.storage) {
+            const saved = this.storage.getLocal('quizLeaderboard');
+            return saved ? saved : {
+                easy: [],
+                medium: [],
+                hard: []
+            };
+        }
+        return {
+            easy: [],
+            medium: [],
+            hard: []
+        };
+    }
+    
+    saveLeaderboard() {
+        if (this.storage) {
+            this.storage.setLocal('quizLeaderboard', this.leaderboard);
+        }
+    }
+    
+    resetQuizData() {
+        this.leaderboard = {
+            easy: [],
+            medium: [],
+            hard: []
+        };
+        this.saveLeaderboard();
+        this.showLeaderboard();
+    }
+    
+    shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+}
+
+// Update the modal system to include quiz
+function setupModalSystem(managers = {}) {
+    const modals = document.querySelectorAll(".modal")
+
+    // Close buttons inside modals
+    document.querySelectorAll(".close-button").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const modal = btn.closest(".modal")
+            if (modal) modal.style.display = "none"
+        })
+    })
+
+    // Click outside to close
+    window.addEventListener("click", (event) => {
+        modals.forEach((modal) => {
+            if (event.target === modal) {
+                modal.style.display = "none"
+            }
+        })
+    })
+
+    // Generic openers: data-open="modalId"
+    document.querySelectorAll("[data-open]").forEach((el) => {
+        const modalId = el.getAttribute("data-open")
+        const modal = document.getElementById(modalId)
+        if (!modal) return
+
+        el.addEventListener("click", (e) => {
+            e.preventDefault()
+            if (
+                modalId === "journalModal" &&
+                managers.journalManager &&
+                typeof managers.journalManager.openModal === "function"
+            ) {
+                managers.journalManager.openModal()
+            } else if (
+                modalId === "projectsModal" &&
+                managers.projectsManager &&
+                typeof managers.projectsManager.openModal === "function"
+            ) {
+                managers.projectsManager.openModal()
+            } else if (
+                modalId === "quizModal" &&
+                managers.quizGame &&
+                typeof managers.quizGame.showSection === "function"
+            ) {
+                modal.style.display = "block"
+                managers.quizGame.showSection('quizMenu')
+                updateDateTime("quizDatetime")
+            } else {
+                modal.style.display = "block"
+                const dtId = modalId.replace("Modal", "Datetime")
+                updateDateTime(dtId)
+            }
+        })
+    })
+
+    // Fallback: support nav ids
+    const navMap = {
+        journalBtn: "journalModal",
+        projectsBtn: "projectsModal",
+        quizBtn: "quizModal",
+        aboutBtn: "aboutModal",
+        cvBtn: "cvModal",
+    }
+
+    Object.entries(navMap).forEach(([btnId, modalId]) => {
+        const button = document.getElementById(btnId)
+        const modal = document.getElementById(modalId)
+        if (!button || !modal) return
+
+        button.addEventListener("click", (e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            if (
+                modalId === "journalModal" &&
+                managers.journalManager &&
+                typeof managers.journalManager.openModal === "function"
+            ) {
+                managers.journalManager.openModal()
+            } else if (
+                modalId === "projectsModal" &&
+                managers.projectsManager &&
+                typeof managers.projectsManager.openModal === "function"
+            ) {
+                managers.projectsManager.openModal()
+            } else if (
+                modalId === "quizModal" &&
+                managers.quizGame &&
+                typeof managers.quizGame.showSection === "function"
+            ) {
+                modal.style.display = "block"
+                managers.quizGame.showSection('quizMenu')
+                updateDateTime("quizDatetime")
+            } else {
+                modal.style.display = "block"
+                updateDateTime(modalId.replace("Modal", "Datetime"))
+            }
+        })
+    })
+}
+
+// Update the main initialization to include quiz
+document.addEventListener("DOMContentLoaded", () => {
+    // Check for required classes
+    if (typeof StorageManager === "undefined") {
+        console.error("StorageManager not found. Make sure storage.js is loaded before script.js")
+        return
+    }
+    if (typeof window.BrowserAPIsManager === "undefined") {
+        console.error("BrowserAPIsManager not found. Make sure browser.js is loaded before script.js")
+        return
+    }
+
+    const storage = new StorageManager()
+    const browserAPIs = new window.BrowserAPIsManager(storage)
+    const youtubeManager = typeof window.YouTubeManager !== "undefined" ? new window.YouTubeManager(storage) : null
+    const journalManager = new JournalManager(storage, browserAPIs)
+    const projectsManager = new ProjectsManager(storage, browserAPIs)
+    const quizGame = new QuizGame(storage)
+
+    // Provide validation manager to journal
+    if (browserAPIs && typeof journalManager.setValidationManager === "function") {
+        journalManager.setValidationManager(browserAPIs)
+    }
+
+    // Start everything
+    startPageDateTime()
+    setupModalSystem({ journalManager, projectsManager, quizGame })
+    initializeOtherModals(storage)
+
+    console.log("Learning Journal worked successfully")
+})
+
+
+
+
+
+
 function startPageDateTime() {
   updateDateTime("pageDateTime")
   setInterval(() => updateDateTime("pageDateTime"), 1000)
 }
 
-// FIXED: Modal system setup
+// Modal system setup
 function setupModalSystem(managers = {}) {
   const modals = document.querySelectorAll(".modal")
 
@@ -988,14 +1331,7 @@ function setupModalSystem(managers = {}) {
   document.querySelectorAll(".close-button").forEach((btn) => {
     btn.addEventListener("click", () => {
       const modal = btn.closest(".modal")
-      if (modal) {
-        // Handle quiz modal differently
-        if (modal.id === "quizModal" && managers.quizManager) {
-          managers.quizManager.closeModal();
-        } else {
-          modal.style.display = "none"
-        }
-      }
+      if (modal) modal.style.display = "none"
     })
   })
 
@@ -1003,12 +1339,7 @@ function setupModalSystem(managers = {}) {
   window.addEventListener("click", (event) => {
     modals.forEach((modal) => {
       if (event.target === modal) {
-        // Handle quiz modal differently
-        if (modal.id === "quizModal" && managers.quizManager) {
-          managers.quizManager.closeModal();
-        } else {
-          modal.style.display = "none"
-        }
+        modal.style.display = "none"
       }
     })
   })
@@ -1033,12 +1364,6 @@ function setupModalSystem(managers = {}) {
         typeof managers.projectsManager.openModal === "function"
       ) {
         managers.projectsManager.openModal()
-      } else if (
-        modalId === "quizModal" &&
-        managers.quizManager &&
-        typeof managers.quizManager.openModal === "function"
-      ) {
-        managers.quizManager.openModal()
       } else {
         modal.style.display = "block"
         const dtId = modalId.replace("Modal", "Datetime")
@@ -1051,7 +1376,6 @@ function setupModalSystem(managers = {}) {
   const navMap = {
     journalBtn: "journalModal",
     projectsBtn: "projectsModal",
-    quizBtn: "quizModal",
     aboutBtn: "aboutModal",
     cvBtn: "cvModal",
   }
@@ -1076,12 +1400,6 @@ function setupModalSystem(managers = {}) {
         typeof managers.projectsManager.openModal === "function"
       ) {
         managers.projectsManager.openModal()
-      } else if (
-        modalId === "quizModal" &&
-        managers.quizManager &&
-        typeof managers.quizManager.openModal === "function"
-      ) {
-        managers.quizManager.openModal()
       } else {
         modal.style.display = "block"
         updateDateTime(modalId.replace("Modal", "Datetime"))
@@ -1114,10 +1432,6 @@ function initializeOtherModals(storage) {
           profileImage.src = event.target.result
           storage.setLocal("profilePicture", event.target.result)
           console.log("Profile picture updated")
-        }
-        reader.onerror = (error) => {
-          console.error("Error reading profile picture:", error)
-          alert("Error reading the image file. Please try again.")
         }
         reader.readAsDataURL(file)
       } else {
@@ -1174,10 +1488,6 @@ function initializeOtherModals(storage) {
           storage.setLocal("aboutContent", content)
           alert(`File "${file.name}" uploaded successfully!`)
         }
-        reader.onerror = (error) => {
-          console.error("Error reading about file:", error)
-          alert("Error reading the file. Please try again.")
-        }
         reader.readAsText(file)
       }
     })
@@ -1232,10 +1542,6 @@ function initializeOtherModals(storage) {
           storage.setLocal("cvFileData", event.target.result)
           alert(`CV file "${file.name}" uploaded successfully!`)
         }
-        reader.onerror = (error) => {
-          console.error("Error reading CV file:", error)
-          alert("Error reading the CV file. Please try again.")
-        }
         reader.readAsDataURL(file)
       }
     })
@@ -1273,7 +1579,7 @@ function initializeOtherModals(storage) {
       if (cvFileDisplay) cvFileDisplay.style.display = "none"
       if (cvFileName) cvFileName.textContent = ""
       alert("CV file deleted successfully!")
-      console.log("CV deleted")
+      console.log(" CV deleted")
     }
   })
 
@@ -1346,26 +1652,21 @@ document.addEventListener("DOMContentLoaded", () => {
     return
   }
 
-  try {
-    const storage = new StorageManager()
-    const browserAPIs = new window.BrowserAPIsManager(storage)
-    
-    const journalManager = new JournalManager(storage, browserAPIs)
-    const projectsManager = new ProjectsManager(storage, browserAPIs)
-    const quizManager = new QuizGameManager(storage)
+  const storage = new StorageManager()
+  const browserAPIs = new window.BrowserAPIsManager(storage)
+  const youtubeManager = typeof window.YouTubeManager !== "undefined" ? new window.YouTubeManager(storage) : null
+  const journalManager = new JournalManager(storage, browserAPIs)
+  const projectsManager = new ProjectsManager(storage, browserAPIs)
 
-    // Provide validation manager to journal
-    if (browserAPIs && typeof journalManager.setValidationManager === "function") {
-      journalManager.setValidationManager(browserAPIs)
-    }
-
-    // Start everything
-    startPageDateTime()
-    setupModalSystem({ journalManager, projectsManager, quizManager })
-    initializeOtherModals(storage)
-
-    console.log("Learning Journal initialized successfully")
-  } catch (error) {
-    console.error("Error initializing Learning Journal:", error)
+  // Provide validation manager to journal
+  if (browserAPIs && typeof journalManager.setValidationManager === "function") {
+    journalManager.setValidationManager(browserAPIs)
   }
+
+  // Start everything
+  startPageDateTime()
+  setupModalSystem({ journalManager, projectsManager })
+  initializeOtherModals(storage)
+
+  console.log("Learning Journal worked successfully")
 })

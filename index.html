@@ -31,7 +31,7 @@
                     <li><a href="index.html" class="active">Home</a></li>
                     <li><a href="#" id="journalBtn" data-open="journalModal">Journal</a></li>
                     <li><a href="#" id="projectsBtn" data-open="projectsModal">Projects</a></li>
-                    <li><a href="#" id="quizBtn" data-open="quizModal">Quiz Game</a></li>
+                    <li><a href="#" id="quizBtn" data-open="quizModal">Quiz</a></li>
                     <li><a href="#" id="aboutBtn" data-open="aboutModal">About</a></li>
                     <li><a href="#" id="cvBtn" data-open="cvModal">CV</a></li>
                 </ul>
@@ -52,10 +52,12 @@
             <section class="first-section">
                 <div class="second-section">
                     <div class="third-section">
+
                         <div class="edit-section-header">
                             <h1><span id="heroName">Hi, I'm Rajan KC</span></h1>
                             <button class="edit-btn" id="editHeroBtn">Edit</button>
                         </div>
+
                         <p class="description" id="heroDescription">
                             I am a passionate developer who enjoys building dynamic, user-friendly web applications.
                             I study Computer Science at UCA and I explore the latest technologies to bring ideas to life.
@@ -70,6 +72,7 @@
                             <input type="file" id="profilePicInput" accept="image/*" style="display:none;">
                         </div>
                     </div>
+
                 </div>
             </section>
         </div>
@@ -82,213 +85,39 @@
         </div>
     </footer>
 
-    <!-- QUIZ GAME MODAL -->
-    <div id="quizModal" class="modal fullscreen-modal">
-        <div class="modal-content">
-            <div class="quiz-container">
-                <!-- Quiz Navigation Bar -->
-                <nav class="quiz-nav">
-                    <div class="quiz-nav-header">
-                        <button class="quiz-menu-btn" id="quizMenuBtn">☰</button>
-                        <h2>Quiz Game</h2>
-                        <button class="quiz-close-btn" id="quizCloseBtn">✕</button>
-                    </div>
-                    <!-- Navigation Menu -->
-                    <div class="quiz-nav-menu" id="quizNavMenu">
-                        <div class="nav-section">
-                            <h3>Game Info</h3>
-                            <button class="nav-item" data-target="playerSetup">Start Game</button>
-                            <button class="nav-item" data-target="rulesSection">Rules</button>
-                            <button class="nav-item" data-target="leaderboard">Leaderboard</button>
-                        </div>
-                    </div>
-                </nav>
 
-                <!-- Main Quiz Content -->
-                <div class="quiz-main">
-                    <div class="quiz-content">
-                        <!-- Rules Section -->
-                        <div id="rulesSection" class="quiz-section">
-                            <h3>📋 Rules of Engagement</h3>
-                            <div class="rules-content">
-                                <div class="rule-item">
-                                    <h4>🎯 How to Play</h4>
-                                    <ul>
-                                        <li>Enter your name to start the game</li>
-                                        <li>Choose from 3 difficulty levels: Easy, Medium, Hard</li>
-                                        <li>Answer multiple-choice questions within the time limit</li>
-                                        <li>Earn points for correct answers: Easy(10), Medium(20), Hard(30)</li>
-                                        <li>Try to achieve the highest score!</li>
-                                    </ul>
-                                </div>
-
-                                <div class="rule-item">
-                                    <h4>🏆 Scoring System</h4>
-                                    <ul>
-                                        <li><strong>Easy:</strong> 10 points per correct answer</li>
-                                        <li><strong>Medium:</strong> 20 points per correct answer</li>
-                                        <li><strong>Hard:</strong> 30 points per correct answer</li>
-                                        <li>No penalty for wrong answers</li>
-                                    </ul>
-                                </div>
-                                <div class="rule-item">
-                                    <h4>⏰ Time Limit</h4>
-                                    <ul>
-                                        <li>60 seconds per game session</li>
-                                        <li>Timer starts when you begin answering questions</li>
-                                        <li>Game ends when time runs out or all questions are answered</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Player Setup -->
-                        <div id="playerSetup" class="quiz-section active">
-                            <div class="setup-container">
-                                <h3>🎮 Start New Game</h3>
-                                <div class="form-group">
-                                    <label for="playerName">Enter Your Name</label>
-                                    <input type="text" id="playerName" placeholder="Enter your name" maxlength="20" required>
-                                    <span class="error-message" id="nameError"></span>
-                                </div>
-                                <button id="startGameBtn" class="cta-btn primary large-btn">Start Game</button>
-                            </div>
-                        </div>
-
-                        <!-- Level Selection -->
-                        <div id="levelSelection" class="quiz-section">
-                            <div class="level-container">
-                                <h3>Select Difficulty Level</h3>
-                                <p class="level-subtitle">Choose your challenge level</p>
-                                <div class="level-buttons">
-                                    <button class="level-btn easy" data-level="easy">
-                                        <span class="level-icon">🎯</span>
-                                        <span class="level-title">Easy</span>
-                                        <span class="level-points">10 pts/question</span>
-                                        <span class="level-desc">Basic web development questions</span>
-                                    </button>
-                                    <button class="level-btn medium" data-level="medium">
-                                        <span class="level-icon">⚡</span>
-                                        <span class="level-title">Medium</span>
-                                        <span class="level-points">20 pts/question</span>
-                                        <span class="level-desc">Intermediate concepts</span>
-                                    </button>
-                                    <button class="level-btn hard" data-level="hard">
-                                        <span class="level-icon">🚀</span>
-                                        <span class="level-title">Hard</span>
-                                        <span class="level-points">30 pts/question</span>
-                                        <span class="level-desc">Advanced topics</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Game Area -->
-                        <div id="gameArea" class="quiz-section">
-                            <div class="game-header">
-                                <div class="player-info">
-                                    <span>Player: <strong id="currentPlayerName"></strong></span>
-                                    <span>Level: <strong id="currentLevel"></strong></span>
-                                    <span>Score: <strong id="currentScore">0</strong></span>
-                                </div>
-                                <div class="timer-container">
-                                    <div class="timer">⏱️ <span id="timer">60</span>s</div>
-                                    <div class="progress-bar">
-                                        <div class="progress-fill" id="progressFill"></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="question-area">
-                                <div class="question-header">
-                                    <span class="question-number">Question <span id="currentQuestionNum">1</span>/<span id="totalQuestions">5</span></span>
-                                </div>
-                                <h3 id="questionText" class="question-text"></h3>
-                                <div id="optionsContainer" class="options-container"></div>
-                            </div>
-
-                            <div class="game-controls">
-                                <button id="nextQuestionBtn" class="cta-btn secondary" style="display: none;">Next Question →</button>
-                                <button id="endGameBtn" class="cta-btn danger">End Game</button>
-                            </div>
-                        </div>
-
-                        <!-- Results -->
-                        <div id="resultsArea" class="quiz-section">
-                            <div class="results-container">
-                                <h3>🎊 Game Over!</h3>
-                                <div class="results-summary">
-                                    <div class="result-item">
-                                        <span class="result-label">Player:</span>
-                                        <span class="result-value" id="resultPlayerName"></span>
-                                    </div>
-                                    <div class="result-item">
-                                        <span class="result-label">Level:</span>
-                                        <span class="result-value" id="resultLevel"></span>
-                                    </div>
-                                    <div class="result-item">
-                                        <span class="result-label">Final Score:</span>
-                                        <span class="result-value score-display" id="finalScore"></span>
-                                    </div>
-                                    <div id="highScoreMessage" class="high-score-message"></div>
-                                </div>
-                                <div class="results-actions">
-                                    <button id="playAgainBtn" class="cta-btn primary">Play Again</button>
-                                    <button id="viewLeaderboardBtn" class="cta-btn secondary">View Leaderboard</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Leaderboard -->
-                        <div id="leaderboard" class="quiz-section">
-                            <div class="leaderboard-container">
-                                <h3>🏆 Top Scores</h3>
-                                <div id="leaderboardContent" class="leaderboard-content">
-                                    <!-- Leaderboard will be populated here -->
-                                </div>
-                                <div class="leaderboard-actions">
-                                    <button id="resetScoresBtn" class="cta-btn danger">Reset All Scores</button>
-                                    <button id="backToMenuBtn" class="cta-btn secondary">Back to Menu</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- QUIZ FOOTER - FIXED POSITION -->
-                <footer class="quiz-footer">
-                    <div class="container">
-                        <p>&copy; 2025 Rajan KC - Learning Journal | Quiz Game</p>
-                    </div>
-                </footer>
-            </div>
-        </div>
-    </div>
-
-    <!-- HERO EDIT MODAL -->
+    <!--  HERO EDIT MODAL -->
     <div id="editHeroModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
+
             <h2 class="gradient-text">Edit Introduction</h2>
+
             <form id="editHeroForm" class="edit-form">
                 <div class="form-group">
                     <label for="editHeroName">Name/Greeting <span class="required">*</span></label>
                     <input type="text" id="editHeroName" required minlength="2" maxlength="100">
                 </div>
+
                 <div class="form-group">
                     <label for="editHeroDesc">Description <span class="required">*</span></label>
                     <textarea id="editHeroDesc" rows="5" required minlength="10" maxlength="500"></textarea>
                 </div>
+
                 <button type="submit" class="cta-btn primary">Save Changes</button>
             </form>
         </div>
     </div>
 
-    <!-- JOURNAL MODAL -->
+
+    <!--  JOURNAL MODAL -->
     <div id="journalModal" class="modal">
         <div class="modal-content">
+
             <span class="close-button">&times;</span>
+
             <div id="journalDatetime" class="datetime"></div>
+
             <div class="modal-header-actions">
                 <h2 class="gradient-text">My Journal</h2>
                 <div class="button-group">
@@ -298,37 +127,47 @@
             </div>
 
             <form id="journalForm" class="journal-form" style="display: none;">
+
                 <div class="form-group">
                     <label for="journalTitle">Title <span class="required">*</span></label>
                     <input id="journalTitle" type="text" required minlength="3" maxlength="100"
                            aria-describedby="titleError">
                     <span class="error-message" id="titleError"></span>
                 </div>
+
                 <div class="form-group">
                     <label for="journalContent">Reflection <span class="required">*</span></label>
                     <textarea id="journalContent" rows="10"
                               required minlength="10" maxlength="5000"
                               aria-describedby="contentError"></textarea>
+
                     <span class="error-message" id="contentError"></span>
+
                     <div class="character-count">
                         <span id="charCount">0</span> / 5000 characters
                     </div>
                 </div>
+
                 <button type="submit" class="cta-btn primary">Submit</button>
             </form>
 
             <div id="journalEmptyState" class="empty-state">
                 <p>No journal entries yet. Click the Add button to add your first entry!</p>
             </div>
+
             <div id="journalEntries" class="journal-entries"></div>
         </div>
     </div>
 
+
     <!-- PROJECTS MODAL -->
     <div id="projectsModal" class="modal">
         <div class="modal-content">
+
             <span class="close-button">&times;</span>
+
             <div id="projectsDatetime" class="datetime"></div>
+
             <div class="modal-header-actions">
                 <h2 class="gradient-text">My Projects</h2>
                 <div class="button-group">
@@ -344,6 +183,7 @@
                            aria-describedby="projectTitleError">
                     <span class="error-message" id="projectTitleError"></span>
                 </div>
+
                 <div class="form-group">
                     <label for="projectDescription">Project Description <span class="required">*</span></label>
                     <textarea id="projectDescription" rows="5"
@@ -351,29 +191,160 @@
                               aria-describedby="projectDescError"></textarea>
                     <span class="error-message" id="projectDescError"></span>
                 </div>
-                <!-- FILE UPLOAD SECTION -->
-                <div class="form-group">
-                    <label for="projectFile">Project File (Optional)</label>
-                    <input type="file" id="projectFile" accept="*/*" style="display:none">
-                    <button type="button" id="projectFileBtn" class="cta-btn secondary">Choose File</button>
-                    <span id="projectFileName">No file chosen</span>
-                </div>
-                <!-- END OF FILE UPLOAD SECTION -->
+                 <!-- ADD THIS SECTION FOR FILE UPLOAD -->
+            <div class="form-group">
+                <label for="projectFile">Project File (Optional)</label>
+                <input type="file" id="projectFile" accept="*/*" style="display:none">
+                <button type="button" id="projectFileBtn" class="cta-btn secondary">Choose File</button>
+                <span id="projectFileName">No file chosen</span>
+            </div>
+            <!-- END OF FILE UPLOAD SECTION -->
+
                 <button type="submit" class="cta-btn primary">Submit</button>
             </form>
 
             <div id="projectsEmptyState" class="empty-state">
                 <p>No projects yet. Click the Add button to add your first project!</p>
             </div>
+
             <div id="projectsList" class="projects-list"></div>
+
         </div>
     </div>
+
+
+    <!-- QUIZ MODAL -->
+    <div id="quizModal" class="modal">
+        <div class="modal-content quiz-modal-content">
+            <span class="close-button">&times;</span>
+            
+            <div id="quizDatetime" class="datetime"></div>
+            
+            <div class="modal-header-actions">
+                <h2 class="gradient-text">Quiz Game</h2>
+                <div class="button-group">
+                    <button class="settings-btn" id="quizSettingsBtn">Rules</button>
+                    <button class="reset-btn" id="resetQuizBtn">Reset</button>
+                </div>
+            </div>
+            
+            <!-- Quiz Menu -->
+            <div id="quizMenu" class="quiz-menu">
+                <div class="difficulty-selection">
+                    <h3>Select Difficulty</h3>
+                    <div class="difficulty-buttons">
+                        <button class="difficulty-btn easy active" data-level="easy">Easy</button>
+                        <button class="difficulty-btn medium" data-level="medium">Medium</button>
+                        <button class="difficulty-btn hard" data-level="hard">Hard</button>
+                    </div>
+                </div>
+                
+                <div class="quiz-actions">
+                    <button id="startQuizBtn" class="cta-btn primary">Start Game</button>
+                    <button id="leaderboardBtn" class="cta-btn secondary">Leaderboard</button>
+                </div>
+            </div>
+            
+            <!-- Rules Section -->
+            <div id="quizRules" class="quiz-rules" style="display: none;">
+                <h3>Quiz Rules</h3>
+                <ul>
+                    <li>Each quiz has 10 questions</li>
+                    <li>You have 15 seconds per question</li>
+                    <li>Easy: 1 point per correct answer</li>
+                    <li>Medium: 2 points per correct answer</li>
+                    <li>Hard: 3 points per correct answer</li>
+                    <li>Wrong answers don't deduct points</li>
+                    <li>Complete all questions to see your score</li>
+                </ul>
+                <button id="backToMenuBtn" class="cta-btn secondary">Back to Menu</button>
+            </div>
+            
+            <!-- Quiz Game Section -->
+            <div id="quizGame" class="quiz-game" style="display: none;">
+                <div class="quiz-header">
+                    <div class="quiz-info">
+                        <span id="quizDifficulty">Difficulty: Easy</span>
+                        <span id="quizScore">Score: 0</span>
+                    </div>
+                    <div class="quiz-progress">
+                        <span id="quizProgress">Question 1/10</span>
+                        <div class="progress-bar">
+                            <div id="progressFill" class="progress-fill"></div>
+                        </div>
+                    </div>
+                    <div class="quiz-timer">
+                        <span id="quizTimer">15</span>s
+                    </div>
+                </div>
+                
+                <div class="quiz-question">
+                    <h3 id="questionText">Question will appear here</h3>
+                </div>
+                
+                <div class="quiz-options">
+                    <button class="option-btn" data-index="0">Option 1</button>
+                    <button class="option-btn" data-index="1">Option 2</button>
+                    <button class="option-btn" data-index="2">Option 3</button>
+                    <button class="option-btn" data-index="3">Option 4</button>
+                </div>
+                
+                <div class="quiz-feedback" id="quizFeedback"></div>
+                
+                <div class="quiz-controls">
+                    <button id="nextQuestionBtn" class="cta-btn primary" style="display: none;">Next Question</button>
+                    <button id="endQuizBtn" class="cta-btn secondary">End Quiz</button>
+                </div>
+            </div>
+            
+            <!-- Results Section -->
+            <div id="quizResults" class="quiz-results" style="display: none;">
+                <h3>Quiz Results</h3>
+                <div class="result-details">
+                    <p>Difficulty: <span id="resultDifficulty">Easy</span></p>
+                    <p>Score: <span id="resultScore">0</span>/<span id="resultMaxScore">10</span></p>
+                    <p>Percentage: <span id="resultPercentage">0%</span></p>
+                    <p>Time: <span id="resultTime">0</span> seconds</p>
+                </div>
+                <div class="result-actions">
+                    <button id="playAgainBtn" class="cta-btn primary">Play Again</button>
+                    <button id="backToMenuFromResultsBtn" class="cta-btn secondary">Back to Menu</button>
+                </div>
+            </div>
+            
+            <!-- Leaderboard Section -->
+            <div id="quizLeaderboard" class="quiz-leaderboard" style="display: none;">
+                <h3>Leaderboard</h3>
+                <div class="leaderboard-tabs">
+                    <button class="leaderboard-tab active" data-difficulty="easy">Easy</button>
+                    <button class="leaderboard-tab" data-difficulty="medium">Medium</button>
+                    <button class="leaderboard-tab" data-difficulty="hard">Hard</button>
+                </div>
+                <div class="leaderboard-content">
+                    <div id="easyLeaderboard" class="leaderboard-list">
+                        <p>No scores yet. Be the first!</p>
+                    </div>
+                    <div id="mediumLeaderboard" class="leaderboard-list" style="display: none;">
+                        <p>No scores yet. Be the first!</p>
+                    </div>
+                    <div id="hardLeaderboard" class="leaderboard-list" style="display: none;">
+                        <p>No scores yet. Be the first!</p>
+                    </div>
+                </div>
+                <button id="backToMenuFromLeaderboardBtn" class="cta-btn secondary">Back to Menu</button>
+            </div>
+        </div>
+    </div>
+
 
     <!-- ABOUT MODAL -->
     <div id="aboutModal" class="modal">
         <div class="modal-content">
+
             <span class="close-button">&times;</span>
+
             <div id="aboutDatetime" class="datetime"></div>
+
             <div class="modal-header-actions">
                 <h2 class="gradient-text">About Me</h2>
                 <div class="button-group">
@@ -383,19 +354,23 @@
             </div>
 
             <input type="file" id="aboutFileInput" accept=".txt,.doc,.docx" style="display:none">
+
             <div id="aboutContent" class="about-content">
                 <p>I am a passionate developer...</p>
             </div>
 
-            <!-- YouTube section -->
+            <!-- YouTube section - removed 11 character restriction, accepts any URL or ID -->
             <div class="youtube-section">
                 <h3>Featured Video</h3>
+
                 <div class="youtube-controls">
                     <input type="text" id="youtubeVideoId"
                            placeholder="Enter YouTube Video ID or URL (any format)">
                     <button id="loadVideoBtn" class="cta-btn primary">Load Video</button>
                 </div>
+
                 <div id="youtubePlayer"></div>
+
                 <div id="videoControls" class="video-controls" style="display:none">
                     <button id="playBtn" class="control-btn"> Play</button>
                     <button id="pauseBtn" class="control-btn">Pause</button>
@@ -404,18 +379,25 @@
                     <button id="unmuteBtn" class="control-btn"> Unmute</button>
                     <button id="fullscreenBtn" class="control-btn"> Fullscreen</button>
                 </div>
+
                 <div id="videoStatus" class="video-status"></div>
             </div>
+
         </div>
     </div>
+
 
     <!-- CV MODAL -->
     <div id="cvModal" class="modal">
         <div class="modal-content">
+
             <span class="close-button">&times;</span>
+
             <div id="cvDatetime" class="datetime"></div>
+
             <div class="modal-header-actions">
                 <h2 class="gradient-text">My CV</h2>
+
                 <div class="cv-actions">
                     <button id="editCvBtn" class="edit-btn">Edit</button>
                     <button id="uploadCvBtn" class="upload-btn">Upload File</button>
@@ -423,6 +405,7 @@
             </div>
 
             <input type="file" id="cvFileInput" accept=".pdf,.doc,.docx" style="display:none">
+
             <div id="cvFileDisplay" class="cv-file-display" style="display:none">
                 <p><strong>Uploaded:</strong> <span id="cvFileName"></span></p>
                 <button id="viewCvBtn" class="cta-btn primary">View CV</button>
@@ -432,19 +415,25 @@
             <div id="cvContent" class="cv-content">
                 <h3>Education</h3>
                 <p>Computer Science - University for Creative Arts</p>
+
                 <h3>Skills</h3>
                 <p>HTML, CSS, JavaScript, AI, Python, Git</p>
+
                 <h3>Experience</h3>
                 <p>Add your work experience here...</p>
             </div>
+
         </div>
     </div>
 
-    <!-- ABOUT EDIT MODAL -->
+
+    <!--  ABOUT EDIT MODAL -->
     <div id="editAboutModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
+
             <h2 class="gradient-text">Edit About</h2>
+
             <form id="editAboutForm">
                 <div class="form-group">
                     <label for="editAboutText">About Content <span class="required">*</span></label>
@@ -455,11 +444,14 @@
         </div>
     </div>
 
+
     <!-- CV EDIT MODAL -->
     <div id="editCvModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
+
             <h2 class="gradient-text">Edit CV</h2>
+
             <form id="editCvForm">
                 <div class="form-group">
                     <label for="editCvText">CV Content <span class="required">*</span></label>
