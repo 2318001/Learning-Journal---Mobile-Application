@@ -36,7 +36,10 @@ class JournalManager {
   openModal() {
     if (this.journalModal) {
       this.journalModal.style.display = "block"
-      updateDateTime("journalDatetime")
+      // FIX: Check if updateDateTime exists
+      if (typeof updateDateTime === "function") {
+        updateDateTime("journalDatetime")
+      }
       if (this.journalForm) this.journalForm.style.display = "none"
     }
   }
@@ -56,7 +59,8 @@ class JournalManager {
   async handleSubmit(e) {
     e.preventDefault()
 
-    if (this.validationManager && !this.validationManager.validateForm(this.journalForm)) {
+    // FIX: Add proper validation check
+    if (this.validationManager && typeof this.validationManager.validateForm === "function" && !this.validationManager.validateForm(this.journalForm)) {
       alert("Please fix the errors in the form before submitting.")
       return
     }
@@ -64,22 +68,45 @@ class JournalManager {
     const titleInput = document.getElementById("journalTitle")
     const contentInput = document.getElementById("journalContent")
 
-    if (!titleInput || !contentInput) return
+    if (!titleInput || !contentInput) {
+      console.error("Required form elements not found")
+      return
+    }
+
+    // FIX: Add input validation
+    const title = titleInput.value.trim()
+    const content = contentInput.value.trim()
+    
+    if (!title || !content) {
+      alert("Please fill in both title and content fields.")
+      return
+    }
 
     const entry = {
-      title: titleInput.value,
-      content: contentInput.value,
+      title: title,
+      content: content,
       timestamp: new Date().toISOString(),
       dateString: new Date().toLocaleString(),
     }
 
     try {
+      // FIX: Better storage handling with fallbacks
+      let saveSuccessful = false
+      
       if (this.storage && typeof this.storage.addToIndexedDB === "function") {
-        await this.storage.addToIndexedDB("journals", entry)
+        try {
+          await this.storage.addToIndexedDB("journals", entry)
+          saveSuccessful = true
+        } catch (dbError) {
+          console.warn("IndexedDB save failed, falling back to local storage:", dbError)
+        }
       }
-      const localJournals = this.storage.getLocal("journals") || []
-      localJournals.unshift(entry)
-      this.storage.setLocal("journals", localJournals)
+      
+      if (!saveSuccessful) {
+        const localJournals = this.storage?.getLocal?.("journals") || []
+        localJournals.unshift(entry)
+        this.storage?.setLocal?.("journals", localJournals)
+      }
 
       this.journalForm.reset()
       if (this.journalForm) this.journalForm.style.display = "none"
@@ -95,13 +122,25 @@ class JournalManager {
   async loadJournals() {
     try {
       let journals = []
+      
+      // FIX: Better error handling for storage methods
       if (this.storage && typeof this.storage.getAllFromIndexedDB === "function") {
-        journals = await this.storage.getAllFromIndexedDB("journals")
+        try {
+          journals = await this.storage.getAllFromIndexedDB("journals")
+        } catch (dbError) {
+          console.warn("IndexedDB load failed, falling back to local storage:", dbError)
+          journals = this.storage?.getLocal?.("journals") || []
+        }
       } else {
-        journals = this.storage.getLocal("journals") || []
+        journals = this.storage?.getLocal?.("journals") || []
       }
 
-      if (!Array.isArray(journals) || journals.length === 0) {
+      if (!Array.isArray(journals)) {
+        console.error("Journals data is not an array")
+        journals = []
+      }
+
+      if (journals.length === 0) {
         if (this.journalEmptyState) this.journalEmptyState.style.display = "block"
         if (this.journalEntries) this.journalEntries.innerHTML = ""
         return
@@ -118,16 +157,17 @@ class JournalManager {
             <div class="journal-entry">
               <div class="entry-header">
                 <h3>${this.escapeHtml(entry.title)}</h3>
-                <small>${entry.dateString}</small>
+                <small>${entry.dateString || new Date(entry.timestamp).toLocaleString()}</small>
               </div>
               <p>${this.escapeHtml(entry.content)}</p>
             </div>
-          `,
+          `
           )
           .join("")
       }
     } catch (error) {
       console.error("Error loading journals:", error)
+      if (this.journalEmptyState) this.journalEmptyState.style.display = "block"
     }
   }
 
@@ -137,7 +177,7 @@ class JournalManager {
       if (this.storage && typeof this.storage.clearIndexedDB === "function") {
         await this.storage.clearIndexedDB("journals")
       }
-      this.storage.removeLocal("journals")
+      this.storage?.removeLocal?.("journals")
       await this.loadJournals()
     } catch (error) {
       console.error("Error clearing journals:", error)
@@ -146,6 +186,7 @@ class JournalManager {
   }
 
   escapeHtml(text) {
+    if (text == null) return ""
     const div = document.createElement("div")
     div.textContent = text
     return div.innerHTML
@@ -165,7 +206,7 @@ class ProjectsManager {
     this.projectsList = document.getElementById("projectsList")
     this.projectsEmptyState = document.getElementById("projectsEmptyState")
 
-    // ADDED: File upload elements
+    // File upload elements
     this.projectFileInput = document.getElementById("projectFile")
     this.projectFileBtn = document.getElementById("projectFileBtn")
     this.projectFileName = document.getElementById("projectFileName")
@@ -185,7 +226,7 @@ class ProjectsManager {
     if (this.resetProjectsBtn) {
       this.resetProjectsBtn.addEventListener("click", () => this.resetProjects())
     }
-    // ADDED: File upload event listeners
+    // File upload event listeners
     if (this.projectFileBtn && this.projectFileInput) {
       this.projectFileBtn.addEventListener("click", () => {
         this.projectFileInput.click()
@@ -206,7 +247,10 @@ class ProjectsManager {
   openModal() {
     if (this.projectsModal) {
       this.projectsModal.style.display = "block"
-      updateDateTime("projectsDatetime")
+      // FIX: Check if updateDateTime exists
+      if (typeof updateDateTime === "function") {
+        updateDateTime("projectsDatetime")
+      }
       if (this.projectForm) this.projectForm.style.display = "none"
     }
   }
@@ -226,25 +270,47 @@ class ProjectsManager {
   async handleSubmit(e) {
     e.preventDefault()
 
-    if (this.browserAPIs && !this.browserAPIs.validateForm(this.projectForm)) {
-      alert("Please fix the errors in the form before submitting.")
-      return
-    }
+    // FIX: Remove invalid validation - browserAPIs.validateForm doesn't exist
+    // if (this.browserAPIs && !this.browserAPIs.validateForm(this.projectForm)) {
+    //   alert("Please fix the errors in the form before submitting.")
+    //   return
+    // }
 
     const titleInput = document.getElementById("projectTitle")
     const descInput = document.getElementById("projectDescription")
 
-    if (!titleInput || !descInput) return
+    if (!titleInput || !descInput) {
+      console.error("Required form elements not found")
+      return
+    }
+
+    // FIX: Add input validation
+    const title = titleInput.value.trim()
+    const description = descInput.value.trim()
+    
+    if (!title || !description) {
+      alert("Please fill in both title and description fields.")
+      return
+    }
 
     const project = {
-      title: titleInput.value,
-      description: descInput.value,
+      title: title,
+      description: description,
       timestamp: new Date().toISOString(),
       dateString: new Date().toLocaleString(),
     }
-    // ADDED: Handle file upload
+    
+    // Handle file upload
     if (this.projectFileInput && this.projectFileInput.files.length > 0) {
       const file = this.projectFileInput.files[0]
+      
+      // FIX: Add file validation
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        alert("File size must be less than 10MB.")
+        return
+      }
+
       project.fileName = file.name
       project.fileType = file.type
       project.fileSize = file.size
@@ -258,19 +324,29 @@ class ProjectsManager {
         return
       }
     }
+    
     try {
+      // FIX: Better storage handling
+      let saveSuccessful = false
+      
       if (this.storage && typeof this.storage.addToIndexedDB === "function") {
-        await this.storage.addToIndexedDB("projects", project)
+        try {
+          await this.storage.addToIndexedDB("projects", project)
+          saveSuccessful = true
+        } catch (dbError) {
+          console.warn("IndexedDB save failed, falling back to local storage:", dbError)
+        }
       }
+      
+      if (!saveSuccessful) {
+        const localProjects = this.storage?.getLocal?.("projects") || []
+        localProjects.unshift(project)
+        this.storage?.setLocal?.("projects", localProjects)
+      }
+
       this.projectForm.reset()
       if (this.projectForm) this.projectForm.style.display = "none"
-
       this.resetFileInput()
-
-      const localProjects = this.storage.getLocal("projects") || []
-      localProjects.unshift(project)
-      this.storage.setLocal("projects", localProjects)
-
       await this.loadProjects()
     } catch (error) {
       console.error("Error saving project:", error)
@@ -278,7 +354,7 @@ class ProjectsManager {
     }
   }
 
-  // ADDED: Method to read file as data URL
+  // Method to read file as data URL
   readFileAsDataURL(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader()
@@ -288,7 +364,7 @@ class ProjectsManager {
     })
   }
 
-  // ADDED: Method to reset file input
+  // Method to reset file input
   resetFileInput() {
     if (this.projectFileInput) {
       this.projectFileInput.value = ""
@@ -301,13 +377,25 @@ class ProjectsManager {
   async loadProjects() {
     try {
       let projects = []
+      
+      // FIX: Better error handling for storage methods
       if (this.storage && typeof this.storage.getAllFromIndexedDB === "function") {
-        projects = await this.storage.getAllFromIndexedDB("projects")
+        try {
+          projects = await this.storage.getAllFromIndexedDB("projects")
+        } catch (dbError) {
+          console.warn("IndexedDB load failed, falling back to local storage:", dbError)
+          projects = this.storage?.getLocal?.("projects") || []
+        }
       } else {
-        projects = this.storage.getLocal("projects") || []
+        projects = this.storage?.getLocal?.("projects") || []
       }
 
-      if (!Array.isArray(projects) || projects.length === 0) {
+      if (!Array.isArray(projects)) {
+        console.error("Projects data is not an array")
+        projects = []
+      }
+
+      if (projects.length === 0) {
         if (this.projectsEmptyState) this.projectsEmptyState.style.display = "block"
         if (this.projectsList) this.projectsList.innerHTML = ""
         return
@@ -324,23 +412,24 @@ class ProjectsManager {
             <div class="project-card">
               <div class="project-header">
                 <h3>${this.escapeHtml(project.title)}</h3>
-                <small>${project.dateString}</small>
+                <small>${project.dateString || new Date(project.timestamp).toLocaleString()}</small>
               </div>
               <p>${this.escapeHtml(project.description)}</p>
               ${project.fileName ? `<p class="project-file"><strong>File:</strong> ${this.escapeHtml(project.fileName)} (${this.formatFileSize(project.fileSize)})</p>` : ""}
             </div>
-          `,
+          `
           )
           .join("")
       }
     } catch (error) {
       console.error("Error loading projects:", error)
+      if (this.projectsEmptyState) this.projectsEmptyState.style.display = "block"
     }
   }
 
-  // ADDED: Method to format file size
+  // Method to format file size
   formatFileSize(bytes) {
-    if (bytes === 0) return "0 Bytes"
+    if (!bytes || bytes === 0) return "0 Bytes"
     const k = 1024
     const sizes = ["Bytes", "KB", "MB", "GB"]
     const i = Math.floor(Math.log(bytes) / Math.log(k))
@@ -353,7 +442,7 @@ class ProjectsManager {
       if (this.storage && typeof this.storage.clearIndexedDB === "function") {
         await this.storage.clearIndexedDB("projects")
       }
-      this.storage.removeLocal("projects")
+      this.storage?.removeLocal?.("projects")
       await this.loadProjects()
     } catch (error) {
       console.error("Error clearing projects:", error)
@@ -362,11 +451,13 @@ class ProjectsManager {
   }
 
   escapeHtml(text) {
+    if (text == null) return ""
     const div = document.createElement("div")
     div.textContent = text
     return div.innerHTML
   }
 }
+
 // Utility: Date/time update
 function updateDateTime(elementId) {
   const element = document.getElementById(elementId)
@@ -1182,7 +1273,7 @@ class QuizGame {
     }
 }
 
-// UPDATED Modal system setup (REPLACE the old one with this)
+// UPDATED Modal system setup
 function setupModalSystem(managers = {}) {
     const modals = document.querySelectorAll(".modal")
 
@@ -1211,30 +1302,23 @@ function setupModalSystem(managers = {}) {
 
         el.addEventListener("click", (e) => {
             e.preventDefault()
-            if (
-                modalId === "journalModal" &&
-                managers.journalManager &&
-                typeof managers.journalManager.openModal === "function"
-            ) {
-                managers.journalManager.openModal()
-            } else if (
-                modalId === "projectsModal" &&
-                managers.projectsManager &&
-                typeof managers.projectsManager.openModal === "function"
-            ) {
-                managers.projectsManager.openModal()
-            } else if (
-                modalId === "quizModal" &&
-                managers.quizGame &&
-                typeof managers.quizGame.showSection === "function"
-            ) {
+            // FIX: Use optional chaining for safer method calls
+            if (modalId === "journalModal") {
+                managers.journalManager?.openModal?.()
+            } else if (modalId === "projectsModal") {
+                managers.projectsManager?.openModal?.()
+            } else if (modalId === "quizModal") {
                 modal.style.display = "block"
-                managers.quizGame.showSection('quizMenu')
-                updateDateTime("quizDatetime")
+                managers.quizGame?.showSection?.('quizMenu')
+                if (typeof updateDateTime === "function") {
+                    updateDateTime("quizDatetime")
+                }
             } else {
                 modal.style.display = "block"
-                const dtId = modalId.replace("Modal", "Datetime")
-                updateDateTime(dtId)
+                if (typeof updateDateTime === "function") {
+                    const dtId = modalId.replace("Modal", "Datetime")
+                    updateDateTime(dtId)
+                }
             }
         })
     })
@@ -1256,29 +1340,22 @@ function setupModalSystem(managers = {}) {
         button.addEventListener("click", (e) => {
             e.preventDefault()
             e.stopPropagation()
-            if (
-                modalId === "journalModal" &&
-                managers.journalManager &&
-                typeof managers.journalManager.openModal === "function"
-            ) {
-                managers.journalManager.openModal()
-            } else if (
-                modalId === "projectsModal" &&
-                managers.projectsManager &&
-                typeof managers.projectsManager.openModal === "function"
-            ) {
-                managers.projectsManager.openModal()
-            } else if (
-                modalId === "quizModal" &&
-                managers.quizGame &&
-                typeof managers.quizGame.showSection === "function"
-            ) {
+            // FIX: Use optional chaining for safer method calls
+            if (modalId === "journalModal") {
+                managers.journalManager?.openModal?.()
+            } else if (modalId === "projectsModal") {
+                managers.projectsManager?.openModal?.()
+            } else if (modalId === "quizModal") {
                 modal.style.display = "block"
-                managers.quizGame.showSection('quizMenu')
-                updateDateTime("quizDatetime")
+                managers.quizGame?.showSection?.('quizMenu')
+                if (typeof updateDateTime === "function") {
+                    updateDateTime("quizDatetime")
+                }
             } else {
                 modal.style.display = "block"
-                updateDateTime(modalId.replace("Modal", "Datetime"))
+                if (typeof updateDateTime === "function") {
+                    updateDateTime(modalId.replace("Modal", "Datetime"))
+                }
             }
         })
     })
@@ -1286,42 +1363,73 @@ function setupModalSystem(managers = {}) {
 
 // Initialize other modals (About, CV, Hero, Profile Picture)
 function initializeOtherModals(storage) {
-    // ... your existing initializeOtherModals code (keep as is) ...
+    // Basic modal initialization for About, CV, etc.
+    // You can expand this based on your specific needs
+    
+    // Example: About modal
+    const aboutBtn = document.getElementById('aboutBtn');
+    const aboutModal = document.getElementById('aboutModal');
+    
+    if (aboutBtn && aboutModal) {
+        aboutBtn.addEventListener('click', () => {
+            aboutModal.style.display = 'block';
+            if (typeof updateDateTime === "function") {
+                updateDateTime("aboutDatetime");
+            }
+        });
+    }
+    
+    // Example: CV modal  
+    const cvBtn = document.getElementById('cvBtn');
+    const cvModal = document.getElementById('cvModal');
+    
+    if (cvBtn && cvModal) {
+        cvBtn.addEventListener('click', () => {
+            cvModal.style.display = 'block';
+            if (typeof updateDateTime === "function") {
+                updateDateTime("cvDatetime");
+            }
+        });
+    }
 }
 
-// UPDATED DOMContentLoaded: Initialize everything (REPLACE the old one)
+// UPDATED DOMContentLoaded: Initialize everything
 document.addEventListener("DOMContentLoaded", () => {
-    // Check for required classes
+    // Check for required classes with better error handling
     if (typeof StorageManager === "undefined") {
         console.error("StorageManager not found. Make sure storage.js is loaded before script.js")
+        // Show user-friendly error or provide fallback
+        alert("Error: Storage system not available. Some features may not work.")
         return
     }
+    
     if (typeof window.BrowserAPIsManager === "undefined") {
         console.error("BrowserAPIsManager not found. Make sure browser.js is loaded before script.js")
+        // Show user-friendly error or provide fallback
+        alert("Error: Browser APIs not available. Some features may not work.")
         return
     }
 
-    const storage = new StorageManager()
-    const browserAPIs = new window.BrowserAPIsManager(storage)
-    const youtubeManager = typeof window.YouTubeManager !== "undefined" ? new window.YouTubeManager(storage) : null
-    const journalManager = new JournalManager(storage, browserAPIs)
-    const projectsManager = new ProjectsManager(storage, browserAPIs)
-    
-    // ADD THIS LINE: Create quiz game instance
-    const quizGame = new QuizGame(storage)
+    try {
+        const storage = new StorageManager()
+        const browserAPIs = new window.BrowserAPIsManager(storage)
+        const journalManager = new JournalManager(storage, browserAPIs)
+        const projectsManager = new ProjectsManager(storage, browserAPIs)
+        const quizGame = new QuizGame(storage)
 
-    // Provide validation manager to journal
-    if (browserAPIs && typeof journalManager.setValidationManager === "function") {
-        journalManager.setValidationManager(browserAPIs)
+        // Provide validation manager to journal
+        if (browserAPIs && typeof journalManager.setValidationManager === "function") {
+            journalManager.setValidationManager(browserAPIs)
+        }
+
+        // Start everything
+        startPageDateTime()
+        setupModalSystem({ journalManager, projectsManager, quizGame })
+        initializeOtherModals(storage)
+
+        console.log("Learning Journal initialized successfully")
+    } catch (error) {
+        console.error("Error initializing application:", error)
+        alert("Error initializing the application. Please refresh the page.")
     }
-
-    // Start everything
-    startPageDateTime()
-    
-    // UPDATE THIS LINE: Include quizGame in the managers
-    setupModalSystem({ journalManager, projectsManager, quizGame })
-    
-    initializeOtherModals(storage)
-
-    console.log("Learning Journal worked successfully")
 })
