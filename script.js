@@ -1,13 +1,372 @@
 // Journal Manager - Handles journal entries with form validation
 class JournalManager {
-  // ... your existing JournalManager code (keep as is) ...
+  constructor(storage, browserAPIs) {
+    this.storage = storage
+    this.browserAPIs = browserAPIs
+    this.journalBtn = document.getElementById("journalBtn")
+    this.journalModal = document.getElementById("journalModal")
+    this.journalForm = document.getElementById("journalForm")
+    this.journalSettingsBtn = document.getElementById("journalSettingsBtn")
+    this.resetJournalBtn = document.getElementById("resetJournalBtn")
+    this.journalEntries = document.getElementById("journalEntries")
+    this.journalEmptyState = document.getElementById("journalEmptyState")
+    this.validationManager = null
+
+    this.init()
+  }
+
+  async init() {
+    await this.loadJournals()
+
+    if (this.journalSettingsBtn) {
+      this.journalSettingsBtn.addEventListener("click", () => this.toggleForm())
+    }
+    if (this.journalForm) {
+      this.journalForm.addEventListener("submit", (e) => this.handleSubmit(e))
+    }
+    if (this.resetJournalBtn) {
+      this.resetJournalBtn.addEventListener("click", () => this.resetJournals())
+    }
+  }
+
+  setValidationManager(manager) {
+    this.validationManager = manager
+  }
+
+  openModal() {
+    if (this.journalModal) {
+      this.journalModal.style.display = "block"
+      updateDateTime("journalDatetime")
+      if (this.journalForm) this.journalForm.style.display = "none"
+    }
+  }
+
+  toggleForm() {
+    if (this.journalForm) {
+      const isHidden = this.journalForm.style.display === "none"
+      this.journalForm.style.display = isHidden ? "block" : "none"
+      if (isHidden && this.journalEmptyState) {
+        this.journalEmptyState.style.display = "none"
+      } else {
+        this.loadJournals()
+      }
+    }
+  }
+
+  async handleSubmit(e) {
+    e.preventDefault()
+
+    if (this.validationManager && !this.validationManager.validateForm(this.journalForm)) {
+      alert("Please fix the errors in the form before submitting.")
+      return
+    }
+
+    const titleInput = document.getElementById("journalTitle")
+    const contentInput = document.getElementById("journalContent")
+
+    if (!titleInput || !contentInput) return
+
+    const entry = {
+      title: titleInput.value,
+      content: contentInput.value,
+      timestamp: new Date().toISOString(),
+      dateString: new Date().toLocaleString(),
+    }
+
+    try {
+      if (this.storage && typeof this.storage.addToIndexedDB === "function") {
+        await this.storage.addToIndexedDB("journals", entry)
+      }
+      const localJournals = this.storage.getLocal("journals") || []
+      localJournals.unshift(entry)
+      this.storage.setLocal("journals", localJournals)
+
+      this.journalForm.reset()
+      if (this.journalForm) this.journalForm.style.display = "none"
+      const charCount = document.getElementById("charCount")
+      if (charCount) charCount.textContent = "0"
+      await this.loadJournals()
+    } catch (error) {
+      console.error("Error saving journal entry:", error)
+      alert("Error saving journal entry. Please try again.")
+    }
+  }
+
+  async loadJournals() {
+    try {
+      let journals = []
+      if (this.storage && typeof this.storage.getAllFromIndexedDB === "function") {
+        journals = await this.storage.getAllFromIndexedDB("journals")
+      } else {
+        journals = this.storage.getLocal("journals") || []
+      }
+
+      if (!Array.isArray(journals) || journals.length === 0) {
+        if (this.journalEmptyState) this.journalEmptyState.style.display = "block"
+        if (this.journalEntries) this.journalEntries.innerHTML = ""
+        return
+      }
+
+      if (this.journalEmptyState) this.journalEmptyState.style.display = "none"
+
+      journals.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+
+      if (this.journalEntries) {
+        this.journalEntries.innerHTML = journals
+          .map(
+            (entry) => `
+            <div class="journal-entry">
+              <div class="entry-header">
+                <h3>${this.escapeHtml(entry.title)}</h3>
+                <small>${entry.dateString}</small>
+              </div>
+              <p>${this.escapeHtml(entry.content)}</p>
+            </div>
+          `,
+          )
+          .join("")
+      }
+    } catch (error) {
+      console.error("Error loading journals:", error)
+    }
+  }
+
+  async resetJournals() {
+    if (!confirm("Are you sure you want to delete all journal entries? This cannot be undone.")) return
+    try {
+      if (this.storage && typeof this.storage.clearIndexedDB === "function") {
+        await this.storage.clearIndexedDB("journals")
+      }
+      this.storage.removeLocal("journals")
+      await this.loadJournals()
+    } catch (error) {
+      console.error("Error clearing journals:", error)
+      alert("Error clearing journals. Please try again.")
+    }
+  }
+
+  escapeHtml(text) {
+    const div = document.createElement("div")
+    div.textContent = text
+    return div.innerHTML
+  }
 }
 
 // Projects Manager - Handles project entries with form validation
 class ProjectsManager {
-  // ... your existing ProjectsManager code (keep as is) ...
-}
+  constructor(storage, browserAPIs) {
+    this.storage = storage
+    this.browserAPIs = browserAPIs
+    this.projectsBtn = document.getElementById("projectsBtn")
+    this.projectsModal = document.getElementById("projectsModal")
+    this.projectForm = document.getElementById("projectForm")
+    this.projectsSettingsBtn = document.getElementById("projectsSettingsBtn")
+    this.resetProjectsBtn = document.getElementById("resetProjectsBtn")
+    this.projectsList = document.getElementById("projectsList")
+    this.projectsEmptyState = document.getElementById("projectsEmptyState")
 
+    // ADDED: File upload elements
+    this.projectFileInput = document.getElementById("projectFile")
+    this.projectFileBtn = document.getElementById("projectFileBtn")
+    this.projectFileName = document.getElementById("projectFileName")
+
+    this.init()
+  }
+
+  async init() {
+    await this.loadProjects()
+
+    if (this.projectsSettingsBtn) {
+      this.projectsSettingsBtn.addEventListener("click", () => this.toggleForm())
+    }
+    if (this.projectForm) {
+      this.projectForm.addEventListener("submit", (e) => this.handleSubmit(e))
+    }
+    if (this.resetProjectsBtn) {
+      this.resetProjectsBtn.addEventListener("click", () => this.resetProjects())
+    }
+    // ADDED: File upload event listeners
+    if (this.projectFileBtn && this.projectFileInput) {
+      this.projectFileBtn.addEventListener("click", () => {
+        this.projectFileInput.click()
+      })
+    }
+
+    if (this.projectFileInput) {
+      this.projectFileInput.addEventListener("change", () => {
+        if (this.projectFileInput.files.length > 0) {
+          this.projectFileName.textContent = this.projectFileInput.files[0].name
+        } else {
+          this.projectFileName.textContent = "No file chosen"
+        }
+      })
+    }
+  }
+
+  openModal() {
+    if (this.projectsModal) {
+      this.projectsModal.style.display = "block"
+      updateDateTime("projectsDatetime")
+      if (this.projectForm) this.projectForm.style.display = "none"
+    }
+  }
+
+  toggleForm() {
+    if (this.projectForm) {
+      const isHidden = this.projectForm.style.display === "none"
+      this.projectForm.style.display = isHidden ? "block" : "none"
+      if (isHidden && this.projectsEmptyState) {
+        this.projectsEmptyState.style.display = "none"
+      } else {
+        this.loadProjects()
+      }
+    }
+  }
+
+  async handleSubmit(e) {
+    e.preventDefault()
+
+    if (this.browserAPIs && !this.browserAPIs.validateForm(this.projectForm)) {
+      alert("Please fix the errors in the form before submitting.")
+      return
+    }
+
+    const titleInput = document.getElementById("projectTitle")
+    const descInput = document.getElementById("projectDescription")
+
+    if (!titleInput || !descInput) return
+
+    const project = {
+      title: titleInput.value,
+      description: descInput.value,
+      timestamp: new Date().toISOString(),
+      dateString: new Date().toLocaleString(),
+    }
+    // ADDED: Handle file upload
+    if (this.projectFileInput && this.projectFileInput.files.length > 0) {
+      const file = this.projectFileInput.files[0]
+      project.fileName = file.name
+      project.fileType = file.type
+      project.fileSize = file.size
+
+      // Convert file to base64 for storage
+      try {
+        project.fileData = await this.readFileAsDataURL(file)
+      } catch (error) {
+        console.error("Error reading file:", error)
+        alert("Error reading the file. Please try again.")
+        return
+      }
+    }
+    try {
+      if (this.storage && typeof this.storage.addToIndexedDB === "function") {
+        await this.storage.addToIndexedDB("projects", project)
+      }
+      this.projectForm.reset()
+      if (this.projectForm) this.projectForm.style.display = "none"
+
+      this.resetFileInput()
+
+      const localProjects = this.storage.getLocal("projects") || []
+      localProjects.unshift(project)
+      this.storage.setLocal("projects", localProjects)
+
+      await this.loadProjects()
+    } catch (error) {
+      console.error("Error saving project:", error)
+      alert("Error saving project. Please try again.")
+    }
+  }
+
+  // ADDED: Method to read file as data URL
+  readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = (event) => resolve(event.target.result)
+      reader.onerror = (error) => reject(error)
+      reader.readAsDataURL(file)
+    })
+  }
+
+  // ADDED: Method to reset file input
+  resetFileInput() {
+    if (this.projectFileInput) {
+      this.projectFileInput.value = ""
+    }
+    if (this.projectFileName) {
+      this.projectFileName.textContent = "No file chosen"
+    }
+  }
+
+  async loadProjects() {
+    try {
+      let projects = []
+      if (this.storage && typeof this.storage.getAllFromIndexedDB === "function") {
+        projects = await this.storage.getAllFromIndexedDB("projects")
+      } else {
+        projects = this.storage.getLocal("projects") || []
+      }
+
+      if (!Array.isArray(projects) || projects.length === 0) {
+        if (this.projectsEmptyState) this.projectsEmptyState.style.display = "block"
+        if (this.projectsList) this.projectsList.innerHTML = ""
+        return
+      }
+
+      if (this.projectsEmptyState) this.projectsEmptyState.style.display = "none"
+
+      projects.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+
+      if (this.projectsList) {
+        this.projectsList.innerHTML = projects
+          .map(
+            (project) => `
+            <div class="project-card">
+              <div class="project-header">
+                <h3>${this.escapeHtml(project.title)}</h3>
+                <small>${project.dateString}</small>
+              </div>
+              <p>${this.escapeHtml(project.description)}</p>
+              ${project.fileName ? `<p class="project-file"><strong>File:</strong> ${this.escapeHtml(project.fileName)} (${this.formatFileSize(project.fileSize)})</p>` : ""}
+            </div>
+          `,
+          )
+          .join("")
+      }
+    } catch (error) {
+      console.error("Error loading projects:", error)
+    }
+  }
+
+  // ADDED: Method to format file size
+  formatFileSize(bytes) {
+    if (bytes === 0) return "0 Bytes"
+    const k = 1024
+    const sizes = ["Bytes", "KB", "MB", "GB"]
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
+  }
+
+  async resetProjects() {
+    if (!confirm("Are you sure you want to delete all projects? This cannot be undone.")) return
+    try {
+      if (this.storage && typeof this.storage.clearIndexedDB === "function") {
+        await this.storage.clearIndexedDB("projects")
+      }
+      this.storage.removeLocal("projects")
+      await this.loadProjects()
+    } catch (error) {
+      console.error("Error clearing projects:", error)
+      alert("Error clearing projects. Please try again.")
+    }
+  }
+
+  escapeHtml(text) {
+    const div = document.createElement("div")
+    div.textContent = text
+    return div.innerHTML
+  }
+}
 // Utility: Date/time update
 function updateDateTime(elementId) {
   const element = document.getElementById(elementId)
