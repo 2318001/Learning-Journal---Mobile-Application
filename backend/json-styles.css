@@ -1,0 +1,77 @@
+/* PYTHON JSON INTEGRATION STYLES - SEPARATE FILE */
+
+.json-entry {
+    border-left: 4px solid #10b981;
+    background: #f0fdf4;
+    margin-bottom: 15px;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.entries-counter {
+    background: #f8fafc;
+    padding: 12px;
+    border-radius: 8px;
+    margin: 15px 0;
+    text-align: center;
+    font-weight: bold;
+    border: 2px dashed #cbd5e1;
+    color: #374151;
+    font-size: 1.1em;
+}
+
+.export-btn {
+    background: #059669 !important;
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-left: 8px;
+}
+
+.export-btn:hover {
+    background: #047857 !important;
+    transform: translateY(-1px);
+}
+
+.import-btn {
+    background: #7c3aed !important;
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-left: 8px;
+}
+
+.import-btn:hover {
+    background: #6d28d9 !important;
+    transform: translateY(-1px);
+}
+
+.entry-source {
+    font-size: 0.8em;
+    color: #6b7280;
+    font-style: italic;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #e5e7eb;
+}
+
+/* Animation for new entries */
+.json-entry {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
