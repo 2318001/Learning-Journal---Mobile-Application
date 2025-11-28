@@ -1,4 +1,4 @@
-// Journal Manager - Handles journal entries with form validation
+// Journal Manager - Handles journal entries with form validation and filters
 class JournalManager {
   constructor(storage, browserAPIs) {
     this.storage = storage
@@ -11,6 +11,12 @@ class JournalManager {
     this.journalEntries = document.getElementById("journalEntries")
     this.journalEmptyState = document.getElementById("journalEmptyState")
     this.validationManager = null
+
+    this.currentFilters = {
+      keyword: "",
+      date: "",
+      length: "all",
+    }
 
     this.init()
   }
@@ -27,6 +33,69 @@ class JournalManager {
     if (this.resetJournalBtn) {
       this.resetJournalBtn.addEventListener("click", () => this.resetJournals())
     }
+
+    this.setupFilters()
+  }
+
+  setupFilters() {
+    const keywordInput = document.getElementById("journalKeywordFilter")
+    const dateInput = document.getElementById("journalDateFilter")
+    const lengthSelect = document.getElementById("journalLengthFilter")
+
+    if (keywordInput) {
+      keywordInput.addEventListener("input", (e) => {
+        this.currentFilters.keyword = e.target.value
+        this.loadJournals()
+      })
+    }
+
+    if (dateInput) {
+      dateInput.addEventListener("change", (e) => {
+        this.currentFilters.date = e.target.value
+        this.loadJournals()
+      })
+    }
+
+    if (lengthSelect) {
+      lengthSelect.addEventListener("change", (e) => {
+        this.currentFilters.length = e.target.value
+        this.loadJournals()
+      })
+    }
+  }
+
+  filterJournals(journals) {
+    let filtered = [...journals]
+
+    // Filter by keyword
+    if (this.currentFilters.keyword) {
+      const keyword = this.currentFilters.keyword.toLowerCase()
+      filtered = filtered.filter(
+        (entry) => entry.title.toLowerCase().includes(keyword) || entry.content.toLowerCase().includes(keyword),
+      )
+    }
+
+    // Filter by date
+    if (this.currentFilters.date) {
+      const filterDate = new Date(this.currentFilters.date).toDateString()
+      filtered = filtered.filter((entry) => {
+        const entryDate = new Date(entry.timestamp).toDateString()
+        return entryDate === filterDate
+      })
+    }
+
+    // Filter by length
+    if (this.currentFilters.length !== "all") {
+      filtered = filtered.filter((entry) => {
+        const contentLength = entry.content.length
+        if (this.currentFilters.length === "short") return contentLength < 200
+        if (this.currentFilters.length === "medium") return contentLength >= 200 && contentLength < 500
+        if (this.currentFilters.length === "long") return contentLength >= 500
+        return true
+      })
+    }
+
+    return filtered
   }
 
   setValidationManager(manager) {
@@ -36,10 +105,7 @@ class JournalManager {
   openModal() {
     if (this.journalModal) {
       this.journalModal.style.display = "block"
-      // FIX: Check if updateDateTime exists
-      if (typeof updateDateTime === "function") {
-        updateDateTime("journalDatetime")
-      }
+      updateDateTime("journalDatetime")
       if (this.journalForm) this.journalForm.style.display = "none"
     }
   }
@@ -59,8 +125,7 @@ class JournalManager {
   async handleSubmit(e) {
     e.preventDefault()
 
-    // FIX: Add proper validation check
-    if (this.validationManager && typeof this.validationManager.validateForm === "function" && !this.validationManager.validateForm(this.journalForm)) {
+    if (this.validationManager && !this.validationManager.validateForm(this.journalForm)) {
       alert("Please fix the errors in the form before submitting.")
       return
     }
@@ -68,45 +133,22 @@ class JournalManager {
     const titleInput = document.getElementById("journalTitle")
     const contentInput = document.getElementById("journalContent")
 
-    if (!titleInput || !contentInput) {
-      console.error("Required form elements not found")
-      return
-    }
-
-    // FIX: Add input validation
-    const title = titleInput.value.trim()
-    const content = contentInput.value.trim()
-    
-    if (!title || !content) {
-      alert("Please fill in both title and content fields.")
-      return
-    }
+    if (!titleInput || !contentInput) return
 
     const entry = {
-      title: title,
-      content: content,
+      title: titleInput.value,
+      content: contentInput.value,
       timestamp: new Date().toISOString(),
       dateString: new Date().toLocaleString(),
     }
 
     try {
-      // FIX: Better storage handling with fallbacks
-      let saveSuccessful = false
-      
       if (this.storage && typeof this.storage.addToIndexedDB === "function") {
-        try {
-          await this.storage.addToIndexedDB("journals", entry)
-          saveSuccessful = true
-        } catch (dbError) {
-          console.warn("IndexedDB save failed, falling back to local storage:", dbError)
-        }
+        await this.storage.addToIndexedDB("journals", entry)
       }
-      
-      if (!saveSuccessful) {
-        const localJournals = this.storage?.getLocal?.("journals") || []
-        localJournals.unshift(entry)
-        this.storage?.setLocal?.("journals", localJournals)
-      }
+      const localJournals = this.storage.getLocal("journals") || []
+      localJournals.unshift(entry)
+      this.storage.setLocal("journals", localJournals)
 
       this.journalForm.reset()
       if (this.journalForm) this.journalForm.style.display = "none"
@@ -122,27 +164,16 @@ class JournalManager {
   async loadJournals() {
     try {
       let journals = []
-      
-      // FIX: Better error handling for storage methods
       if (this.storage && typeof this.storage.getAllFromIndexedDB === "function") {
-        try {
-          journals = await this.storage.getAllFromIndexedDB("journals")
-        } catch (dbError) {
-          console.warn("IndexedDB load failed, falling back to local storage:", dbError)
-          journals = this.storage?.getLocal?.("journals") || []
-        }
+        journals = await this.storage.getAllFromIndexedDB("journals")
       } else {
-        journals = this.storage?.getLocal?.("journals") || []
+        journals = this.storage.getLocal("journals") || []
       }
 
-      if (!Array.isArray(journals)) {
-        console.error("Journals data is not an array")
-        journals = []
-      }
-
-      if (journals.length === 0) {
+      if (!Array.isArray(journals) || journals.length === 0) {
         if (this.journalEmptyState) this.journalEmptyState.style.display = "block"
         if (this.journalEntries) this.journalEntries.innerHTML = ""
+        this.updateCounter(0, 0)
         return
       }
 
@@ -150,24 +181,38 @@ class JournalManager {
 
       journals.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
 
+      const filtered = this.filterJournals(journals)
+
+      this.updateCounter(filtered.length, journals.length)
+
       if (this.journalEntries) {
-        this.journalEntries.innerHTML = journals
+        this.journalEntries.innerHTML = filtered
           .map(
             (entry) => `
             <div class="journal-entry">
               <div class="entry-header">
                 <h3>${this.escapeHtml(entry.title)}</h3>
-                <small>${entry.dateString || new Date(entry.timestamp).toLocaleString()}</small>
+                <small>${entry.dateString}</small>
               </div>
               <p>${this.escapeHtml(entry.content)}</p>
             </div>
-          `
+          `,
           )
           .join("")
       }
     } catch (error) {
       console.error("Error loading journals:", error)
-      if (this.journalEmptyState) this.journalEmptyState.style.display = "block"
+    }
+  }
+
+  updateCounter(filteredCount, totalCount) {
+    const counter = document.getElementById("journalCounter")
+    if (counter) {
+      if (totalCount && filteredCount < totalCount) {
+        counter.textContent = `Showing ${filteredCount} of ${totalCount} Reflection${totalCount !== 1 ? "s" : ""}`
+      } else {
+        counter.textContent = `${filteredCount} Reflection${filteredCount !== 1 ? "s" : ""}`
+      }
     }
   }
 
@@ -177,7 +222,7 @@ class JournalManager {
       if (this.storage && typeof this.storage.clearIndexedDB === "function") {
         await this.storage.clearIndexedDB("journals")
       }
-      this.storage?.removeLocal?.("journals")
+      this.storage.removeLocal("journals")
       await this.loadJournals()
     } catch (error) {
       console.error("Error clearing journals:", error)
@@ -186,14 +231,13 @@ class JournalManager {
   }
 
   escapeHtml(text) {
-    if (text == null) return ""
     const div = document.createElement("div")
     div.textContent = text
     return div.innerHTML
   }
 }
 
-// Projects Manager - Handles project entries with form validation
+// Projects Manager - Handles project entries with file upload
 class ProjectsManager {
   constructor(storage, browserAPIs) {
     this.storage = storage
@@ -226,6 +270,7 @@ class ProjectsManager {
     if (this.resetProjectsBtn) {
       this.resetProjectsBtn.addEventListener("click", () => this.resetProjects())
     }
+
     // File upload event listeners
     if (this.projectFileBtn && this.projectFileInput) {
       this.projectFileBtn.addEventListener("click", () => {
@@ -247,10 +292,7 @@ class ProjectsManager {
   openModal() {
     if (this.projectsModal) {
       this.projectsModal.style.display = "block"
-      // FIX: Check if updateDateTime exists
-      if (typeof updateDateTime === "function") {
-        updateDateTime("projectsDatetime")
-      }
+      updateDateTime("projectsDatetime")
       if (this.projectForm) this.projectForm.style.display = "none"
     }
   }
@@ -270,52 +312,29 @@ class ProjectsManager {
   async handleSubmit(e) {
     e.preventDefault()
 
-    // FIX: Remove invalid validation - browserAPIs.validateForm doesn't exist
-    // if (this.browserAPIs && !this.browserAPIs.validateForm(this.projectForm)) {
-    //   alert("Please fix the errors in the form before submitting.")
-    //   return
-    // }
+    if (this.browserAPIs && !this.browserAPIs.validateForm(this.projectForm)) {
+      alert("Please fix the errors in the form before submitting.")
+      return
+    }
 
     const titleInput = document.getElementById("projectTitle")
     const descInput = document.getElementById("projectDescription")
 
-    if (!titleInput || !descInput) {
-      console.error("Required form elements not found")
-      return
-    }
-
-    // FIX: Add input validation
-    const title = titleInput.value.trim()
-    const description = descInput.value.trim()
-    
-    if (!title || !description) {
-      alert("Please fill in both title and description fields.")
-      return
-    }
+    if (!titleInput || !descInput) return
 
     const project = {
-      title: title,
-      description: description,
+      title: titleInput.value,
+      description: descInput.value,
       timestamp: new Date().toISOString(),
       dateString: new Date().toLocaleString(),
     }
-    
-    // Handle file upload
+
     if (this.projectFileInput && this.projectFileInput.files.length > 0) {
       const file = this.projectFileInput.files[0]
-      
-      // FIX: Add file validation
-      const maxSize = 10 * 1024 * 1024; // 10MB
-      if (file.size > maxSize) {
-        alert("File size must be less than 10MB.")
-        return
-      }
-
       project.fileName = file.name
       project.fileType = file.type
       project.fileSize = file.size
 
-      // Convert file to base64 for storage
       try {
         project.fileData = await this.readFileAsDataURL(file)
       } catch (error) {
@@ -324,29 +343,20 @@ class ProjectsManager {
         return
       }
     }
-    
-    try {
-      // FIX: Better storage handling
-      let saveSuccessful = false
-      
-      if (this.storage && typeof this.storage.addToIndexedDB === "function") {
-        try {
-          await this.storage.addToIndexedDB("projects", project)
-          saveSuccessful = true
-        } catch (dbError) {
-          console.warn("IndexedDB save failed, falling back to local storage:", dbError)
-        }
-      }
-      
-      if (!saveSuccessful) {
-        const localProjects = this.storage?.getLocal?.("projects") || []
-        localProjects.unshift(project)
-        this.storage?.setLocal?.("projects", localProjects)
-      }
 
+    try {
+      if (this.storage && typeof this.storage.addToIndexedDB === "function") {
+        await this.storage.addToIndexedDB("projects", project)
+      }
       this.projectForm.reset()
       if (this.projectForm) this.projectForm.style.display = "none"
+
       this.resetFileInput()
+
+      const localProjects = this.storage.getLocal("projects") || []
+      localProjects.unshift(project)
+      this.storage.setLocal("projects", localProjects)
+
       await this.loadProjects()
     } catch (error) {
       console.error("Error saving project:", error)
@@ -354,7 +364,6 @@ class ProjectsManager {
     }
   }
 
-  // Method to read file as data URL
   readFileAsDataURL(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader()
@@ -364,7 +373,6 @@ class ProjectsManager {
     })
   }
 
-  // Method to reset file input
   resetFileInput() {
     if (this.projectFileInput) {
       this.projectFileInput.value = ""
@@ -374,28 +382,25 @@ class ProjectsManager {
     }
   }
 
+  downloadFile(fileData, fileName) {
+    const link = document.createElement("a")
+    link.href = fileData
+    link.download = fileName
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   async loadProjects() {
     try {
       let projects = []
-      
-      // FIX: Better error handling for storage methods
       if (this.storage && typeof this.storage.getAllFromIndexedDB === "function") {
-        try {
-          projects = await this.storage.getAllFromIndexedDB("projects")
-        } catch (dbError) {
-          console.warn("IndexedDB load failed, falling back to local storage:", dbError)
-          projects = this.storage?.getLocal?.("projects") || []
-        }
+        projects = await this.storage.getAllFromIndexedDB("projects")
       } else {
-        projects = this.storage?.getLocal?.("projects") || []
+        projects = this.storage.getLocal("projects") || []
       }
 
-      if (!Array.isArray(projects)) {
-        console.error("Projects data is not an array")
-        projects = []
-      }
-
-      if (projects.length === 0) {
+      if (!Array.isArray(projects) || projects.length === 0) {
         if (this.projectsEmptyState) this.projectsEmptyState.style.display = "block"
         if (this.projectsList) this.projectsList.innerHTML = ""
         return
@@ -408,28 +413,37 @@ class ProjectsManager {
       if (this.projectsList) {
         this.projectsList.innerHTML = projects
           .map(
-            (project) => `
+            (project, index) => `
             <div class="project-card">
               <div class="project-header">
                 <h3>${this.escapeHtml(project.title)}</h3>
-                <small>${project.dateString || new Date(project.timestamp).toLocaleString()}</small>
+                <small>${project.dateString}</small>
               </div>
               <p>${this.escapeHtml(project.description)}</p>
-              ${project.fileName ? `<p class="project-file"><strong>File:</strong> ${this.escapeHtml(project.fileName)} (${this.formatFileSize(project.fileSize)})</p>` : ""}
+              ${
+                project.fileName
+                  ? `
+                <div class="project-file">
+                  <p><strong>📎 File:</strong> ${this.escapeHtml(project.fileName)} (${this.formatFileSize(project.fileSize)})</p>
+                  <button class="file-download" onclick="window.projectsManager.downloadFile(\`${project.fileData}\`, \`${this.escapeHtml(project.fileName)}\`)">
+                    📥 Download File
+                  </button>
+                </div>
+              `
+                  : ""
+              }
             </div>
-          `
+          `,
           )
           .join("")
       }
     } catch (error) {
       console.error("Error loading projects:", error)
-      if (this.projectsEmptyState) this.projectsEmptyState.style.display = "block"
     }
   }
 
-  // Method to format file size
   formatFileSize(bytes) {
-    if (!bytes || bytes === 0) return "0 Bytes"
+    if (bytes === 0) return "0 Bytes"
     const k = 1024
     const sizes = ["Bytes", "KB", "MB", "GB"]
     const i = Math.floor(Math.log(bytes) / Math.log(k))
@@ -442,7 +456,7 @@ class ProjectsManager {
       if (this.storage && typeof this.storage.clearIndexedDB === "function") {
         await this.storage.clearIndexedDB("projects")
       }
-      this.storage?.removeLocal?.("projects")
+      this.storage.removeLocal("projects")
       await this.loadProjects()
     } catch (error) {
       console.error("Error clearing projects:", error)
@@ -451,7 +465,725 @@ class ProjectsManager {
   }
 
   escapeHtml(text) {
-    if (text == null) return ""
+    const div = document.createElement("div")
+    div.textContent = text
+    return div.innerHTML
+  }
+}
+
+// Quiz Game Manager - Handles quiz game functionality
+class QuizGameManager {
+  constructor(storage) {
+    this.storage = storage
+    this.quizBtn = document.getElementById("quizBtn")
+    this.quizModal = document.getElementById("quizModal")
+    this.quizCloseBtn = document.getElementById("quizCloseBtn")
+    this.quizMenuBtn = document.getElementById("quizMenuBtn")
+    this.quizNavMenu = document.getElementById("quizNavMenu")
+
+    // Navigation items
+    this.navItems = document.querySelectorAll(".nav-item")
+
+    // Game elements
+    this.rulesSection = document.getElementById("rulesSection")
+    this.playerSetup = document.getElementById("playerSetup")
+    this.levelSelection = document.getElementById("levelSelection")
+    this.gameArea = document.getElementById("gameArea")
+    this.resultsArea = document.getElementById("resultsArea")
+    this.leaderboard = document.getElementById("leaderboard")
+
+    // Inputs and buttons
+    this.playerNameInput = document.getElementById("playerName")
+    this.startGameBtn = document.getElementById("startGameBtn")
+    this.levelButtons = document.querySelectorAll(".level-btn")
+    this.nextQuestionBtn = document.getElementById("nextQuestionBtn")
+    this.endGameBtn = document.getElementById("endGameBtn")
+    this.playAgainBtn = document.getElementById("playAgainBtn")
+    this.resetScoresBtn = document.getElementById("resetScoresBtn")
+    this.viewLeaderboardBtn = document.getElementById("viewLeaderboardBtn")
+    this.backToMenuBtn = document.getElementById("backToMenuBtn")
+
+    // Display elements
+    this.currentPlayerName = document.getElementById("currentPlayerName")
+    this.currentLevel = document.getElementById("currentLevel")
+    this.currentScore = document.getElementById("currentScore")
+    this.timerDisplay = document.getElementById("timer")
+    this.progressFill = document.getElementById("progressFill")
+    this.questionText = document.getElementById("questionText")
+    this.optionsContainer = document.getElementById("optionsContainer")
+    this.currentQuestionNum = document.getElementById("currentQuestionNum")
+    this.totalQuestions = document.getElementById("totalQuestions")
+    this.resultPlayerName = document.getElementById("resultPlayerName")
+    this.resultLevel = document.getElementById("resultLevel")
+    this.finalScore = document.getElementById("finalScore")
+    this.highScoreMessage = document.getElementById("highScoreMessage")
+    this.leaderboardContent = document.getElementById("leaderboardContent")
+    this.nameError = document.getElementById("nameError")
+
+    // Game state
+    this.currentPlayer = ""
+    this.currentDifficulty = ""
+    this.score = 0
+    this.currentQuestionIndex = 0
+    this.timer = null
+    this.timeLeft = 60
+    this.totalTime = 60
+
+    // Quiz questions by difficulty
+    this.questions = {
+      easy: [
+        {
+          question: "What does HTML stand for?",
+          options: [
+            "Hyper Text Markup Language",
+            "High Tech Modern Language",
+            "Hyper Transfer Markup Language",
+            "Home Tool Markup Language",
+          ],
+          correct: 0,
+        },
+        {
+          question: "Which language is used for styling web pages?",
+          options: ["HTML", "JavaScript", "CSS", "Python"],
+          correct: 2,
+        },
+        {
+          question: "What is the latest version of HTML?",
+          options: ["HTML4", "XHTML", "HTML5", "HTML2023"],
+          correct: 2,
+        },
+        {
+          question: "Which tag is used to create a hyperlink?",
+          options: ["<link>", "<a>", "<href>", "<hyperlink>"],
+          correct: 1,
+        },
+        {
+          question: "What does CSS stand for?",
+          options: [
+            "Computer Style Sheets",
+            "Creative Style System",
+            "Cascading Style Sheets",
+            "Colorful Style Sheets",
+          ],
+          correct: 2,
+        },
+      ],
+      medium: [
+        {
+          question: "Which symbol is used for comments in JavaScript?",
+          options: ["//", "<!-- -->", "**", "%%"],
+          correct: 0,
+        },
+        {
+          question: "Which method adds an element to the end of an array?",
+          options: ["push()", "pop()", "shift()", "unshift()"],
+          correct: 0,
+        },
+        {
+          question: "What is the result of 2 + '2' in JavaScript?",
+          options: ["4", "22", "NaN", "Error"],
+          correct: 1,
+        },
+        {
+          question: "Which HTML5 element is used for drawing graphics?",
+          options: ["<graphic>", "<canvas>", "<draw>", "<svg>"],
+          correct: 1,
+        },
+        {
+          question: "What does API stand for?",
+          options: [
+            "Application Programming Interface",
+            "Advanced Programming Instruction",
+            "Automated Program Integration",
+            "Application Process Integration",
+          ],
+          correct: 0,
+        },
+      ],
+      hard: [
+        {
+          question: "What is the time complexity of binary search?",
+          options: ["O(n)", "O(log n)", "O(n²)", "O(1)"],
+          correct: 1,
+        },
+        {
+          question: "Which is NOT a JavaScript framework?",
+          options: ["React", "Vue", "Angular", "Flask"],
+          correct: 3,
+        },
+        {
+          question: "What is a closure in JavaScript?",
+          options: [
+            "A function that has access to its outer function's scope",
+            "A way to close a browser window",
+            "A method to end a program",
+            "A type of loop",
+          ],
+          correct: 0,
+        },
+        {
+          question: "Which HTTP status code means 'Not Found'?",
+          options: ["200", "301", "404", "500"],
+          correct: 2,
+        },
+        {
+          question: "What is the purpose of the 'virtual DOM' in React?",
+          options: [
+            "To improve rendering performance",
+            "To create 3D effects",
+            "To handle virtual reality",
+            "To manage server-side rendering",
+          ],
+          correct: 0,
+        },
+      ],
+    }
+
+    this.init()
+  }
+
+  init() {
+    // Event listeners for navigation
+    if (this.quizMenuBtn) {
+      this.quizMenuBtn.addEventListener("click", () => this.toggleNavMenu())
+    }
+    if (this.quizCloseBtn) {
+      this.quizCloseBtn.addEventListener("click", () => this.closeModal())
+    }
+
+    if (this.navItems) {
+      this.navItems.forEach((item) => {
+        item.addEventListener("click", (e) => {
+          const section = e.target.dataset.section
+          this.showSection(section)
+          if (this.quizNavMenu) {
+            this.quizNavMenu.classList.remove("active")
+          }
+        })
+      })
+    }
+
+    // Game event listeners
+    if (this.startGameBtn) {
+      this.startGameBtn.addEventListener("click", () => this.startGame())
+    }
+
+    if (this.levelButtons) {
+      this.levelButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          this.currentDifficulty = btn.dataset.level
+          this.startQuiz()
+        })
+      })
+    }
+
+    if (this.nextQuestionBtn) {
+      this.nextQuestionBtn.addEventListener("click", () => this.nextQuestion())
+    }
+
+    if (this.endGameBtn) {
+      this.endGameBtn.addEventListener("click", () => this.endGame())
+    }
+
+    if (this.playAgainBtn) {
+      this.playAgainBtn.addEventListener("click", () => this.playAgain())
+    }
+
+    if (this.viewLeaderboardBtn) {
+      this.viewLeaderboardBtn.addEventListener("click", () => this.showSection("leaderboard"))
+    }
+
+    if (this.resetScoresBtn) {
+      this.resetScoresBtn.addEventListener("click", () => this.resetLeaderboard())
+    }
+
+    if (this.backToMenuBtn) {
+      this.backToMenuBtn.addEventListener("click", () => this.showSection("playerSetup"))
+    }
+  }
+
+  openModal() {
+    if (this.quizModal) {
+      this.quizModal.style.display = "block"
+      document.body.classList.add("modal-open")
+      this.showSection("playerSetup")
+    }
+  }
+
+  closeModal() {
+    if (this.quizModal) {
+      this.quizModal.style.display = "none"
+      document.body.classList.remove("modal-open")
+      this.resetGame()
+    }
+  }
+
+  toggleNavMenu() {
+    if (this.quizNavMenu) {
+      this.quizNavMenu.classList.toggle("active")
+    }
+  }
+
+  showSection(sectionName) {
+    const sections = [
+      this.rulesSection,
+      this.playerSetup,
+      this.levelSelection,
+      this.gameArea,
+      this.resultsArea,
+      this.leaderboard,
+    ]
+
+    sections.forEach((section) => {
+      if (section) {
+        section.classList.remove("active")
+      }
+    })
+
+    const targetSection = document.getElementById(sectionName)
+    if (targetSection) {
+      targetSection.classList.add("active")
+    }
+
+    if (sectionName === "leaderboard") {
+      this.displayLeaderboard()
+    }
+  }
+
+  startGame() {
+    const playerName = this.playerNameInput ? this.playerNameInput.value.trim() : ""
+
+    if (!playerName || playerName.length < 2) {
+      if (this.nameError) {
+        this.nameError.textContent = "Please enter a valid name (at least 2 characters)"
+        this.nameError.style.display = "block"
+      }
+      if (this.playerNameInput) {
+        this.playerNameInput.classList.add("invalid")
+      }
+      return
+    }
+
+    this.currentPlayer = playerName
+    if (this.nameError) {
+      this.nameError.style.display = "none"
+    }
+    if (this.playerNameInput) {
+      this.playerNameInput.classList.remove("invalid")
+    }
+
+    this.showSection("levelSelection")
+  }
+
+  startQuiz() {
+    this.score = 0
+    this.currentQuestionIndex = 0
+    this.timeLeft = this.totalTime
+
+    if (this.currentPlayerName) this.currentPlayerName.textContent = this.currentPlayer
+    if (this.currentLevel) this.currentLevel.textContent = this.currentDifficulty.toUpperCase()
+    if (this.currentScore) this.currentScore.textContent = "0"
+
+    this.showSection("gameArea")
+    this.startTimer()
+    this.displayQuestion()
+  }
+
+  startTimer() {
+    if (this.timer) {
+      clearInterval(this.timer)
+    }
+
+    this.timer = setInterval(() => {
+      this.timeLeft--
+
+      if (this.timerDisplay) {
+        this.timerDisplay.textContent = this.timeLeft
+      }
+
+      if (this.progressFill) {
+        const percentage = (this.timeLeft / this.totalTime) * 100
+        this.progressFill.style.width = percentage + "%"
+      }
+
+      if (this.timeLeft <= 0) {
+        this.endGame()
+      }
+    }, 1000)
+  }
+
+  displayQuestion() {
+    const questions = this.questions[this.currentDifficulty]
+    if (!questions || this.currentQuestionIndex >= questions.length) {
+      this.endGame()
+      return
+    }
+
+    const question = questions[this.currentQuestionIndex]
+
+    if (this.questionText) {
+      this.questionText.textContent = question.question
+    }
+
+    if (this.currentQuestionNum) {
+      this.currentQuestionNum.textContent = this.currentQuestionIndex + 1
+    }
+
+    if (this.totalQuestions) {
+      this.totalQuestions.textContent = questions.length
+    }
+
+    if (this.optionsContainer) {
+      this.optionsContainer.innerHTML = question.options
+        .map(
+          (option, index) => `
+                <button class="option-btn" data-index="${index}">
+                    ${option}
+                </button>
+            `,
+        )
+        .join("")
+
+      const optionButtons = this.optionsContainer.querySelectorAll(".option-btn")
+      optionButtons.forEach((btn) => {
+        btn.addEventListener("click", (e) => this.checkAnswer(Number.parseInt(e.target.dataset.index)))
+      })
+    }
+
+    if (this.nextQuestionBtn) {
+      this.nextQuestionBtn.style.display = "none"
+    }
+  }
+
+  checkAnswer(selectedIndex) {
+    const questions = this.questions[this.currentDifficulty]
+    const question = questions[this.currentQuestionIndex]
+    const optionButtons = this.optionsContainer.querySelectorAll(".option-btn")
+
+    optionButtons.forEach((btn) => (btn.disabled = true))
+
+    if (selectedIndex === question.correct) {
+      optionButtons[selectedIndex].classList.add("correct")
+      const points = this.currentDifficulty === "easy" ? 10 : this.currentDifficulty === "medium" ? 20 : 30
+      this.score += points
+      if (this.currentScore) {
+        this.currentScore.textContent = this.score
+      }
+    } else {
+      optionButtons[selectedIndex].classList.add("wrong")
+      optionButtons[question.correct].classList.add("correct")
+    }
+
+    if (this.nextQuestionBtn) {
+      this.nextQuestionBtn.style.display = "block"
+    }
+  }
+
+  nextQuestion() {
+    this.currentQuestionIndex++
+    this.displayQuestion()
+  }
+
+  endGame() {
+    if (this.timer) {
+      clearInterval(this.timer)
+    }
+
+    if (this.resultPlayerName) this.resultPlayerName.textContent = this.currentPlayer
+    if (this.resultLevel) this.resultLevel.textContent = this.currentDifficulty.toUpperCase()
+    if (this.finalScore) this.finalScore.textContent = this.score
+
+    this.saveScore()
+    this.showSection("resultsArea")
+  }
+
+  saveScore() {
+    const scores = this.storage.getLocal("quizScores") || []
+
+    scores.push({
+      player: this.currentPlayer,
+      level: this.currentDifficulty,
+      score: this.score,
+      date: new Date().toLocaleString(),
+    })
+
+    scores.sort((a, b) => b.score - a.score)
+
+    const topScores = scores.slice(0, 10)
+    this.storage.setLocal("quizScores", topScores)
+
+    if (this.highScoreMessage) {
+      const rank = topScores.findIndex((s) => s.player === this.currentPlayer && s.score === this.score) + 1
+      if (rank <= 3) {
+        this.highScoreMessage.textContent = `🎉 Congratulations! You're #${rank} on the leaderboard!`
+        this.highScoreMessage.style.display = "block"
+      } else {
+        this.highScoreMessage.style.display = "none"
+      }
+    }
+  }
+
+  displayLeaderboard() {
+    const scores = this.storage.getLocal("quizScores") || []
+
+    if (this.leaderboardContent) {
+      if (scores.length === 0) {
+        this.leaderboardContent.innerHTML = `
+                    <div class="empty-state">
+                        <p>No scores yet. Be the first to play!</p>
+                    </div>
+                `
+      } else {
+        this.leaderboardContent.innerHTML = `
+                    <table class="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Player</th>
+                                <th>Level</th>
+                                <th>Score</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${scores
+                              .map(
+                                (score, index) => `
+                                <tr class="${index < 3 ? "top-score" : ""}">
+                                    <td>${index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}</td>
+                                    <td>${this.escapeHtml(score.player)}</td>
+                                    <td>${score.level.toUpperCase()}</td>
+                                    <td><strong>${score.score}</strong></td>
+                                    <td>${score.date}</td>
+                                </tr>
+                            `,
+                              )
+                              .join("")}
+                        </tbody>
+                    </table>
+                `
+      }
+    }
+  }
+
+  resetLeaderboard() {
+    if (confirm("Are you sure you want to reset all scores? This cannot be undone.")) {
+      this.storage.removeLocal("quizScores")
+      this.displayLeaderboard()
+    }
+  }
+
+  playAgain() {
+    this.showSection("levelSelection")
+  }
+
+  resetGame() {
+    if (this.timer) {
+      clearInterval(this.timer)
+    }
+    this.currentPlayer = ""
+    this.currentDifficulty = ""
+    this.score = 0
+    this.currentQuestionIndex = 0
+    this.timeLeft = 60
+    if (this.playerNameInput) {
+      this.playerNameInput.value = ""
+    }
+  }
+
+  escapeHtml(text) {
+    const div = document.createElement("div")
+    div.textContent = text
+    return div.innerHTML
+  }
+}
+
+class YouTubeManager {
+  constructor(storage) {
+    this.storage = storage
+    this.player = null
+    this.currentVideoId = null
+    this.loadVideoBtn = document.getElementById("loadVideoBtn")
+    this.saveVideoBtn = document.getElementById("saveVideoBtn")
+    this.youtubeVideoIdInput = document.getElementById("youtubeVideoId")
+    this.videoControls = document.getElementById("videoControls")
+    this.savedVideosList = document.getElementById("savedVideosList")
+
+    this.init()
+  }
+
+  init() {
+    if (this.loadVideoBtn) {
+      this.loadVideoBtn.addEventListener("click", () => this.loadVideo())
+    }
+
+    if (this.saveVideoBtn) {
+      this.saveVideoBtn.addEventListener("click", () => this.saveVideo())
+    }
+
+    if (this.youtubeVideoIdInput) {
+      this.youtubeVideoIdInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          this.loadVideo()
+        }
+      })
+    }
+
+    this.initPlayerButtons()
+    this.loadSavedVideos()
+  }
+
+  extractVideoId(input) {
+    if (!input) return null
+
+    input = input.trim()
+
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\n?#]+)/,
+      /^([a-zA-Z0-9_-]{11})$/,
+    ]
+
+    for (const pattern of patterns) {
+      const match = input.match(pattern)
+      if (match) return match[1]
+    }
+
+    return null
+  }
+
+  loadVideo() {
+    const input = this.youtubeVideoIdInput ? this.youtubeVideoIdInput.value.trim() : ""
+    const videoId = this.extractVideoId(input)
+
+    if (!videoId) {
+      alert("Please enter a valid YouTube video ID or URL.")
+      return
+    }
+
+    this.currentVideoId = videoId
+
+    if (!this.player) {
+      // Declare YT here to satisfy linter/compiler, assuming it's globally available
+      const YT = window.YT
+      this.player = new YT.Player("youtubePlayer", {
+        height: "390",
+        width: "100%",
+        videoId: videoId,
+        playerVars: {
+          playsinline: 1,
+        },
+        events: {
+          onReady: (event) => this.onPlayerReady(event),
+        },
+      })
+    } else {
+      this.player.loadVideoById(videoId)
+    }
+
+    if (this.videoControls) {
+      this.videoControls.style.display = "flex"
+    }
+  }
+
+  saveVideo() {
+    if (!this.currentVideoId) {
+      alert("Please load a video first before saving.")
+      return
+    }
+
+    const videoTitle = this.youtubeVideoIdInput ? this.youtubeVideoIdInput.value.trim() : this.currentVideoId
+
+    const savedVideos = this.storage.getLocal("savedVideos") || []
+
+    // Check if video already exists
+    const exists = savedVideos.some((v) => v.videoId === this.currentVideoId)
+    if (exists) {
+      alert("This video is already saved!")
+      return
+    }
+
+    savedVideos.push({
+      videoId: this.currentVideoId,
+      title: videoTitle,
+      savedDate: new Date().toLocaleString(),
+    })
+
+    this.storage.setLocal("savedVideos", savedVideos)
+    this.loadSavedVideos()
+    alert("Video saved successfully!")
+  }
+
+  loadSavedVideos() {
+    const savedVideos = this.storage.getLocal("savedVideos") || []
+
+    if (!this.savedVideosList) return
+
+    if (savedVideos.length === 0) {
+      this.savedVideosList.innerHTML =
+        '<p style="color: var(--text-tertiary); text-align: center;">No saved videos yet.</p>'
+      return
+    }
+
+    this.savedVideosList.innerHTML = savedVideos
+      .map(
+        (video, index) => `
+      <div class="saved-video-item">
+        <div class="saved-video-info">
+          <div class="saved-video-title">${this.escapeHtml(video.title)}</div>
+          <div class="saved-video-id">ID: ${video.videoId} • Saved: ${video.savedDate}</div>
+        </div>
+        <div class="saved-video-actions">
+          <button class="saved-video-btn load" onclick="window.youtubeManager.loadSavedVideo('${video.videoId}')">
+            ▶ Load
+          </button>
+          <button class="saved-video-btn delete" onclick="window.youtubeManager.deleteSavedVideo(${index})">
+            🗑 Delete
+          </button>
+        </div>
+      </div>
+    `,
+      )
+      .join("")
+  }
+
+  loadSavedVideo(videoId) {
+    if (this.youtubeVideoIdInput) {
+      this.youtubeVideoIdInput.value = videoId
+    }
+    this.loadVideo()
+  }
+
+  deleteSavedVideo(index) {
+    if (!confirm("Are you sure you want to delete this saved video?")) return
+
+    const savedVideos = this.storage.getLocal("savedVideos") || []
+    savedVideos.splice(index, 1)
+    this.storage.setLocal("savedVideos", savedVideos)
+    this.loadSavedVideos()
+  }
+
+  onPlayerReady(event) {
+    console.log("YouTube player is ready")
+  }
+
+  initPlayerButtons() {
+    const playBtn = document.getElementById("playBtn")
+    const pauseBtn = document.getElementById("pauseBtn")
+
+    if (playBtn) {
+      playBtn.addEventListener("click", () => {
+        if (this.player) this.player.playVideo()
+      })
+    }
+
+    if (pauseBtn) {
+      pauseBtn.addEventListener("click", () => {
+        if (this.player) this.player.pauseVideo()
+      })
+    }
+  }
+
+  escapeHtml(text) {
     const div = document.createElement("div")
     div.textContent = text
     return div.innerHTML
@@ -480,956 +1212,357 @@ function startPageDateTime() {
   setInterval(() => updateDateTime("pageDateTime"), 1000)
 }
 
-// Quiz Game Functionality
-class QuizGame {
-    constructor(storage) {
-        this.storage = storage;
-        this.questions = {
-            easy: [],
-            medium: [],
-            hard: []
-        };
-        this.currentQuestions = [];
-        this.currentQuestionIndex = 0;
-        this.score = 0;
-        this.timer = null;
-        this.timeLeft = 0;
-        this.selectedDifficulty = 'easy';
-        this.leaderboard = this.loadLeaderboard();
-        this.startTime = null;
-        this.totalTime = 0;
-        
-        this.initializeQuizData();
-        this.bindQuizEvents();
-    }
-    
-    initializeQuizData() {
-        // Easy questions
-        this.questions.easy = [
-            {
-                question: "What does HTML stand for?",
-                options: [
-                    "Hyper Text Markup Language",
-                    "High Tech Modern Language",
-                    "Hyper Transfer Markup Language",
-                    "Home Tool Markup Language"
-                ],
-                correct: 0
-            },
-            {
-                question: "Which language is used for styling web pages?",
-                options: [
-                    "HTML",
-                    "JavaScript",
-                    "CSS",
-                    "Python"
-                ],
-                correct: 2
-            },
-            {
-                question: "What does CSS stand for?",
-                options: [
-                    "Computer Style Sheets",
-                    "Creative Style System",
-                    "Cascading Style Sheets",
-                    "Colorful Style Sheets"
-                ],
-                correct: 2
-            },
-            {
-                question: "Which tag is used to create a hyperlink in HTML?",
-                options: [
-                    "<link>",
-                    "<a>",
-                    "<href>",
-                    "<hyperlink>"
-                ],
-                correct: 1
-            },
-            {
-                question: "Which property is used to change the background color in CSS?",
-                options: [
-                    "color",
-                    "bgcolor",
-                    "background-color",
-                    "background"
-                ],
-                correct: 2
-            },
-            {
-                question: "What is the correct way to comment in JavaScript?",
-                options: [
-                    "// This is a comment",
-                    "<!-- This is a comment -->",
-                    "/* This is a comment */",
-                    "Both 1 and 3"
-                ],
-                correct: 3
-            },
-            {
-                question: "Which symbol is used for single-line comments in JavaScript?",
-                options: [
-                    "//",
-                    "#",
-                    "/*",
-                    "--"
-                ],
-                correct: 0
-            },
-            {
-                question: "What does DOM stand for?",
-                options: [
-                    "Document Object Model",
-                    "Digital Object Management",
-                    "Desktop Object Model",
-                    "Data Object Model"
-                ],
-                correct: 0
-            },
-            {
-                question: "Which method is used to output data in JavaScript?",
-                options: [
-                    "print()",
-                    "console.log()",
-                    "output()",
-                    "display()"
-                ],
-                correct: 1
-            },
-            {
-                question: "Which HTML tag is used for the largest heading?",
-                options: [
-                    "<h6>",
-                    "<heading>",
-                    "<h1>",
-                    "<head>"
-                ],
-                correct: 2
-            }
-        ];
-        
-        // Medium questions
-        this.questions.medium = [
-            {
-                question: "What is the purpose of the 'this' keyword in JavaScript?",
-                options: [
-                    "Refers to the current object",
-                    "Refers to the parent object",
-                    "Refers to the global object",
-                    "Refers to the previous object"
-                ],
-                correct: 0
-            },
-            {
-                question: "What does API stand for?",
-                options: [
-                    "Application Programming Interface",
-                    "Advanced Programming Interface",
-                    "Application Protocol Interface",
-                    "Automated Programming Interface"
-                ],
-                correct: 0
-            },
-            {
-                question: "Which CSS property is used to control the space between elements?",
-                options: [
-                    "spacing",
-                    "margin",
-                    "padding",
-                    "Both 2 and 3"
-                ],
-                correct: 3
-            },
-            {
-                question: "What is a closure in JavaScript?",
-                options: [
-                    "A function that has access to its outer function's scope",
-                    "A way to close a browser window",
-                    "A method to end a program",
-                    "A type of loop"
-                ],
-                correct: 0
-            },
-            {
-                question: "Which method is used to add an element to the end of an array?",
-                options: [
-                    "push()",
-                    "append()",
-                    "addToEnd()",
-                    "insert()"
-                ],
-                correct: 0
-            },
-            {
-                question: "What is the purpose of media queries in CSS?",
-                options: [
-                    "To apply styles based on device characteristics",
-                    "To query media files",
-                    "To create animations",
-                    "To optimize images"
-                ],
-                correct: 0
-            },
-            {
-                question: "What does JSON stand for?",
-                options: [
-                    "JavaScript Object Notation",
-                    "Java Standard Object Notation",
-                    "JavaScript Oriented Notation",
-                    "Java Simple Object Notation"
-                ],
-                correct: 0
-            },
-            {
-                question: "Which HTML5 element is used for drawing graphics?",
-                options: [
-                    "<draw>",
-                    "<canvas>",
-                    "<graphic>",
-                    "<svg>"
-                ],
-                correct: 1
-            },
-            {
-                question: "What is event bubbling in JavaScript?",
-                options: [
-                    "When an event starts from the target element and bubbles up to the root",
-                    "When multiple events occur simultaneously",
-                    "When an event creates visual effects",
-                    "When events are cancelled"
-                ],
-                correct: 0
-            },
-            {
-                question: "Which CSS property is used to create rounded corners?",
-                options: [
-                    "border-radius",
-                    "corner-radius",
-                    "rounded-corners",
-                    "border-round"
-                ],
-                correct: 0
-            }
-        ];
-        
-        // Hard questions
-        this.questions.hard = [
-            {
-                question: "What is the time complexity of accessing an element in an array by index?",
-                options: [
-                    "O(1)",
-                    "O(n)",
-                    "O(log n)",
-                    "O(n^2)"
-                ],
-                correct: 0
-            },
-            {
-                question: "What is the purpose of the 'use strict' directive in JavaScript?",
-                options: [
-                    "Enforces stricter parsing and error handling",
-                    "Improves performance",
-                    "Enables new features",
-                    "Makes code more readable"
-                ],
-                correct: 0
-            },
-            {
-                question: "What does the 'box-sizing: border-box' CSS property do?",
-                options: [
-                    "Includes padding and border in element's total width/height",
-                    "Excludes margin from element's total width/height",
-                    "Creates a box shadow",
-                    "Changes the box model completely"
-                ],
-                correct: 0
-            },
-            {
-                question: "What is a promise in JavaScript?",
-                options: [
-                    "An object representing the eventual completion of an asynchronous operation",
-                    "A guarantee that code will execute",
-                    "A type of variable",
-                    "A method to make code faster"
-                ],
-                correct: 0
-            },
-            {
-                question: "What is the difference between 'let' and 'var' in JavaScript?",
-                options: [
-                    "'let' has block scope, 'var' has function scope",
-                    "'let' is older than 'var'",
-                    "'var' is more secure than 'let'",
-                    "There is no difference"
-                ],
-                correct: 0
-            },
-            {
-                question: "What is the purpose of the 'fetch' API in JavaScript?",
-                options: [
-                    "To make HTTP requests",
-                    "To retrieve data from local storage",
-                    "To fetch CSS files",
-                    "To get user input"
-                ],
-                correct: 0
-            },
-            {
-                question: "What is the CSS Grid layout system used for?",
-                options: [
-                    "Creating two-dimensional layouts",
-                    "Creating one-dimensional layouts",
-                    "Creating table-like structures",
-                    "Creating responsive images"
-                ],
-                correct: 0
-            },
-            {
-                question: "What is the purpose of the 'async' and 'await' keywords in JavaScript?",
-                options: [
-                    "To write asynchronous code in a synchronous manner",
-                    "To make code execute faster",
-                    "To create animations",
-                    "To handle errors"
-                ],
-                correct: 0
-            },
-            {
-                question: "What is the difference between '==' and '===' in JavaScript?",
-                options: [
-                    "'==' checks value, '===' checks value and type",
-                    "'===' is faster than '=='",
-                    "'==' is newer than '==='",
-                    "There is no difference"
-                ],
-                correct: 0
-            },
-            {
-                question: "What is the purpose of the 'virtual DOM' in React?",
-                options: [
-                    "To improve performance by minimizing direct DOM manipulation",
-                    "To create virtual reality experiences",
-                    "To simulate DOM elements",
-                    "To test DOM operations"
-                ],
-                correct: 0
-            }
-        ];
-    }
-    
-    bindQuizEvents() {
-        // Quiz modal open
-        const quizBtn = document.getElementById('quizBtn');
-        if (quizBtn) {
-            quizBtn.addEventListener('click', () => {
-                this.showSection('quizMenu');
-            });
-        }
-        
-        // Difficulty selection
-        document.querySelectorAll('.difficulty-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                this.selectedDifficulty = e.target.dataset.level;
-            });
-        });
-        
-        // Start quiz
-        const startQuizBtn = document.getElementById('startQuizBtn');
-        if (startQuizBtn) {
-            startQuizBtn.addEventListener('click', () => {
-                this.startQuiz();
-            });
-        }
-        
-        // Show rules
-        const quizSettingsBtn = document.getElementById('quizSettingsBtn');
-        if (quizSettingsBtn) {
-            quizSettingsBtn.addEventListener('click', () => {
-                this.showSection('quizRules');
-            });
-        }
-        
-        // Back to menu from rules
-        const backToMenuBtn = document.getElementById('backToMenuBtn');
-        if (backToMenuBtn) {
-            backToMenuBtn.addEventListener('click', () => {
-                this.showSection('quizMenu');
-            });
-        }
-        
-        // Show leaderboard
-        const leaderboardBtn = document.getElementById('leaderboardBtn');
-        if (leaderboardBtn) {
-            leaderboardBtn.addEventListener('click', () => {
-                this.showLeaderboard();
-            });
-        }
-        
-        // Back to menu from leaderboard
-        const backToMenuFromLeaderboardBtn = document.getElementById('backToMenuFromLeaderboardBtn');
-        if (backToMenuFromLeaderboardBtn) {
-            backToMenuFromLeaderboardBtn.addEventListener('click', () => {
-                this.showSection('quizMenu');
-            });
-        }
-        
-        // Answer selection
-        document.querySelectorAll('.option-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                this.selectAnswer(parseInt(e.target.dataset.index));
-            });
-        });
-        
-        // Next question
-        const nextQuestionBtn = document.getElementById('nextQuestionBtn');
-        if (nextQuestionBtn) {
-            nextQuestionBtn.addEventListener('click', () => {
-                this.nextQuestion();
-            });
-        }
-        
-        // End quiz
-        const endQuizBtn = document.getElementById('endQuizBtn');
-        if (endQuizBtn) {
-            endQuizBtn.addEventListener('click', () => {
-                this.endQuiz();
-            });
-        }
-        
-        // Play again
-        const playAgainBtn = document.getElementById('playAgainBtn');
-        if (playAgainBtn) {
-            playAgainBtn.addEventListener('click', () => {
-                this.showSection('quizMenu');
-            });
-        }
-        
-        // Back to menu from results
-        const backToMenuFromResultsBtn = document.getElementById('backToMenuFromResultsBtn');
-        if (backToMenuFromResultsBtn) {
-            backToMenuFromResultsBtn.addEventListener('click', () => {
-                this.showSection('quizMenu');
-            });
-        }
-        
-        // Leaderboard tabs
-        document.querySelectorAll('.leaderboard-tab').forEach(tab => {
-            tab.addEventListener('click', (e) => {
-                document.querySelectorAll('.leaderboard-tab').forEach(t => t.classList.remove('active'));
-                e.target.classList.add('active');
-                
-                document.querySelectorAll('.leaderboard-list').forEach(list => {
-                    list.style.display = 'none';
-                });
-                
-                const difficultyList = document.getElementById(`${e.target.dataset.difficulty}Leaderboard`);
-                if (difficultyList) {
-                    difficultyList.style.display = 'block';
-                }
-            });
-        });
-        
-        // Reset quiz data
-        const resetQuizBtn = document.getElementById('resetQuizBtn');
-        if (resetQuizBtn) {
-            resetQuizBtn.addEventListener('click', () => {
-                if (confirm('Are you sure you want to reset all quiz data and leaderboard?')) {
-                    this.resetQuizData();
-                }
-            });
-        }
-    }
-    
-    showSection(sectionId) {
-        // Hide all sections
-        const sections = ['quizMenu', 'quizRules', 'quizGame', 'quizResults', 'quizLeaderboard'];
-        sections.forEach(id => {
-            const element = document.getElementById(id);
-            if (element) {
-                element.style.display = 'none';
-            }
-        });
-        
-        // Show selected section
-        const selectedSection = document.getElementById(sectionId);
-        if (selectedSection) {
-            selectedSection.style.display = 'block';
-        }
-    }
-    
-    startQuiz() {
-        this.currentQuestions = [...this.questions[this.selectedDifficulty]];
-        this.shuffleArray(this.currentQuestions);
-        this.currentQuestionIndex = 0;
-        this.score = 0;
-        this.timeLeft = 15;
-        this.startTime = new Date();
-        
-        // Update UI
-        const quizDifficulty = document.getElementById('quizDifficulty');
-        const quizScore = document.getElementById('quizScore');
-        
-        if (quizDifficulty) {
-            quizDifficulty.textContent = `Difficulty: ${this.selectedDifficulty.charAt(0).toUpperCase() + this.selectedDifficulty.slice(1)}`;
-        }
-        if (quizScore) {
-            quizScore.textContent = `Score: ${this.score}`;
-        }
-        
-        this.showSection('quizGame');
-        this.displayQuestion();
-        this.startTimer();
-    }
-    
-    displayQuestion() {
-        if (this.currentQuestionIndex >= this.currentQuestions.length) {
-            this.endQuiz();
-            return;
-        }
-        
-        const question = this.currentQuestions[this.currentQuestionIndex];
-        
-        // Update progress
-        const quizProgress = document.getElementById('quizProgress');
-        const progressFill = document.getElementById('progressFill');
-        
-        if (quizProgress) {
-            quizProgress.textContent = `Question ${this.currentQuestionIndex + 1}/${this.currentQuestions.length}`;
-        }
-        if (progressFill) {
-            progressFill.style.width = `${((this.currentQuestionIndex + 1) / this.currentQuestions.length) * 100}%`;
-        }
-        
-        // Display question
-        const questionText = document.getElementById('questionText');
-        if (questionText) {
-            questionText.textContent = question.question;
-        }
-        
-        // Display options
-        const optionButtons = document.querySelectorAll('.option-btn');
-        optionButtons.forEach((btn, index) => {
-            if (index < question.options.length) {
-                btn.textContent = question.options[index];
-                btn.classList.remove('correct', 'incorrect');
-                btn.disabled = false;
-            }
-        });
-        
-        // Reset feedback and controls
-        const quizFeedback = document.getElementById('quizFeedback');
-        const nextQuestionBtn = document.getElementById('nextQuestionBtn');
-        const endQuizBtn = document.getElementById('endQuizBtn');
-        
-        if (quizFeedback) {
-            quizFeedback.textContent = '';
-            quizFeedback.className = 'quiz-feedback';
-        }
-        if (nextQuestionBtn) {
-            nextQuestionBtn.style.display = 'none';
-        }
-        if (endQuizBtn) {
-            endQuizBtn.style.display = 'inline-block';
-        }
-        
-        // Reset timer
-        this.timeLeft = 15;
-        const quizTimer = document.getElementById('quizTimer');
-        if (quizTimer) {
-            quizTimer.textContent = this.timeLeft;
-        }
-    }
-    
-    startTimer() {
-        if (this.timer) {
-            clearInterval(this.timer);
-        }
-        
-        this.timer = setInterval(() => {
-            this.timeLeft--;
-            const quizTimer = document.getElementById('quizTimer');
-            if (quizTimer) {
-                quizTimer.textContent = this.timeLeft;
-            }
-            
-            if (this.timeLeft <= 0) {
-                clearInterval(this.timer);
-                this.selectAnswer(-1); // Time's up
-            }
-        }, 1000);
-    }
-    
-    selectAnswer(selectedIndex) {
-        clearInterval(this.timer);
-        
-        const question = this.currentQuestions[this.currentQuestionIndex];
-        const optionButtons = document.querySelectorAll('.option-btn');
-        const feedback = document.getElementById('quizFeedback');
-        const nextQuestionBtn = document.getElementById('nextQuestionBtn');
-        const endQuizBtn = document.getElementById('endQuizBtn');
-        const quizScore = document.getElementById('quizScore');
-        
-        // Disable all buttons
-        optionButtons.forEach(btn => {
-            btn.disabled = true;
-        });
-        
-        // Show correct answer
-        if (question.correct < optionButtons.length) {
-            optionButtons[question.correct].classList.add('correct');
-        }
-        
-        // Check if answer is correct
-        if (selectedIndex === question.correct) {
-            // Calculate points based on difficulty
-            let points = 1;
-            if (this.selectedDifficulty === 'medium') points = 2;
-            if (this.selectedDifficulty === 'hard') points = 3;
-            
-            this.score += points;
-            if (quizScore) {
-                quizScore.textContent = `Score: ${this.score}`;
-            }
-            
-            if (feedback) {
-                feedback.textContent = `Correct! +${points} points`;
-                feedback.className = 'quiz-feedback correct';
-            }
-        } else {
-            if (selectedIndex === -1) {
-                if (feedback) {
-                    feedback.textContent = "Time's up!";
-                }
-            } else {
-                if (selectedIndex < optionButtons.length) {
-                    optionButtons[selectedIndex].classList.add('incorrect');
-                }
-                if (feedback) {
-                    feedback.textContent = "Incorrect!";
-                }
-            }
-            if (feedback) {
-                feedback.className = 'quiz-feedback incorrect';
-            }
-        }
-        
-        // Show next question button
-        if (nextQuestionBtn) {
-            nextQuestionBtn.style.display = 'inline-block';
-        }
-        if (endQuizBtn) {
-            endQuizBtn.style.display = 'none';
-        }
-    }
-    
-    nextQuestion() {
-        this.currentQuestionIndex++;
-        this.displayQuestion();
-        this.startTimer();
-    }
-    
-    endQuiz() {
-        clearInterval(this.timer);
-        
-        // Calculate total time
-        if (this.startTime) {
-            this.totalTime = Math.floor((new Date() - this.startTime) / 1000);
-        }
-        
-        // Calculate max possible score
-        let maxScore = this.currentQuestions.length;
-        if (this.selectedDifficulty === 'medium') maxScore *= 2;
-        if (this.selectedDifficulty === 'hard') maxScore *= 3;
-        
-        // Calculate percentage
-        const percentage = Math.round((this.score / maxScore) * 100);
-        
-        // Update results
-        const resultDifficulty = document.getElementById('resultDifficulty');
-        const resultScore = document.getElementById('resultScore');
-        const resultMaxScore = document.getElementById('resultMaxScore');
-        const resultPercentage = document.getElementById('resultPercentage');
-        const resultTime = document.getElementById('resultTime');
-        
-        if (resultDifficulty) {
-            resultDifficulty.textContent = this.selectedDifficulty.charAt(0).toUpperCase() + this.selectedDifficulty.slice(1);
-        }
-        if (resultScore) {
-            resultScore.textContent = this.score;
-        }
-        if (resultMaxScore) {
-            resultMaxScore.textContent = maxScore;
-        }
-        if (resultPercentage) {
-            resultPercentage.textContent = `${percentage}%`;
-        }
-        if (resultTime) {
-            resultTime.textContent = this.totalTime;
-        }
-        
-        // Save to leaderboard if score > 0
-        if (this.score > 0) {
-            this.saveToLeaderboard(this.score, percentage);
-        }
-        
-        this.showSection('quizResults');
-    }
-    
-    saveToLeaderboard(score, percentage) {
-        const entry = {
-            score: score,
-            percentage: percentage,
-            date: new Date().toLocaleDateString(),
-            time: new Date().toLocaleTimeString(),
-            timestamp: new Date().toISOString()
-        };
-        
-        if (!this.leaderboard[this.selectedDifficulty]) {
-            this.leaderboard[this.selectedDifficulty] = [];
-        }
-        
-        this.leaderboard[this.selectedDifficulty].push(entry);
-        
-        // Sort by score (descending)
-        this.leaderboard[this.selectedDifficulty].sort((a, b) => b.score - a.score);
-        
-        // Keep only top 10
-        if (this.leaderboard[this.selectedDifficulty].length > 10) {
-            this.leaderboard[this.selectedDifficulty] = this.leaderboard[this.selectedDifficulty].slice(0, 10);
-        }
-        
-        this.saveLeaderboard();
-    }
-    
-    showLeaderboard() {
-        // Update each leaderboard list
-        ['easy', 'medium', 'hard'].forEach(difficulty => {
-            const listElement = document.getElementById(`${difficulty}Leaderboard`);
-            
-            if (!listElement) return;
-            
-            if (!this.leaderboard[difficulty] || this.leaderboard[difficulty].length === 0) {
-                listElement.innerHTML = '<p>No scores yet. Be the first!</p>';
-                return;
-            }
-            
-            let html = '';
-            this.leaderboard[difficulty].forEach((entry, index) => {
-                html += `
-                    <div class="leaderboard-item">
-                        <span class="leaderboard-rank">${index + 1}.</span>
-                        <span class="leaderboard-score">${entry.score} points (${entry.percentage}%)</span>
-                        <span class="leaderboard-date">${entry.date} ${entry.time}</span>
-                    </div>
-                `;
-            });
-            
-            listElement.innerHTML = html;
-        });
-        
-        this.showSection('quizLeaderboard');
-    }
-    
-    loadLeaderboard() {
-        if (this.storage) {
-            const saved = this.storage.getLocal('quizLeaderboard');
-            return saved ? saved : {
-                easy: [],
-                medium: [],
-                hard: []
-            };
-        }
-        return {
-            easy: [],
-            medium: [],
-            hard: []
-        };
-    }
-    
-    saveLeaderboard() {
-        if (this.storage) {
-            this.storage.setLocal('quizLeaderboard', this.leaderboard);
-        }
-    }
-    
-    resetQuizData() {
-        this.leaderboard = {
-            easy: [],
-            medium: [],
-            hard: []
-        };
-        this.saveLeaderboard();
-        this.showLeaderboard();
-    }
-    
-    shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-        return array;
-    }
-}
-
-// UPDATED Modal system setup
+// Modal system setup
 function setupModalSystem(managers = {}) {
-    const modals = document.querySelectorAll(".modal")
+  const modals = document.querySelectorAll(".modal")
 
-    // Close buttons inside modals
-    document.querySelectorAll(".close-button").forEach((btn) => {
-        btn.addEventListener("click", () => {
-            const modal = btn.closest(".modal")
-            if (modal) modal.style.display = "none"
-        })
+  // Close buttons inside modals
+  document.querySelectorAll(".close-button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const modal = btn.closest(".modal")
+      if (modal) modal.style.display = "none"
     })
+  })
 
-    // Click outside to close
-    window.addEventListener("click", (event) => {
-        modals.forEach((modal) => {
-            if (event.target === modal) {
-                modal.style.display = "none"
-            }
-        })
+  // Click outside to close
+  window.addEventListener("click", (event) => {
+    modals.forEach((modal) => {
+      if (event.target === modal) {
+        modal.style.display = "none"
+      }
     })
+  })
 
-    // Generic openers: data-open="modalId"
-    document.querySelectorAll("[data-open]").forEach((el) => {
-        const modalId = el.getAttribute("data-open")
-        const modal = document.getElementById(modalId)
-        if (!modal) return
+  // Generic openers: data-open="modalId"
+  document.querySelectorAll("[data-open]").forEach((el) => {
+    const modalId = el.getAttribute("data-open")
+    const modal = document.getElementById(modalId)
+    if (!modal) return
 
-        el.addEventListener("click", (e) => {
-            e.preventDefault()
-            // FIX: Use optional chaining for safer method calls
-            if (modalId === "journalModal") {
-                managers.journalManager?.openModal?.()
-            } else if (modalId === "projectsModal") {
-                managers.projectsManager?.openModal?.()
-            } else if (modalId === "quizModal") {
-                modal.style.display = "block"
-                managers.quizGame?.showSection?.('quizMenu')
-                if (typeof updateDateTime === "function") {
-                    updateDateTime("quizDatetime")
-                }
-            } else {
-                modal.style.display = "block"
-                if (typeof updateDateTime === "function") {
-                    const dtId = modalId.replace("Modal", "Datetime")
-                    updateDateTime(dtId)
-                }
-            }
-        })
+    el.addEventListener("click", (e) => {
+      e.preventDefault()
+      if (
+        modalId === "journalModal" &&
+        managers.journalManager &&
+        typeof managers.journalManager.openModal === "function"
+      ) {
+        managers.journalManager.openModal()
+      } else if (
+        modalId === "projectsModal" &&
+        managers.projectsManager &&
+        typeof managers.projectsManager.openModal === "function"
+      ) {
+        managers.projectsManager.openModal()
+      } else if (
+        modalId === "quizModal" &&
+        managers.quizManager &&
+        typeof managers.quizManager.openModal === "function"
+      ) {
+        managers.quizManager.openModal()
+      } else {
+        modal.style.display = "block"
+        const dtId = modalId.replace("Modal", "Datetime")
+        updateDateTime(dtId)
+      }
     })
+  })
 
-    // Fallback: support nav ids
-    const navMap = {
-        journalBtn: "journalModal",
-        projectsBtn: "projectsModal",
-        quizBtn: "quizModal",
-        aboutBtn: "aboutModal",
-        cvBtn: "cvModal",
-    }
+  // Fallback: support nav ids
+  const navMap = {
+    journalBtn: "journalModal",
+    projectsBtn: "projectsModal",
+    quizBtn: "quizModal",
+    aboutBtn: "aboutModal",
+    cvBtn: "cvModal",
+  }
 
-    Object.entries(navMap).forEach(([btnId, modalId]) => {
-        const button = document.getElementById(btnId)
-        const modal = document.getElementById(modalId)
-        if (!button || !modal) return
+  Object.entries(navMap).forEach(([btnId, modalId]) => {
+    const button = document.getElementById(btnId)
+    const modal = document.getElementById(modalId)
+    if (!button || !modal) return
 
-        button.addEventListener("click", (e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            // FIX: Use optional chaining for safer method calls
-            if (modalId === "journalModal") {
-                managers.journalManager?.openModal?.()
-            } else if (modalId === "projectsModal") {
-                managers.projectsManager?.openModal?.()
-            } else if (modalId === "quizModal") {
-                modal.style.display = "block"
-                managers.quizGame?.showSection?.('quizMenu')
-                if (typeof updateDateTime === "function") {
-                    updateDateTime("quizDatetime")
-                }
-            } else {
-                modal.style.display = "block"
-                if (typeof updateDateTime === "function") {
-                    updateDateTime(modalId.replace("Modal", "Datetime"))
-                }
-            }
-        })
+    button.addEventListener("click", (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      if (
+        modalId === "journalModal" &&
+        managers.journalManager &&
+        typeof managers.journalManager.openModal === "function"
+      ) {
+        managers.journalManager.openModal()
+      } else if (
+        modalId === "projectsModal" &&
+        managers.projectsManager &&
+        typeof managers.projectsManager.openModal === "function"
+      ) {
+        managers.projectsManager.openModal()
+      } else if (
+        modalId === "quizModal" &&
+        managers.quizManager &&
+        typeof managers.quizManager.openModal === "function"
+      ) {
+        managers.quizManager.openModal()
+      } else {
+        modal.style.display = "block"
+        updateDateTime(modalId.replace("Modal", "Datetime"))
+      }
     })
+  })
 }
 
 // Initialize other modals (About, CV, Hero, Profile Picture)
 function initializeOtherModals(storage) {
-    // Basic modal initialization for About, CV, etc.
-    // You can expand this based on your specific needs
-    
-    // Example: About modal
-    const aboutBtn = document.getElementById('aboutBtn');
-    const aboutModal = document.getElementById('aboutModal');
-    
-    if (aboutBtn && aboutModal) {
-        aboutBtn.addEventListener('click', () => {
-            aboutModal.style.display = 'block';
-            if (typeof updateDateTime === "function") {
-                updateDateTime("aboutDatetime");
-            }
-        });
+  const editProfilePicBtn = document.getElementById("editProfilePicBtn")
+  const profilePicInput = document.getElementById("profilePicInput")
+  const profileImage = document.getElementById("profileImage")
+
+  if (editProfilePicBtn && profilePicInput && profileImage) {
+    editProfilePicBtn.addEventListener("click", (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      profilePicInput.click()
+    })
+
+    profilePicInput.addEventListener("change", (e) => {
+      const file = e.target.files[0]
+      if (file && file.type.startsWith("image/")) {
+        const reader = new FileReader()
+        reader.onload = (event) => {
+          profileImage.src = event.target.result
+          storage.setLocal("profilePicture", event.target.result)
+        }
+        reader.readAsDataURL(file)
+      } else {
+        alert("Please select a valid image file")
+      }
+    })
+
+    const savedProfilePic = storage.getLocal("profilePicture")
+    if (savedProfilePic) {
+      profileImage.src = savedProfilePic
     }
-    
-    // Example: CV modal  
-    const cvBtn = document.getElementById('cvBtn');
-    const cvModal = document.getElementById('cvModal');
-    
-    if (cvBtn && cvModal) {
-        cvBtn.addEventListener('click', () => {
-            cvModal.style.display = 'block';
-            if (typeof updateDateTime === "function") {
-                updateDateTime("cvDatetime");
-            }
-        });
+  }
+
+  // About section
+  const editAboutBtn = document.getElementById("editAboutBtn")
+  const uploadAboutBtn = document.getElementById("uploadAboutBtn")
+  const aboutFileInput = document.getElementById("aboutFileInput")
+  const editAboutModal = document.getElementById("editAboutModal")
+  const editAboutForm = document.getElementById("editAboutForm")
+  const aboutContent = document.getElementById("aboutContent")
+
+  if (editAboutBtn && editAboutModal && editAboutForm) {
+    editAboutBtn.addEventListener("click", () => {
+      const currentText = aboutContent?.textContent || ""
+      const textInput = document.getElementById("editAboutText")
+      if (textInput) textInput.value = currentText
+      editAboutModal.style.display = "block"
+    })
+
+    editAboutForm.addEventListener("submit", (e) => {
+      e.preventDefault()
+      const newText = document.getElementById("editAboutText")?.value || ""
+      if (aboutContent) aboutContent.textContent = newText
+      storage.setLocal("aboutContent", newText)
+      editAboutModal.style.display = "none"
+    })
+  }
+
+  if (uploadAboutBtn && aboutFileInput) {
+    uploadAboutBtn.addEventListener("click", () => {
+      aboutFileInput.click()
+    })
+
+    aboutFileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0]
+      if (file) {
+        const reader = new FileReader()
+        reader.onload = (event) => {
+          const content = event.target.result
+          if (aboutContent) aboutContent.textContent = content
+          storage.setLocal("aboutContent", content)
+          alert(`File "${file.name}" uploaded successfully!`)
+        }
+        reader.readAsText(file)
+      }
+    })
+  }
+
+  const savedAbout = storage.getLocal("aboutContent")
+  if (savedAbout && aboutContent) aboutContent.textContent = savedAbout
+
+  // CV section
+  const editCvBtn = document.getElementById("editCvBtn")
+  const editCvModal = document.getElementById("editCvModal")
+  const editCvForm = document.getElementById("editCvForm")
+  const cvContent = document.getElementById("cvContent")
+  const uploadCvBtn = document.getElementById("uploadCvBtn")
+  const cvFileInput = document.getElementById("cvFileInput")
+  const cvFileDisplay = document.getElementById("cvFileDisplay")
+  const cvFileName = document.getElementById("cvFileName")
+  const viewCvBtn = document.getElementById("viewCvBtn")
+
+  if (editCvBtn && editCvModal && editCvForm) {
+    editCvBtn.addEventListener("click", () => {
+      const currentText = cvContent?.innerHTML || ""
+      const textInput = document.getElementById("editCvText")
+      if (textInput) textInput.value = currentText
+      editCvModal.style.display = "block"
+    })
+
+    editCvForm.addEventListener("submit", (e) => {
+      e.preventDefault()
+      const newText = document.getElementById("editCvText")?.value || ""
+      if (cvContent) cvContent.innerHTML = newText
+      storage.setLocal("cvContent", newText)
+      editCvModal.style.display = "none"
+      alert("CV content updated successfully!")
+    })
+  }
+
+  if (uploadCvBtn && cvFileInput) {
+    uploadCvBtn.addEventListener("click", () => {
+      cvFileInput.click()
+    })
+
+    cvFileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0]
+      if (file) {
+        if (cvFileName) cvFileName.textContent = file.name
+        if (cvFileDisplay) cvFileDisplay.style.display = "block"
+        storage.setLocal("cvFileName", file.name)
+
+        const reader = new FileReader()
+        reader.onload = (event) => {
+          storage.setLocal("cvFileData", event.target.result)
+          alert(`CV file "${file.name}" uploaded successfully!`)
+        }
+        reader.readAsDataURL(file)
+      }
+    })
+  }
+
+  if (viewCvBtn) {
+    viewCvBtn.addEventListener("click", () => {
+      const fileData = storage.getLocal("cvFileData")
+      const fileName = storage.getLocal("cvFileName")
+      if (fileData && fileName) {
+        const link = document.createElement("a")
+        link.href = fileData
+        link.download = fileName
+        link.click()
+      } else {
+        alert("No CV file uploaded yet.")
+      }
+    })
+  }
+
+  const deleteCvBtn = document.createElement("button")
+  deleteCvBtn.id = "deleteCvBtn"
+  deleteCvBtn.className = "delete-btn"
+  deleteCvBtn.textContent = "Delete CV"
+  deleteCvBtn.style.marginLeft = "10px"
+
+  if (cvFileDisplay && viewCvBtn) {
+    viewCvBtn.parentNode.insertBefore(deleteCvBtn, viewCvBtn.nextSibling)
+  }
+
+  deleteCvBtn.addEventListener("click", () => {
+    if (confirm("Are you sure you want to delete the CV? This cannot be undone.")) {
+      storage.removeLocal("cvFileName")
+      storage.removeLocal("cvFileData")
+      if (cvFileDisplay) cvFileDisplay.style.display = "none"
+      if (cvFileName) cvFileName.textContent = ""
+      alert("CV file deleted successfully!")
     }
+  })
+
+  const savedCvFileName = storage.getLocal("cvFileName")
+  if (savedCvFileName && cvFileName && cvFileDisplay) {
+    cvFileName.textContent = savedCvFileName
+    cvFileDisplay.style.display = "block"
+  }
+
+  const savedCv = storage.getLocal("cvContent")
+  if (savedCv && cvContent) cvContent.innerHTML = savedCv
+
+  // Hero section
+  const editHeroBtn = document.getElementById("editHeroBtn")
+  const editHeroModal = document.getElementById("editHeroModal")
+  const editHeroForm = document.getElementById("editHeroForm")
+
+  if (editHeroBtn && editHeroModal && editHeroForm) {
+    editHeroBtn.addEventListener("click", () => {
+      const currentName = document.getElementById("heroName")?.textContent || ""
+      const currentDesc = document.getElementById("heroDescription")?.textContent || ""
+
+      const nameInput = document.getElementById("editHeroName")
+      const descInput = document.getElementById("editHeroDesc")
+
+      if (nameInput) nameInput.value = currentName
+      if (descInput) descInput.value = currentDesc
+
+      editHeroModal.style.display = "block"
+    })
+
+    editHeroForm.addEventListener("submit", (e) => {
+      e.preventDefault()
+
+      const newName = document.getElementById("editHeroName")?.value || ""
+      const newDesc = document.getElementById("editHeroDesc")?.value || ""
+
+      const heroName = document.getElementById("heroName")
+      const heroDesc = document.getElementById("heroDescription")
+
+      if (heroName) heroName.textContent = newName
+      if (heroDesc) heroDesc.textContent = newDesc
+
+      storage.setLocal("heroName", newName)
+      storage.setLocal("heroDescription", newDesc)
+
+      editHeroModal.style.display = "none"
+    })
+  }
+
+  const savedName = storage.getLocal("heroName")
+  const savedDesc = storage.getLocal("heroDescription")
+
+  const heroName = document.getElementById("heroName")
+  const heroDesc = document.getElementById("heroDescription")
+
+  if (savedName && heroName) heroName.textContent = savedName
+  if (savedDesc && heroDesc) heroDesc.textContent = savedDesc
 }
 
-// UPDATED DOMContentLoaded: Initialize everything
+// DOMContentLoaded: Initialize everything
 document.addEventListener("DOMContentLoaded", () => {
-    // Check for required classes with better error handling
-    if (typeof StorageManager === "undefined") {
-        console.error("StorageManager not found. Make sure storage.js is loaded before script.js")
-        // Show user-friendly error or provide fallback
-        alert("Error: Storage system not available. Some features may not work.")
-        return
-    }
-    
-    if (typeof window.BrowserAPIsManager === "undefined") {
-        console.error("BrowserAPIsManager not found. Make sure browser.js is loaded before script.js")
-        // Show user-friendly error or provide fallback
-        alert("Error: Browser APIs not available. Some features may not work.")
-        return
-    }
+  // Check for required classes
+  if (typeof StorageManager === "undefined") {
+    console.error("StorageManager not found. Make sure storage.js is loaded before script.js")
+    return
+  }
+  if (typeof window.BrowserAPIsManager === "undefined") {
+    console.error("BrowserAPIsManager not found. Make sure browser.js is loaded before script.js")
+    return
+  }
 
-    try {
-        const storage = new StorageManager()
-        const browserAPIs = new window.BrowserAPIsManager(storage)
-        const journalManager = new JournalManager(storage, browserAPIs)
-        const projectsManager = new ProjectsManager(storage, browserAPIs)
-        const quizGame = new QuizGame(storage)
+  const storage = new StorageManager()
+  const browserAPIs = new window.BrowserAPIsManager(storage)
+  const youtubeManager = new YouTubeManager(storage)
+  const journalManager = new JournalManager(storage, browserAPIs)
+  const projectsManager = new ProjectsManager(storage, browserAPIs)
+  const quizManager = new QuizGameManager(storage)
 
-        // Provide validation manager to journal
-        if (browserAPIs && typeof journalManager.setValidationManager === "function") {
-            journalManager.setValidationManager(browserAPIs)
-        }
+  window.youtubeManager = youtubeManager
+  window.projectsManager = projectsManager
 
-        // Start everything
-        startPageDateTime()
-        setupModalSystem({ journalManager, projectsManager, quizGame })
-        initializeOtherModals(storage)
+  if (browserAPIs && typeof journalManager.setValidationManager === "function") {
+    journalManager.setValidationManager(browserAPIs)
+  }
 
-        console.log("Learning Journal initialized successfully")
-    } catch (error) {
-        console.error("Error initializing application:", error)
-        alert("Error initializing the application. Please refresh the page.")
-    }
+  startPageDateTime()
+  setupModalSystem({ journalManager, projectsManager, quizManager })
+  initializeOtherModals(storage)
+
+  console.log("Learning Journal loaded successfully")
 })
