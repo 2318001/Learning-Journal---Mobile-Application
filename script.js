@@ -1317,5 +1317,5 @@ document.addEventListener("DOMContentLoaded", () => {
   setupModalSystem({ journalManager, projectsManager, quizManager })
   initializeOtherModals(storage)
 
-  console.log("[v0] Learning Journal loaded successfully")
+  console.log(" Learning Journal loaded successfully")
 })

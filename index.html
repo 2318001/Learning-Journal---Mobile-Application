@@ -449,6 +449,36 @@
                 <button type="button" id="uploadAboutBtn" class="cta-btn secondary">Upload from File</button>
                 <input type="file" id="aboutFileInput" accept=".txt" style="display: none;">
             </div>
+
+
+
+
+             <!-- YouTube section - removed 11 character restriction, accepts any URL or ID -->
+            <div class="youtube-section">
+                <h3>Featured Video</h3>
+
+                <div class="youtube-controls">
+                    <input type="text" id="youtubeVideoId"
+                           placeholder="Enter YouTube Video ID or URL (any format)">
+                    <button id="loadVideoBtn" class="cta-btn primary">Load Video</button>
+                </div>
+
+                <div id="youtubePlayer"></div>
+
+                <div id="videoControls" class="video-controls" style="display:none">
+                    <button id="playBtn" class="control-btn"> Play</button>
+                    <button id="pauseBtn" class="control-btn">Pause</button>
+                    <button id="stopBtn" class="control-btn"> Stop</button>
+                    <button id="muteBtn" class="control-btn"> Mute</button>
+                    <button id="unmuteBtn" class="control-btn"> Unmute</button>
+                    <button id="fullscreenBtn" class="control-btn"> Fullscreen</button>
+                </div>
+
+                <div id="videoStatus" class="video-status"></div>
+            </div>
+
+        </div>
+    </div>
         </div>
     </div>
 
