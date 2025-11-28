@@ -477,12 +477,8 @@ class QuizGameManager {
     this.storage = storage
     this.quizBtn = document.getElementById("quizBtn")
     this.quizModal = document.getElementById("quizModal")
-    this.quizCloseBtn = document.getElementById("quizCloseBtn")
-    this.quizMenuBtn = document.getElementById("quizMenuBtn")
-    this.quizNavMenu = document.getElementById("quizNavMenu")
 
-    // Navigation items
-    this.navItems = document.querySelectorAll(".nav-item")
+    this.navButtons = document.querySelectorAll(".quiz-nav-btn")
 
     // Game elements
     this.rulesSection = document.getElementById("rulesSection")
@@ -499,9 +495,11 @@ class QuizGameManager {
     this.nextQuestionBtn = document.getElementById("nextQuestionBtn")
     this.endGameBtn = document.getElementById("endGameBtn")
     this.playAgainBtn = document.getElementById("playAgainBtn")
-    this.resetScoresBtn = document.getElementById("resetScoresBtn")
+    this.resetQuizBtn = document.getElementById("resetQuizBtn")
     this.viewLeaderboardBtn = document.getElementById("viewLeaderboardBtn")
-    this.backToMenuBtn = document.getElementById("backToMenuBtn")
+
+    // Leaderboard tabs
+    this.leaderboardTabs = document.querySelectorAll(".leaderboard-tab")
 
     // Display elements
     this.currentPlayerName = document.getElementById("currentPlayerName")
@@ -528,6 +526,7 @@ class QuizGameManager {
     this.timer = null
     this.timeLeft = 60
     this.totalTime = 60
+    this.currentLeaderboardDifficulty = "all"
 
     // Quiz questions by difficulty
     this.questions = {
@@ -643,22 +642,15 @@ class QuizGameManager {
   }
 
   init() {
-    // Event listeners for navigation
-    if (this.quizMenuBtn) {
-      this.quizMenuBtn.addEventListener("click", () => this.toggleNavMenu())
-    }
-    if (this.quizCloseBtn) {
-      this.quizCloseBtn.addEventListener("click", () => this.closeModal())
-    }
-
-    if (this.navItems) {
-      this.navItems.forEach((item) => {
-        item.addEventListener("click", (e) => {
-          const section = e.target.dataset.section
+    if (this.navButtons) {
+      this.navButtons.forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          const section = e.currentTarget.dataset.section
           this.showSection(section)
-          if (this.quizNavMenu) {
-            this.quizNavMenu.classList.remove("active")
-          }
+
+          // Update active state
+          this.navButtons.forEach((b) => b.classList.remove("active"))
+          e.currentTarget.classList.add("active")
         })
       })
     }
@@ -690,37 +682,38 @@ class QuizGameManager {
     }
 
     if (this.viewLeaderboardBtn) {
-      this.viewLeaderboardBtn.addEventListener("click", () => this.showSection("leaderboard"))
+      this.viewLeaderboardBtn.addEventListener("click", () => {
+        this.showSection("leaderboard")
+        this.navButtons.forEach((b) => b.classList.remove("active"))
+        const leaderboardBtn = document.querySelector('.quiz-nav-btn[data-section="leaderboard"]')
+        if (leaderboardBtn) leaderboardBtn.classList.add("active")
+      })
     }
 
-    if (this.resetScoresBtn) {
-      this.resetScoresBtn.addEventListener("click", () => this.resetLeaderboard())
+    if (this.resetQuizBtn) {
+      this.resetQuizBtn.addEventListener("click", () => this.resetLeaderboard())
     }
 
-    if (this.backToMenuBtn) {
-      this.backToMenuBtn.addEventListener("click", () => this.showSection("playerSetup"))
+    if (this.leaderboardTabs) {
+      this.leaderboardTabs.forEach((tab) => {
+        tab.addEventListener("click", (e) => {
+          this.currentLeaderboardDifficulty = e.currentTarget.dataset.difficulty
+
+          // Update active tab
+          this.leaderboardTabs.forEach((t) => t.classList.remove("active"))
+          e.currentTarget.classList.add("active")
+
+          this.displayLeaderboard()
+        })
+      })
     }
   }
 
   openModal() {
     if (this.quizModal) {
       this.quizModal.style.display = "block"
-      document.body.classList.add("modal-open")
+      updateDateTime("quizDatetime")
       this.showSection("playerSetup")
-    }
-  }
-
-  closeModal() {
-    if (this.quizModal) {
-      this.quizModal.style.display = "none"
-      document.body.classList.remove("modal-open")
-      this.resetGame()
-    }
-  }
-
-  toggleNavMenu() {
-    if (this.quizNavMenu) {
-      this.quizNavMenu.classList.toggle("active")
     }
   }
 
@@ -905,17 +898,21 @@ class QuizGameManager {
       level: this.currentDifficulty,
       score: this.score,
       date: new Date().toLocaleString(),
+      timestamp: new Date().toISOString(),
     })
 
     scores.sort((a, b) => b.score - a.score)
 
-    const topScores = scores.slice(0, 10)
+    const topScores = scores.slice(0, 50)
     this.storage.setLocal("quizScores", topScores)
 
     if (this.highScoreMessage) {
       const rank = topScores.findIndex((s) => s.player === this.currentPlayer && s.score === this.score) + 1
       if (rank <= 3) {
         this.highScoreMessage.textContent = `🎉 Congratulations! You're #${rank} on the leaderboard!`
+        this.highScoreMessage.style.display = "block"
+      } else if (rank <= 10) {
+        this.highScoreMessage.textContent = `Great job! You're #${rank} on the leaderboard!`
         this.highScoreMessage.style.display = "block"
       } else {
         this.highScoreMessage.style.display = "none"
@@ -924,44 +921,48 @@ class QuizGameManager {
   }
 
   displayLeaderboard() {
-    const scores = this.storage.getLocal("quizScores") || []
+    let scores = this.storage.getLocal("quizScores") || []
+
+    if (this.currentLeaderboardDifficulty !== "all") {
+      scores = scores.filter((s) => s.level === this.currentLeaderboardDifficulty)
+    }
 
     if (this.leaderboardContent) {
       if (scores.length === 0) {
         this.leaderboardContent.innerHTML = `
-                    <div class="empty-state">
-                        <p>No scores yet. Be the first to play!</p>
-                    </div>
-                `
+          <div class="empty-state">
+            <p>No scores yet. Be the first to play!</p>
+          </div>
+        `
       } else {
         this.leaderboardContent.innerHTML = `
-                    <table class="leaderboard-table">
-                        <thead>
-                            <tr>
-                                <th>Rank</th>
-                                <th>Player</th>
-                                <th>Level</th>
-                                <th>Score</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${scores
-                              .map(
-                                (score, index) => `
-                                <tr class="${index < 3 ? "top-score" : ""}">
-                                    <td>${index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}</td>
-                                    <td>${this.escapeHtml(score.player)}</td>
-                                    <td>${score.level.toUpperCase()}</td>
-                                    <td><strong>${score.score}</strong></td>
-                                    <td>${score.date}</td>
-                                </tr>
-                            `,
-                              )
-                              .join("")}
-                        </tbody>
-                    </table>
-                `
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Player</th>
+                <th>Level</th>
+                <th>Score</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${scores
+                .map(
+                  (score, index) => `
+                <tr class="${index < 3 ? "top-score" : ""}">
+                  <td>${index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}</td>
+                  <td>${this.escapeHtml(score.player)}</td>
+                  <td><span class="level-badge ${score.level}">${score.level.toUpperCase()}</span></td>
+                  <td><strong>${score.score}</strong></td>
+                  <td>${score.date}</td>
+                </tr>
+              `,
+                )
+                .join("")}
+            </tbody>
+          </table>
+        `
       }
     }
   }
@@ -970,6 +971,7 @@ class QuizGameManager {
     if (confirm("Are you sure you want to reset all scores? This cannot be undone.")) {
       this.storage.removeLocal("quizScores")
       this.displayLeaderboard()
+      alert("All scores have been reset!")
     }
   }
 
@@ -998,204 +1000,64 @@ class QuizGameManager {
   }
 }
 
-class YouTubeManager {
+// Hero Section Manager
+class HeroManager {
   constructor(storage) {
     this.storage = storage
-    this.player = null
-    this.currentVideoId = null
-    this.loadVideoBtn = document.getElementById("loadVideoBtn")
-    this.saveVideoBtn = document.getElementById("saveVideoBtn")
-    this.youtubeVideoIdInput = document.getElementById("youtubeVideoId")
-    this.videoControls = document.getElementById("videoControls")
-    this.savedVideosList = document.getElementById("savedVideosList")
+    this.editHeroBtn = document.getElementById("editHeroBtn")
+    this.editHeroModal = document.getElementById("editHeroModal")
+    this.editHeroForm = document.getElementById("editHeroForm")
+    this.heroName = document.getElementById("heroName")
+    this.heroDescription = document.getElementById("heroDescription")
 
     this.init()
   }
 
   init() {
-    if (this.loadVideoBtn) {
-      this.loadVideoBtn.addEventListener("click", () => this.loadVideo())
+    const savedHeroName = this.storage.getLocal("heroName")
+    const savedHeroDesc = this.storage.getLocal("heroDescription")
+
+    if (savedHeroName && this.heroName) {
+      this.heroName.textContent = savedHeroName
+    }
+    if (savedHeroDesc && this.heroDescription) {
+      this.heroDescription.textContent = savedHeroDesc
     }
 
-    if (this.saveVideoBtn) {
-      this.saveVideoBtn.addEventListener("click", () => this.saveVideo())
-    }
+    if (this.editHeroBtn && this.editHeroModal && this.editHeroForm) {
+      this.editHeroBtn.addEventListener("click", () => {
+        const nameInput = document.getElementById("editHeroName")
+        const descInput = document.getElementById("editHeroDesc")
 
-    if (this.youtubeVideoIdInput) {
-      this.youtubeVideoIdInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") {
-          this.loadVideo()
-        }
+        if (nameInput) nameInput.value = this.heroName?.textContent || ""
+        if (descInput) descInput.value = this.heroDescription?.textContent || ""
+
+        this.editHeroModal.style.display = "block"
+      })
+
+      this.editHeroForm.addEventListener("submit", (e) => {
+        e.preventDefault()
+        const newName = document.getElementById("editHeroName")?.value || ""
+        const newDesc = document.getElementById("editHeroDesc")?.value || ""
+
+        if (this.heroName) this.heroName.textContent = newName
+        if (this.heroDescription) this.heroDescription.textContent = newDesc
+
+        this.storage.setLocal("heroName", newName)
+        this.storage.setLocal("heroDescription", newDesc)
+
+        this.editHeroModal.style.display = "none"
       })
     }
-
-    this.initPlayerButtons()
-    this.loadSavedVideos()
-  }
-
-  extractVideoId(input) {
-    if (!input) return null
-
-    input = input.trim()
-
-    const patterns = [
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\n?#]+)/,
-      /^([a-zA-Z0-9_-]{11})$/,
-    ]
-
-    for (const pattern of patterns) {
-      const match = input.match(pattern)
-      if (match) return match[1]
-    }
-
-    return null
-  }
-
-  loadVideo() {
-    const input = this.youtubeVideoIdInput ? this.youtubeVideoIdInput.value.trim() : ""
-    const videoId = this.extractVideoId(input)
-
-    if (!videoId) {
-      alert("Please enter a valid YouTube video ID or URL.")
-      return
-    }
-
-    this.currentVideoId = videoId
-
-    if (!this.player) {
-      // Declare YT here to satisfy linter/compiler, assuming it's globally available
-      const YT = window.YT
-      this.player = new YT.Player("youtubePlayer", {
-        height: "390",
-        width: "100%",
-        videoId: videoId,
-        playerVars: {
-          playsinline: 1,
-        },
-        events: {
-          onReady: (event) => this.onPlayerReady(event),
-        },
-      })
-    } else {
-      this.player.loadVideoById(videoId)
-    }
-
-    if (this.videoControls) {
-      this.videoControls.style.display = "flex"
-    }
-  }
-
-  saveVideo() {
-    if (!this.currentVideoId) {
-      alert("Please load a video first before saving.")
-      return
-    }
-
-    const videoTitle = this.youtubeVideoIdInput ? this.youtubeVideoIdInput.value.trim() : this.currentVideoId
-
-    const savedVideos = this.storage.getLocal("savedVideos") || []
-
-    // Check if video already exists
-    const exists = savedVideos.some((v) => v.videoId === this.currentVideoId)
-    if (exists) {
-      alert("This video is already saved!")
-      return
-    }
-
-    savedVideos.push({
-      videoId: this.currentVideoId,
-      title: videoTitle,
-      savedDate: new Date().toLocaleString(),
-    })
-
-    this.storage.setLocal("savedVideos", savedVideos)
-    this.loadSavedVideos()
-    alert("Video saved successfully!")
-  }
-
-  loadSavedVideos() {
-    const savedVideos = this.storage.getLocal("savedVideos") || []
-
-    if (!this.savedVideosList) return
-
-    if (savedVideos.length === 0) {
-      this.savedVideosList.innerHTML =
-        '<p style="color: var(--text-tertiary); text-align: center;">No saved videos yet.</p>'
-      return
-    }
-
-    this.savedVideosList.innerHTML = savedVideos
-      .map(
-        (video, index) => `
-      <div class="saved-video-item">
-        <div class="saved-video-info">
-          <div class="saved-video-title">${this.escapeHtml(video.title)}</div>
-          <div class="saved-video-id">ID: ${video.videoId} • Saved: ${video.savedDate}</div>
-        </div>
-        <div class="saved-video-actions">
-          <button class="saved-video-btn load" onclick="window.youtubeManager.loadSavedVideo('${video.videoId}')">
-            ▶ Load
-          </button>
-          <button class="saved-video-btn delete" onclick="window.youtubeManager.deleteSavedVideo(${index})">
-            🗑 Delete
-          </button>
-        </div>
-      </div>
-    `,
-      )
-      .join("")
-  }
-
-  loadSavedVideo(videoId) {
-    if (this.youtubeVideoIdInput) {
-      this.youtubeVideoIdInput.value = videoId
-    }
-    this.loadVideo()
-  }
-
-  deleteSavedVideo(index) {
-    if (!confirm("Are you sure you want to delete this saved video?")) return
-
-    const savedVideos = this.storage.getLocal("savedVideos") || []
-    savedVideos.splice(index, 1)
-    this.storage.setLocal("savedVideos", savedVideos)
-    this.loadSavedVideos()
-  }
-
-  onPlayerReady(event) {
-    console.log("YouTube player is ready")
-  }
-
-  initPlayerButtons() {
-    const playBtn = document.getElementById("playBtn")
-    const pauseBtn = document.getElementById("pauseBtn")
-
-    if (playBtn) {
-      playBtn.addEventListener("click", () => {
-        if (this.player) this.player.playVideo()
-      })
-    }
-
-    if (pauseBtn) {
-      pauseBtn.addEventListener("click", () => {
-        if (this.player) this.player.pauseVideo()
-      })
-    }
-  }
-
-  escapeHtml(text) {
-    const div = document.createElement("div")
-    div.textContent = text
-    return div.innerHTML
   }
 }
 
-// Utility: Date/time update
+// DateTime functions
 function updateDateTime(elementId) {
   const element = document.getElementById(elementId)
   if (element) {
     const now = new Date()
-    element.textContent = now.toLocaleString("en-US", {
+    const options = {
       weekday: "long",
       year: "numeric",
       month: "long",
@@ -1203,7 +1065,8 @@ function updateDateTime(elementId) {
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
-    })
+    }
+    element.textContent = now.toLocaleDateString("en-US", options)
   }
 }
 
@@ -1266,48 +1129,6 @@ function setupModalSystem(managers = {}) {
       }
     })
   })
-
-  // Fallback: support nav ids
-  const navMap = {
-    journalBtn: "journalModal",
-    projectsBtn: "projectsModal",
-    quizBtn: "quizModal",
-    aboutBtn: "aboutModal",
-    cvBtn: "cvModal",
-  }
-
-  Object.entries(navMap).forEach(([btnId, modalId]) => {
-    const button = document.getElementById(btnId)
-    const modal = document.getElementById(modalId)
-    if (!button || !modal) return
-
-    button.addEventListener("click", (e) => {
-      e.preventDefault()
-      e.stopPropagation()
-      if (
-        modalId === "journalModal" &&
-        managers.journalManager &&
-        typeof managers.journalManager.openModal === "function"
-      ) {
-        managers.journalManager.openModal()
-      } else if (
-        modalId === "projectsModal" &&
-        managers.projectsManager &&
-        typeof managers.projectsManager.openModal === "function"
-      ) {
-        managers.projectsManager.openModal()
-      } else if (
-        modalId === "quizModal" &&
-        managers.quizManager &&
-        typeof managers.quizManager.openModal === "function"
-      ) {
-        managers.quizManager.openModal()
-      } else {
-        modal.style.display = "block"
-        updateDateTime(modalId.replace("Modal", "Datetime"))
-      }
-    })
-  })
 }
 
 // Initialize other modals (About, CV, Hero, Profile Picture)
@@ -1343,7 +1164,6 @@ function initializeOtherModals(storage) {
     }
   }
 
-  // About section
   const editAboutBtn = document.getElementById("editAboutBtn")
   const uploadAboutBtn = document.getElementById("uploadAboutBtn")
   const aboutFileInput = document.getElementById("aboutFileInput")
@@ -1391,7 +1211,6 @@ function initializeOtherModals(storage) {
   const savedAbout = storage.getLocal("aboutContent")
   if (savedAbout && aboutContent) aboutContent.textContent = savedAbout
 
-  // CV section
   const editCvBtn = document.getElementById("editCvBtn")
   const editCvModal = document.getElementById("editCvModal")
   const editCvForm = document.getElementById("editCvForm")
@@ -1457,81 +1276,14 @@ function initializeOtherModals(storage) {
     })
   }
 
-  const deleteCvBtn = document.createElement("button")
-  deleteCvBtn.id = "deleteCvBtn"
-  deleteCvBtn.className = "delete-btn"
-  deleteCvBtn.textContent = "Delete CV"
-  deleteCvBtn.style.marginLeft = "10px"
-
-  if (cvFileDisplay && viewCvBtn) {
-    viewCvBtn.parentNode.insertBefore(deleteCvBtn, viewCvBtn.nextSibling)
-  }
-
-  deleteCvBtn.addEventListener("click", () => {
-    if (confirm("Are you sure you want to delete the CV? This cannot be undone.")) {
-      storage.removeLocal("cvFileName")
-      storage.removeLocal("cvFileData")
-      if (cvFileDisplay) cvFileDisplay.style.display = "none"
-      if (cvFileName) cvFileName.textContent = ""
-      alert("CV file deleted successfully!")
-    }
-  })
+  const savedCvContent = storage.getLocal("cvContent")
+  if (savedCvContent && cvContent) cvContent.innerHTML = savedCvContent
 
   const savedCvFileName = storage.getLocal("cvFileName")
   if (savedCvFileName && cvFileName && cvFileDisplay) {
     cvFileName.textContent = savedCvFileName
     cvFileDisplay.style.display = "block"
   }
-
-  const savedCv = storage.getLocal("cvContent")
-  if (savedCv && cvContent) cvContent.innerHTML = savedCv
-
-  // Hero section
-  const editHeroBtn = document.getElementById("editHeroBtn")
-  const editHeroModal = document.getElementById("editHeroModal")
-  const editHeroForm = document.getElementById("editHeroForm")
-
-  if (editHeroBtn && editHeroModal && editHeroForm) {
-    editHeroBtn.addEventListener("click", () => {
-      const currentName = document.getElementById("heroName")?.textContent || ""
-      const currentDesc = document.getElementById("heroDescription")?.textContent || ""
-
-      const nameInput = document.getElementById("editHeroName")
-      const descInput = document.getElementById("editHeroDesc")
-
-      if (nameInput) nameInput.value = currentName
-      if (descInput) descInput.value = currentDesc
-
-      editHeroModal.style.display = "block"
-    })
-
-    editHeroForm.addEventListener("submit", (e) => {
-      e.preventDefault()
-
-      const newName = document.getElementById("editHeroName")?.value || ""
-      const newDesc = document.getElementById("editHeroDesc")?.value || ""
-
-      const heroName = document.getElementById("heroName")
-      const heroDesc = document.getElementById("heroDescription")
-
-      if (heroName) heroName.textContent = newName
-      if (heroDesc) heroDesc.textContent = newDesc
-
-      storage.setLocal("heroName", newName)
-      storage.setLocal("heroDescription", newDesc)
-
-      editHeroModal.style.display = "none"
-    })
-  }
-
-  const savedName = storage.getLocal("heroName")
-  const savedDesc = storage.getLocal("heroDescription")
-
-  const heroName = document.getElementById("heroName")
-  const heroDesc = document.getElementById("heroDescription")
-
-  if (savedName && heroName) heroName.textContent = savedName
-  if (savedDesc && heroDesc) heroDesc.textContent = savedDesc
 }
 
 // DOMContentLoaded: Initialize everything
@@ -1548,10 +1300,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const storage = new StorageManager()
   const browserAPIs = new window.BrowserAPIsManager(storage)
-  const youtubeManager = new YouTubeManager(storage)
+  const youtubeManager = new window.YouTubeManager(storage)
   const journalManager = new JournalManager(storage, browserAPIs)
   const projectsManager = new ProjectsManager(storage, browserAPIs)
   const quizManager = new QuizGameManager(storage)
+  const heroManager = new HeroManager(storage)
 
   window.youtubeManager = youtubeManager
   window.projectsManager = projectsManager
@@ -1564,5 +1317,5 @@ document.addEventListener("DOMContentLoaded", () => {
   setupModalSystem({ journalManager, projectsManager, quizManager })
   initializeOtherModals(storage)
 
-  console.log("Learning Journal loaded successfully")
+  console.log("[v0] Learning Journal loaded successfully")
 })

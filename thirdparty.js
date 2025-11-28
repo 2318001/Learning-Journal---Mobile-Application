@@ -11,7 +11,7 @@ class YouTubeManager {
     // Wait for YouTube API to be ready
     window.onYouTubeIframeAPIReady = () => {
       this.isAPIReady = true
-      console.log(" YouTube API is ready")
+      console.log("YouTube API is ready")
     }
 
     // Set up event listeners
@@ -50,7 +50,7 @@ class YouTubeManager {
     if (!input) return null
 
     input = input.trim()
-    console.log(" Extracting video ID from:", input)
+    console.log("Extracting video ID from:", input)
 
     // Check if it's already a video ID (11 characters with alphanumeric, dash, underscore)
     if (/^[a-zA-Z0-9_-]+$/.test(input)) {
@@ -61,7 +61,7 @@ class YouTubeManager {
     // Extract from full YouTube URL: https://www.youtube.com/watch?v=VIDEO_ID
     const urlMatch = input.match(/[?&]v=([a-zA-Z0-9_-]+)/)
     if (urlMatch && urlMatch[1]) {
-      console.log(" Extracted from full URL:", urlMatch[1])
+      console.log("Extracted from full URL:", urlMatch[1])
       return urlMatch[1]
     }
 
@@ -88,7 +88,7 @@ class YouTubeManager {
     const videoStatus = document.getElementById("videoStatus")
 
     if (!videoInput || !videoStatus) {
-      console.error(" Video input or status element not found")
+      console.error("Video input or status element not found")
       return
     }
 
@@ -97,7 +97,7 @@ class YouTubeManager {
     console.log("Extracted video ID:", videoId)
 
     if (!videoId) {
-      videoStatus.textContent = " Please enter a valid YouTube Video ID or URL"
+      videoStatus.textContent = "Please enter a valid YouTube Video ID or URL"
       videoStatus.style.color = "#e53e3e"
       console.error("Invalid video ID or URL")
       return
@@ -108,7 +108,7 @@ class YouTubeManager {
 
     // Create or update player
     if (this.player) {
-      console.log(" Updating existing player with video ID:", videoId)
+      console.log("Updating existing player with video ID:", videoId)
       this.player.loadVideoById(videoId)
       videoStatus.textContent = "Video loaded successfully!"
       videoStatus.style.color = "#48bb78"
@@ -121,7 +121,7 @@ class YouTubeManager {
         return
       }
 
-      console.log(" Creating new YouTube player with video ID:", videoId)
+      console.log("Creating new YouTube player with video ID:", videoId)
       this.player = new YT.Player("youtubePlayer", {
         height: "390",
         width: "100%",
@@ -131,7 +131,7 @@ class YouTubeManager {
         },
         events: {
           onReady: (event) => {
-            console.log(" YouTube player is ready")
+            console.log("YouTube player is ready")
             const controls = document.getElementById("videoControls")
             if (controls) controls.style.display = "flex"
             videoStatus.textContent = "Video loaded and ready to play!"

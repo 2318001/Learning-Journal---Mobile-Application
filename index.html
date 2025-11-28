@@ -6,15 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Learning Journal PWA - Mobile Application Development</title>
 
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="icon" href="image/mario 111.png" type="image/png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="https://placeholder.svg?height=32&width=32&query=journal+icon" type="image/png">
     <meta name="theme-color" content="#0ea5e9">
 
     <!-- Single script file with all JavaScript -->
-     <script src="storage.js" defer></script>
+    <script src="storage.js" defer></script>
     <script src="browser.js" defer></script>
     <script src="thirdparty.js" defer></script>
     <script src="script.js" defer></script>
+    
+    <!-- YouTube IFrame API -->
+    <script src="https://www.youtube.com/iframe_api" defer></script>
 </head>
 
 <body>
@@ -67,7 +70,7 @@
 
                     <div class="hero-image">
                         <div class="profile-image-container">
-                            <img src="image/mario 111.png" class="profile-image" alt="Profile image" id="profileImage">
+                            <img src="https://placeholder.svg?height=200&width=200&query=profile+picture" class="profile-image" alt="Profile image" id="profileImage">
                             <button class="edit-profile-pic-btn" id="editProfilePicBtn"
                                 title="Edit profile picture">Edit</button>
                             <input type="file" id="profilePicInput" accept="image/*" style="display:none;">
@@ -140,7 +143,7 @@
                                 <h4>🎯 How to Play</h4>
                                 <ul>
                                     <li>Enter your name and select a difficulty level</li>
-                                    <li>Answer 10 multiple-choice questions</li>
+                                    <li>Answer 5 multiple-choice questions</li>
                                     <li>You have 60 seconds to complete all questions</li>
                                     <li>Click your answer choice to submit</li>
                                 </ul>
@@ -157,7 +160,7 @@
                             <div class="rule-item">
                                 <h4>⏰ Time Limit</h4>
                                 <ul>
-                                    <li>60 seconds total for all 10 questions</li>
+                                    <li>60 seconds total for all 5 questions</li>
                                     <li>Timer starts when you begin</li>
                                     <li>Game ends when time runs out</li>
                                 </ul>
@@ -203,7 +206,7 @@
 
                         <div class="question-area">
                             <div class="question-header">
-                                <span class="question-number">Question <span id="currentQuestionNum">1</span>/<span id="totalQuestions">10</span></span>
+                                <span class="question-number">Question <span id="currentQuestionNum">1</span>/<span id="totalQuestions">5</span></span>
                                 <div class="progress-bar">
                                     <div class="progress-fill" id="progressFill"></div>
                                 </div>
@@ -236,6 +239,7 @@
                                     <span class="result-label">Final Score:</span>
                                     <span class="result-value score-display" id="finalScore"></span>
                                 </div>
+                                <div class="result-item" id="highScoreMessage" style="display: none; margin-top: 1rem; color: #10b981; font-weight: bold;"></div>
                             </div>
                             <div class="results-actions">
                                 <button id="playAgainBtn" class="cta-btn primary">Play Again</button>
@@ -249,21 +253,12 @@
                         <div class="leaderboard-container">
                             <h3>🏆 Top Scores</h3>
                             <div class="leaderboard-tabs">
-                                <button class="leaderboard-tab active" data-difficulty="easy">Easy</button>
+                                <button class="leaderboard-tab active" data-difficulty="all">All</button>
+                                <button class="leaderboard-tab" data-difficulty="easy">Easy</button>
                                 <button class="leaderboard-tab" data-difficulty="medium">Medium</button>
                                 <button class="leaderboard-tab" data-difficulty="hard">Hard</button>
                             </div>
-                            <div id="leaderboardContent" class="leaderboard-content">
-                                <div class="leaderboard-list" id="easyLeaderboard">
-                                    <p>No scores yet. Be the first!</p>
-                                </div>
-                                <div class="leaderboard-list" id="mediumLeaderboard" style="display: none;">
-                                    <p>No scores yet. Be the first!</p>
-                                </div>
-                                <div class="leaderboard-list" id="hardLeaderboard" style="display: none;">
-                                    <p>No scores yet. Be the first!</p>
-                                </div>
-                            </div>
+                            <div id="leaderboardContent" class="leaderboard-content"></div>
                         </div>
                     </div>
                 </div>
@@ -412,7 +407,6 @@
             </div>
 
             <div id="projectsList" class="projects-list"></div>
-
         </div>
     </div>
 
@@ -436,6 +430,25 @@
                 <p>I am a passionate developer who enjoys building dynamic, user-friendly web applications. I study Computer Science at UCA and I explore the latest technologies to bring ideas to life.</p>
             </div>
 
+        </div>
+    </div>
+
+    <!-- EDIT ABOUT MODAL -->
+    <div id="editAboutModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 class="gradient-text">Edit About</h2>
+            <form id="editAboutForm" class="edit-form">
+                <div class="form-group">
+                    <label for="editAboutText">About Text</label>
+                    <textarea id="editAboutText" rows="8" required></textarea>
+                </div>
+                <button type="submit" class="cta-btn primary">Save Changes</button>
+            </form>
+            <div class="form-group">
+                <button type="button" id="uploadAboutBtn" class="cta-btn secondary">Upload from File</button>
+                <input type="file" id="aboutFileInput" accept=".txt" style="display: none;">
+            </div>
         </div>
     </div>
 
@@ -467,42 +480,64 @@
                 <p>Add your work experience here...</p>
             </div>
 
-        </div>
-    </div>
-
-
-    <!--  ABOUT EDIT MODAL -->
-    <div id="editAboutModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-
-            <h2 class="gradient-text">Edit About</h2>
-
-            <form id="editAboutForm">
-                <div class="form-group">
-                    <label for="editAboutText">About Content <span class="required">*</span></label>
-                    <textarea id="editAboutText" rows="8" required minlength="10" maxlength="2000"></textarea>
+            <div class="cv-file-section">
+                <button id="uploadCvBtn" class="cta-btn secondary">Upload CV File</button>
+                <input type="file" id="cvFileInput" accept=".pdf,.doc,.docx" style="display: none;">
+                <div id="cvFileDisplay" style="display: none; margin-top: 1rem;">
+                    <p><strong>📄 Uploaded File:</strong> <span id="cvFileName"></span></p>
+                    <button id="viewCvBtn" class="cta-btn primary">Download CV</button>
                 </div>
-                <button type="submit" class="cta-btn primary">Save</button>
-            </form>
+            </div>
+
         </div>
     </div>
 
-
-    <!-- CV EDIT MODAL -->
+    <!-- EDIT CV MODAL -->
     <div id="editCvModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
-
-            <h2 class="gradient-text">Edit CV</h2>
-
-            <form id="editCvForm">
+            <h2 class="gradient-text">Edit CV Content</h2>
+            <form id="editCvForm" class="edit-form">
                 <div class="form-group">
-                    <label for="editCvText">CV Content <span class="required">*</span></label>
-                    <textarea id="editCvText" rows="15" required minlength="10" maxlength="5000"></textarea>
+                    <label for="editCvText">CV Content (HTML supported)</label>
+                    <textarea id="editCvText" rows="15" required></textarea>
                 </div>
-                <button type="submit" class="cta-btn primary">Save</button>
+                <button type="submit" class="cta-btn primary">Save Changes</button>
             </form>
+        </div>
+    </div>
+
+    <!-- YOUTUBE VIDEO MODAL -->
+    <div id="youtubeModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            
+            <div id="youtubeDatetime" class="datetime"></div>
+
+            <h2 class="gradient-text">YouTube Video Player</h2>
+
+            <div class="youtube-section">
+                <div class="form-group">
+                    <label for="youtubeVideoId">Enter YouTube Video URL or ID</label>
+                    <input type="text" id="youtubeVideoId" placeholder="https://www.youtube.com/watch?v=..." />
+                </div>
+
+                <button id="loadVideoBtn" class="cta-btn primary">Load Video</button>
+
+                <div id="videoStatus" class="video-status"></div>
+
+                <div id="youtubePlayer" class="youtube-player"></div>
+
+                <div id="videoControls" class="video-controls" style="display: none;">
+                    <button id="playBtn" class="cta-btn">▶️ Play</button>
+                    <button id="pauseBtn" class="cta-btn">⏸️ Pause</button>
+                    <button id="stopBtn" class="cta-btn">⏹️ Stop</button>
+                    <button id="muteBtn" class="cta-btn">🔇 Mute</button>
+                    <button id="unmuteBtn" class="cta-btn">🔊 Unmute</button>
+                    <button id="fullscreenBtn" class="cta-btn">⛶ Fullscreen</button>
+                </div>
+            </div>
+
         </div>
     </div>
 
