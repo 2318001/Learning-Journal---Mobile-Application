@@ -7,7 +7,7 @@
     <title>Learning Journal PWA - Mobile Application Development</title>
 
     <link rel="stylesheet" href="css/style.css">
-    <link rel="icon" href="https://placeholder.svg?height=32&width=32&query=journal+icon" type="image/png">
+    <link rel="icon" href="image/mario 111.png" type="image/png">
     <meta name="theme-color" content="#0ea5e9">
 
     <!-- Single script file with all JavaScript -->
@@ -36,7 +36,7 @@
                     <li><a href="#" id="projectsBtn" data-open="projectsModal">Projects</a></li>
                     <li><a href="#" id="quizBtn" data-open="quizModal">Quiz Game</a></li>
                     <li><a href="#" id="aboutBtn" data-open="aboutModal">About</a></li>
-                    <li><a href="#" id="cvBtn" data-open="cvModal">CV</a></li>
+                    <li><a href="#" id="cvBtn" data-open="cvModal">C.V</a></li>
                 </ul>
             </nav>
         </div>
@@ -72,7 +72,7 @@
                         <div class="profile-image-container">
                             <img src="https://placeholder.svg?height=200&width=200&query=profile+picture" class="profile-image" alt="Profile image" id="profileImage">
                             <button class="edit-profile-pic-btn" id="editProfilePicBtn"
-                                title="Edit profile picture">Edit</button>
+                                title="Edit profile picture">...</button>
                             <input type="file" id="profilePicInput" accept="image/*" style="display:none;">
                         </div>
                     </div>
@@ -94,25 +94,23 @@
     <div id="quizModal" class="modal">
         <div class="modal-content quiz-modal-content">
             <span class="close-button">&times;</span>
-            
             <div id="quizDatetime" class="datetime"></div>
             
-            <!-- Quiz Container with Side-by-Side Layout -->
             <div class="quiz-layout">
                 <!-- Left Navigation Bar -->
                 <div class="quiz-sidebar">
                     <h3 class="quiz-nav-title">Quiz Navigation</h3>
                     <div class="quiz-nav-menu">
                         <button class="quiz-nav-btn active" data-section="playerSetup">
-                            <span class="nav-icon">🎮</span>
+                            <span class="nav-icon"></span>
                             <span>Start Game</span>
                         </button>
-                        <button class="quiz-nav-btn" data-section="rulesSection">
-                            <span class="nav-icon">📋</span>
+                        <button class="quiz-nav-btn" data-section="rules">
+                            <span class="nav-icon"></span>
                             <span>Rules</span>
                         </button>
                         <button class="quiz-nav-btn" data-section="leaderboard">
-                            <span class="nav-icon">🏆</span>
+                            <span class="nav-icon"></span>
                             <span>Leaderboard</span>
                         </button>
                     </div>
@@ -124,71 +122,113 @@
                     <!-- Player Setup Section -->
                     <div id="playerSetup" class="quiz-section active">
                         <div class="setup-container">
-                            <h3>🎮 Start New Game</h3>
-                            <p class="section-subtitle">Enter your name to begin your quiz adventure!</p>
+                            <h3> Start New Game</h3>
+                            <p class="section-subtitle">Enter your name and select a level to begin!</p>
                             <div class="form-group">
                                 <label for="playerName">Player Name</label>
                                 <input type="text" id="playerName" placeholder="Enter your name" maxlength="20" required>
                                 <span class="error-message" id="nameError"></span>
                             </div>
-                            <button id="startGameBtn" class="cta-btn primary large-btn">Start Game →</button>
+                            
+                            <!-- Level Selection with Lock/Unlock Status -->
+                            <div class="level-selection-grid">
+                                <div class="level-card" data-level="1">
+                                    <div class="level-number">Level 1</div>
+                                    <div class="level-stars" id="stars-1">☆☆☆</div>
+                                    <div class="level-status unlocked">Unlocked</div>
+                                    <button class="start-level-btn" data-level="1">Play Level 1</button>
+                                </div>
+                                <div class="level-card locked" data-level="2">
+                                    <div class="level-number">Level 2</div>
+                                    <div class="level-stars" id="stars-2">☆☆☆</div>
+                                    <div class="level-status"> Complete Level 1</div>
+                                    <button class="start-level-btn" data-level="2" disabled>Play Level 2</button>
+                                </div>
+                                <div class="level-card locked" data-level="3">
+                                    <div class="level-number">Level 3</div>
+                                    <div class="level-stars" id="stars-3">☆☆☆</div>
+                                    <div class="level-status"> Complete Level 2</div>
+                                    <button class="start-level-btn" data-level="3" disabled>Play Level 3</button>
+                                </div>
+                                <div class="level-card locked" data-level="4">
+                                    <div class="level-number">Level 4</div>
+                                    <div class="level-stars" id="stars-4">☆☆☆</div>
+                                    <div class="level-status">Complete Level 3</div>
+                                    <button class="start-level-btn" data-level="4" disabled>Play Level 4</button>
+                                </div>
+                                <div class="level-card locked" data-level="5">
+                                    <div class="level-number">Level 5</div>
+                                    <div class="level-stars" id="stars-5">☆☆☆</div>
+                                    <div class="level-status"> Complete Level 4</div>
+                                    <button class="start-level-btn" data-level="5" disabled>Play Level 5</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Rules Section -->
-                    <div id="rulesSection" class="quiz-section">
-                        <h3>📋 Quiz Rules</h3>
-                        <div class="rules-content">
-                            <div class="rule-item">
-                                <h4>🎯 How to Play</h4>
-                                <ul>
-                                    <li>Enter your name and select a difficulty level</li>
-                                    <li>Answer 5 multiple-choice questions</li>
-                                    <li>You have 60 seconds to complete all questions</li>
-                                    <li>Click your answer choice to submit</li>
-                                </ul>
-                            </div>
-                            <div class="rule-item">
-                                <h4>🏆 Scoring System</h4>
-                                <ul>
-                                    <li><strong>Easy:</strong> 10 points per correct answer</li>
-                                    <li><strong>Medium:</strong> 20 points per correct answer</li>
-                                    <li><strong>Hard:</strong> 30 points per correct answer</li>
-                                    <li>No penalty for wrong answers</li>
-                                </ul>
-                            </div>
-                            <div class="rule-item">
-                                <h4>⏰ Time Limit</h4>
-                                <ul>
-                                    <li>60 seconds total for all 5 questions</li>
-                                    <li>Timer starts when you begin</li>
-                                    <li>Game ends when time runs out</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Level Selection -->
-                    <div id="levelSelection" class="quiz-section">
-                        <div class="level-container">
-                            <h3>Select Difficulty Level</h3>
-                            <p class="section-subtitle">Choose your challenge!</p>
-                            <div class="level-buttons">
-                                <button class="level-btn easy" data-level="easy">
-                                    <span class="level-icon">🎯</span>
-                                    <span class="level-title">Easy</span>
-                                    <span class="level-points">10 pts/question</span>
-                                </button>
-                                <button class="level-btn medium" data-level="medium">
-                                    <span class="level-icon">⚡</span>
-                                    <span class="level-title">Medium</span>
-                                    <span class="level-points">20 pts/question</span>
-                                </button>
-                                <button class="level-btn hard" data-level="hard">
-                                    <span class="level-icon">🚀</span>
-                                    <span class="level-title">Hard</span>
-                                    <span class="level-points">30 pts/question</span>
-                                </button>
+                    <div id="rules" class="quiz-section">
+                        <div class="rules-container">
+                            <h3> Quiz Game Rules</h3>
+                            <p class="section-subtitle">Read these rules carefully before playing</p>
+                            <div class="rules-content">
+                                <div class="rule-item">
+                                    <h4>Game Objective</h4>
+                                    <ul>
+                                        <li>Complete all 5 levels by answering questions correctly</li>
+                                        <li>Each level has 15 questions, but only 10 random questions are shown</li>
+                                        <li>Earn stars and points based on your performance</li>
+                                        <li>Questions cover web development topics from basic to advanced</li>
+                                    </ul>
+                                </div>
+                                <div class="rule-item">
+                                    <h4> Scoring System</h4>
+                                    <ul>
+                                        <li><strong>Correct answer:</strong> +10 points</li>
+                                        <li><strong>Wrong answer:</strong> 0 points (no penalty)</li>
+                                        <li><strong>3 Stars:</strong> 80% or higher (8+ correct answers)</li>
+                                        <li><strong>2 Stars:</strong> 60-79% (6-7 correct answers)</li>
+                                        <li><strong>1 Star:</strong> 40-59% (4-5 correct answers)</li>
+                                        <li><strong>0 Stars:</strong> Below 40% (less than 4 correct)</li>
+                                    </ul>
+                                </div>
+                                <div class="rule-item">
+                                    <h4> Level Progression</h4>
+                                    <ul>
+                                        <li>Level 1 is unlocked by default for all players</li>
+                                        <li>You must earn at least 1 star to unlock the next level</li>
+                                        <li>Complete Level 1 → Unlock Level 2, and so on</li>
+                                        <li>You can replay completed levels to improve your score</li>
+                                        <li>Higher levels have more difficult questions</li>
+                                    </ul>
+                                </div>
+                                <div class="rule-item">
+                                    <h4> Timer</h4>
+                                    <ul>
+                                        <li>The timer tracks how long you take to complete the level</li>
+                                        <li>There is no time limit - take as long as you need</li>
+                                        <li>Your completion time is shown in the game header</li>
+                                        <li>Challenge yourself to answer quickly and accurately!</li>
+                                    </ul>
+                                </div>
+                                <div class="rule-item">
+                                    <h4> Leaderboard</h4>
+                                    <ul>
+                                        <li>Your best score for each level is saved automatically</li>
+                                        <li>Leaderboard ranks players by total stars earned</li>
+                                        <li>If stars are equal, total score determines ranking</li>
+                                        <li>Compete with yourself and improve your rankings!</li>
+                                    </ul>
+                                </div>
+                                <div class="rule-item">
+                                    <h4> Tips for Success</h4>
+                                    <ul>
+                                        <li>Read each question carefully before answering</li>
+                                        <li>Take your time - there's no time pressure</li>
+                                        <li>Review the correct answer when you get it wrong</li>
+                                        <li>Practice makes perfect - replay levels to improve!</li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -197,16 +237,17 @@
                     <div id="gameArea" class="quiz-section">
                         <div class="game-header">
                             <div class="player-info">
-                                <span>Player: <strong id="currentPlayerName"></strong></span>
-                                <span>Level: <strong id="currentLevel"></strong></span>
-                                <span>Score: <strong id="currentScore">0</strong></span>
+                                <span class="info-item"><strong id="currentPlayerName"></strong></span>
+                                <span class="info-item">Level <strong id="currentLevelDisplay"></strong></span>
+                                <span class="info-item"> <strong id="currentScore">0</strong> pts</span>
+                                <span class="info-item"> <strong id="currentStars">0</strong></span>
+                                <span class="info-item timer-display"> <strong id="quizTimer">0:00</strong></span>
                             </div>
-                            <div class="timer-display">⏱️ <span id="timer">60</span>s</div>
                         </div>
 
                         <div class="question-area">
                             <div class="question-header">
-                                <span class="question-number">Question <span id="currentQuestionNum">1</span>/<span id="totalQuestions">5</span></span>
+                                <span class="question-number">Question <span id="currentQuestionNum">1</span>/<span id="totalQuestions">10</span></span>
                                 <div class="progress-bar">
                                     <div class="progress-fill" id="progressFill"></div>
                                 </div>
@@ -225,7 +266,7 @@
                     <!-- Results -->
                     <div id="resultsArea" class="quiz-section">
                         <div class="results-container">
-                            <h3>🎊 Game Over!</h3>
+                            <h3 id="resultsTitle">Level Complete!</h3>
                             <div class="results-summary">
                                 <div class="result-item">
                                     <span class="result-label">Player:</span>
@@ -236,10 +277,26 @@
                                     <span class="result-value" id="resultLevel"></span>
                                 </div>
                                 <div class="result-item">
-                                    <span class="result-label">Final Score:</span>
+                                    <span class="result-label">Time Taken:</span>
+                                    <span class="result-value" id="resultTime"></span>
+                                </div>
+                                <div class="result-item">
+                                    <span class="result-label">Correct Answers:</span>
+                                    <span class="result-value" id="correctAnswers"></span>
+                                </div>
+                                <div class="result-item">
+                                    <span class="result-label">Level Score:</span>
+                                    <span class="result-value score-display" id="levelScore"></span>
+                                </div>
+                                <div class="result-item">
+                                    <span class="result-label">Stars Earned:</span>
+                                    <span class="result-value stars-display" id="totalStarsDisplay"></span>
+                                </div>
+                                <div class="result-item">
+                                    <span class="result-label">Total Score:</span>
                                     <span class="result-value score-display" id="finalScore"></span>
                                 </div>
-                                <div class="result-item" id="highScoreMessage" style="display: none; margin-top: 1rem; color: #10b981; font-weight: bold;"></div>
+                                <div id="levelPassMessage" class="level-pass-message"></div>
                             </div>
                             <div class="results-actions">
                                 <button id="playAgainBtn" class="cta-btn primary">Play Again</button>
@@ -251,13 +308,8 @@
                     <!-- Leaderboard -->
                     <div id="leaderboard" class="quiz-section">
                         <div class="leaderboard-container">
-                            <h3>🏆 Top Scores</h3>
-                            <div class="leaderboard-tabs">
-                                <button class="leaderboard-tab active" data-difficulty="all">All</button>
-                                <button class="leaderboard-tab" data-difficulty="easy">Easy</button>
-                                <button class="leaderboard-tab" data-difficulty="medium">Medium</button>
-                                <button class="leaderboard-tab" data-difficulty="hard">Hard</button>
-                            </div>
+                            <h3> Leaderboard</h3>
+                            <p class="section-subtitle">Top players ranked by stars and total score</p>
                             <div id="leaderboardContent" class="leaderboard-content"></div>
                         </div>
                     </div>
@@ -266,7 +318,7 @@
         </div>
     </div>
 
-
+    
     <!--  HERO EDIT MODAL -->
     <div id="editHeroModal" class="modal">
         <div class="modal-content">
@@ -310,15 +362,15 @@
             <!-- Journal Filters -->
             <div class="journal-filters">
                 <div class="filter-group">
-                    <label for="journalKeywordFilter">🔍 Keyword:</label>
+                    <label for="journalKeywordFilter"> Keyword:</label>
                     <input type="text" id="journalKeywordFilter" placeholder="Search...">
                 </div>
                 <div class="filter-group">
-                    <label for="journalDateFilter">📅 Date:</label>
+                    <label for="journalDateFilter"> Date:</label>
                     <input type="date" id="journalDateFilter">
                 </div>
                 <div class="filter-group">
-                    <label for="journalLengthFilter">📏 Length:</label>
+                    <label for="journalLengthFilter"> Length:</label>
                     <select id="journalLengthFilter">
                         <option value="all">All</option>
                         <option value="short">Short (&lt;200)</option>
@@ -411,6 +463,7 @@
     </div>
 
 
+    
     <!-- ABOUT MODAL -->
     <div id="aboutModal" class="modal">
         <div class="modal-content">
@@ -423,11 +476,38 @@
                 <h2 class="gradient-text">About Me</h2>
                 <div class="button-group">
                     <button class="edit-btn" id="editAboutBtn">Edit</button>
+                    <button class="upload-btn" id="uploadAboutBtn">Upload</button>
                 </div>
             </div>
 
+            <input type="file" id="aboutFileInput" accept=".txt,.doc,.docx" style="display:none">
+
             <div id="aboutContent" class="about-content">
-                <p>I am a passionate developer who enjoys building dynamic, user-friendly web applications. I study Computer Science at UCA and I explore the latest technologies to bring ideas to life.</p>
+                <p>I am a passionate developer...</p>
+            </div>
+
+            <!-- YouTube section - removed 11 character restriction, accepts any URL or ID -->
+            <div class="youtube-section">
+                <h3>Featured Video</h3>
+
+                <div class="youtube-controls">
+                    <input type="text" id="youtubeVideoId"
+                           placeholder="Enter YouTube Video ID or URL (any format)">
+                    <button id="loadVideoBtn" class="cta-btn primary">Load Video</button>
+                </div>
+
+                <div id="youtubePlayer"></div>
+
+                <div id="videoControls" class="video-controls" style="display:none">
+                    <button id="playBtn" class="control-btn"> Play</button>
+                    <button id="pauseBtn" class="control-btn">Pause</button>
+                    <button id="stopBtn" class="control-btn"> Stop</button>
+                    <button id="muteBtn" class="control-btn"> Mute</button>
+                    <button id="unmuteBtn" class="control-btn"> Unmute</button>
+                    <button id="fullscreenBtn" class="control-btn"> Fullscreen</button>
+                </div>
+
+                <div id="videoStatus" class="video-status"></div>
             </div>
 
         </div>
@@ -514,7 +594,7 @@
                 <button id="uploadCvBtn" class="cta-btn secondary">Upload CV File</button>
                 <input type="file" id="cvFileInput" accept=".pdf,.doc,.docx" style="display: none;">
                 <div id="cvFileDisplay" style="display: none; margin-top: 1rem;">
-                    <p><strong>📄 Uploaded File:</strong> <span id="cvFileName"></span></p>
+                    <p><strong> Uploaded File:</strong> <span id="cvFileName"></span></p>
                     <button id="viewCvBtn" class="cta-btn primary">Download CV</button>
                 </div>
             </div>
@@ -537,39 +617,7 @@
         </div>
     </div>
 
-    <!-- YOUTUBE VIDEO MODAL -->
-    <div id="youtubeModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            
-            <div id="youtubeDatetime" class="datetime"></div>
-
-            <h2 class="gradient-text">YouTube Video Player</h2>
-
-            <div class="youtube-section">
-                <div class="form-group">
-                    <label for="youtubeVideoId">Enter YouTube Video URL or ID</label>
-                    <input type="text" id="youtubeVideoId" placeholder="https://www.youtube.com/watch?v=..." />
-                </div>
-
-                <button id="loadVideoBtn" class="cta-btn primary">Load Video</button>
-
-                <div id="videoStatus" class="video-status"></div>
-
-                <div id="youtubePlayer" class="youtube-player"></div>
-
-                <div id="videoControls" class="video-controls" style="display: none;">
-                    <button id="playBtn" class="cta-btn">▶️ Play</button>
-                    <button id="pauseBtn" class="cta-btn">⏸️ Pause</button>
-                    <button id="stopBtn" class="cta-btn">⏹️ Stop</button>
-                    <button id="muteBtn" class="cta-btn">🔇 Mute</button>
-                    <button id="unmuteBtn" class="cta-btn">🔊 Unmute</button>
-                    <button id="fullscreenBtn" class="cta-btn">⛶ Fullscreen</button>
-                </div>
-            </div>
-
-        </div>
-    </div>
+    
  <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api" defer></script>
 </body>

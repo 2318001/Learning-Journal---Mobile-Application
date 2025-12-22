@@ -426,7 +426,7 @@ class ProjectsManager {
                 <div class="project-file">
                   <p><strong>📎 File:</strong> ${this.escapeHtml(project.fileName)} (${this.formatFileSize(project.fileSize)})</p>
                   <button class="file-download" onclick="window.projectsManager.downloadFile(\`${project.fileData}\`, \`${this.escapeHtml(project.fileName)}\`)">
-                    📥 Download File
+                     Download File
                   </button>
                 </div>
               `
@@ -471,68 +471,26 @@ class ProjectsManager {
   }
 }
 
-// Quiz Game Manager - Handles quiz game functionality
+// Quiz Game Manager Class
 class QuizGameManager {
   constructor(storage) {
     this.storage = storage
-    this.quizBtn = document.getElementById("quizBtn")
-    this.quizModal = document.getElementById("quizModal")
-
-    this.navButtons = document.querySelectorAll(".quiz-nav-btn")
-
-    // Game elements
-    this.rulesSection = document.getElementById("rulesSection")
-    this.playerSetup = document.getElementById("playerSetup")
-    this.levelSelection = document.getElementById("levelSelection")
-    this.gameArea = document.getElementById("gameArea")
-    this.resultsArea = document.getElementById("resultsArea")
-    this.leaderboard = document.getElementById("leaderboard")
-
-    // Inputs and buttons
-    this.playerNameInput = document.getElementById("playerName")
-    this.startGameBtn = document.getElementById("startGameBtn")
-    this.levelButtons = document.querySelectorAll(".level-btn")
-    this.nextQuestionBtn = document.getElementById("nextQuestionBtn")
-    this.endGameBtn = document.getElementById("endGameBtn")
-    this.playAgainBtn = document.getElementById("playAgainBtn")
-    this.resetQuizBtn = document.getElementById("resetQuizBtn")
-    this.viewLeaderboardBtn = document.getElementById("viewLeaderboardBtn")
-
-    // Leaderboard tabs
-    this.leaderboardTabs = document.querySelectorAll(".leaderboard-tab")
-
-    // Display elements
-    this.currentPlayerName = document.getElementById("currentPlayerName")
-    this.currentLevel = document.getElementById("currentLevel")
-    this.currentScore = document.getElementById("currentScore")
-    this.timerDisplay = document.getElementById("timer")
-    this.progressFill = document.getElementById("progressFill")
-    this.questionText = document.getElementById("questionText")
-    this.optionsContainer = document.getElementById("optionsContainer")
-    this.currentQuestionNum = document.getElementById("currentQuestionNum")
-    this.totalQuestions = document.getElementById("totalQuestions")
-    this.resultPlayerName = document.getElementById("resultPlayerName")
-    this.resultLevel = document.getElementById("resultLevel")
-    this.finalScore = document.getElementById("finalScore")
-    this.highScoreMessage = document.getElementById("highScoreMessage")
-    this.leaderboardContent = document.getElementById("leaderboardContent")
-    this.nameError = document.getElementById("nameError")
-
-    // Game state
-    this.currentPlayer = ""
-    this.currentDifficulty = ""
-    this.score = 0
+    this.playerName = ""
+    this.currentLevel = 1
     this.currentQuestionIndex = 0
-    this.timer = null
-    this.timeLeft = 60
-    this.totalTime = 60
-    this.currentLeaderboardDifficulty = "all"
+    this.score = 0
+    this.totalStars = 0
+    this.currentQuestions = []
+    this.correctAnswers = 0
+    this.timerInterval = null
+    this.startTime = null
+    this.elapsedTime = 0
 
-    // Quiz questions by difficulty
+    // 15 questions per level, show only 10 random
     this.questions = {
-      easy: [
+      1: [
         {
-          question: "What does HTML stand for?",
+          q: "What does HTML stand for?",
           options: [
             "Hyper Text Markup Language",
             "High Tech Modern Language",
@@ -542,22 +500,18 @@ class QuizGameManager {
           correct: 0,
         },
         {
-          question: "Which language is used for styling web pages?",
+          q: "Which language is used for styling web pages?",
           options: ["HTML", "JavaScript", "CSS", "Python"],
           correct: 2,
         },
+        { q: "What is the latest version of HTML?", options: ["HTML4", "XHTML", "HTML5", "HTML2023"], correct: 2 },
         {
-          question: "What is the latest version of HTML?",
-          options: ["HTML4", "XHTML", "HTML5", "HTML2023"],
-          correct: 2,
-        },
-        {
-          question: "Which tag is used to create a hyperlink?",
+          q: "Which tag is used to create a hyperlink?",
           options: ["<link>", "<a>", "<href>", "<hyperlink>"],
           correct: 1,
         },
         {
-          question: "What does CSS stand for?",
+          q: "What does CSS stand for?",
           options: [
             "Computer Style Sheets",
             "Creative Style System",
@@ -566,30 +520,68 @@ class QuizGameManager {
           ],
           correct: 2,
         },
-      ],
-      medium: [
         {
-          question: "Which symbol is used for comments in JavaScript?",
-          options: ["//", "<!-- -->", "**", "%%"],
-          correct: 0,
+          q: "Which HTML tag is used for the largest heading?",
+          options: ["<h6>", "<heading>", "<h1>", "<head>"],
+          correct: 2,
         },
         {
-          question: "Which method adds an element to the end of an array?",
-          options: ["push()", "pop()", "shift()", "unshift()"],
-          correct: 0,
+          q: "What is the correct HTML element for inserting a line break?",
+          options: ["<break>", "<lb>", "<br>", "<newline>"],
+          correct: 2,
         },
         {
-          question: "What is the result of 2 + '2' in JavaScript?",
-          options: ["4", "22", "NaN", "Error"],
+          q: "Which attribute is used to provide a unique identifier for an HTML element?",
+          options: ["class", "id", "name", "key"],
           correct: 1,
         },
         {
-          question: "Which HTML5 element is used for drawing graphics?",
+          q: "What does the <title> tag define?",
+          options: ["Page heading", "Browser tab title", "Header content", "Main content"],
+          correct: 1,
+        },
+        {
+          q: "Which tag is used to define an unordered list?",
+          options: ["<ol>", "<li>", "<ul>", "<list>"],
+          correct: 2,
+        },
+        {
+          q: "What is the correct HTML for making a text bold?",
+          options: ["<b>", "<bold>", "<strong>", "Both <b> and <strong>"],
+          correct: 3,
+        },
+        {
+          q: "Which HTML attribute specifies an alternate text for an image?",
+          options: ["title", "alt", "src", "text"],
+          correct: 1,
+        },
+        {
+          q: "What is the correct HTML for creating a checkbox?",
+          options: ['<input type="check">', '<input type="checkbox">', "<checkbox>", "<check>"],
+          correct: 1,
+        },
+        { q: "Which tag is used to define a table row?", options: ["<td>", "<th>", "<tr>", "<table>"], correct: 2 },
+        {
+          q: "What is the purpose of the <meta> tag?",
+          options: ["Create links", "Define metadata", "Style elements", "Add scripts"],
+          correct: 1,
+        },
+      ],
+      2: [
+        { q: "Which symbol is used for comments in JavaScript?", options: ["//", "<!-- -->", "**", "%%"], correct: 0 },
+        {
+          q: "Which method adds an element to the end of an array?",
+          options: ["push()", "pop()", "shift()", "unshift()"],
+          correct: 1,
+        },
+        { q: "What is the result of 2 + '2' in JavaScript?", options: ["4", "22", "NaN", "Error"], correct: 1 },
+        {
+          q: "Which HTML5 element is used for drawing graphics?",
           options: ["<graphic>", "<canvas>", "<draw>", "<svg>"],
           correct: 1,
         },
         {
-          question: "What does API stand for?",
+          q: "What does API stand for?",
           options: [
             "Application Programming Interface",
             "Advanced Programming Instruction",
@@ -598,42 +590,319 @@ class QuizGameManager {
           ],
           correct: 0,
         },
-      ],
-      hard: [
         {
-          question: "What is the time complexity of binary search?",
+          q: "Which JavaScript keyword is used to declare a constant?",
+          options: ["var", "let", "const", "constant"],
+          correct: 2,
+        },
+        {
+          q: "What is the correct way to declare a JavaScript function?",
+          options: ["function myFunc()", "function:myFunc()", "def myFunc()", "func myFunc()"],
+          correct: 0,
+        },
+        { q: "Which operator is used to assign a value to a variable?", options: ["*", "=", "==", "==="], correct: 1 },
+        {
+          q: "What will 'typeof null' return in JavaScript?",
+          options: ["null", "undefined", "object", "number"],
+          correct: 2,
+        },
+        {
+          q: "Which method is used to remove the last element from an array?",
+          options: ["pop()", "shift()", "remove()", "delete()"],
+          correct: 0,
+        },
+        {
+          q: "What is the correct syntax for a for loop?",
+          options: ["for (i = 0; i <= 5)", "for (i = 0; i <= 5; i++)", "for i = 1 to 5", "for (i <= 5; i++)"],
+          correct: 1,
+        },
+        {
+          q: "Which event occurs when a user clicks on an HTML element?",
+          options: ["onmouseclick", "onchange", "onclick", "onpress"],
+          correct: 2,
+        },
+        {
+          q: "How do you round the number 7.25 to the nearest integer?",
+          options: ["Math.round(7.25)", "Math.rnd(7.25)", "round(7.25)", "Math.floor(7.25)"],
+          correct: 0,
+        },
+        {
+          q: "Which built-in method returns the length of a string?",
+          options: ["length()", "size()", ".length", "getSize()"],
+          correct: 2,
+        },
+        {
+          q: "What is the correct way to write an array in JavaScript?",
+          options: [
+            'var colors = "red", "green", "blue"',
+            "var colors = (1:red, 2:green, 3:blue)",
+            'var colors = ["red", "green", "blue"]',
+            'var colors = {"red", "green", "blue"}',
+          ],
+          correct: 2,
+        },
+      ],
+      3: [
+        {
+          q: "What is the purpose of the 'use strict' directive in JavaScript?",
+          options: ["Enable ES6 features", "Enforce stricter parsing", "Add strict typing", "Improve performance"],
+          correct: 1,
+        },
+        {
+          q: "Which CSS property controls the text size?",
+          options: ["text-size", "font-style", "font-size", "text-style"],
+          correct: 2,
+        },
+        {
+          q: "What is a closure in JavaScript?",
+          options: [
+            "A loop structure",
+            "A function with access to outer scope",
+            "A type of object",
+            "An error handler",
+          ],
+          correct: 1,
+        },
+        { q: "Which HTTP method is used to update data?", options: ["GET", "POST", "PUT", "DELETE"], correct: 2 },
+        {
+          q: "What does DOM stand for?",
+          options: [
+            "Document Object Model",
+            "Data Object Management",
+            "Digital Oriented Markup",
+            "Document Orientation Method",
+          ],
+          correct: 0,
+        },
+        {
+          q: "Which CSS selector has the highest specificity?",
+          options: ["Element", "Class", "ID", "Universal"],
+          correct: 2,
+        },
+        {
+          q: "What is the purpose of async/await in JavaScript?",
+          options: ["Handle errors", "Manage promises", "Create loops", "Define functions"],
+          correct: 1,
+        },
+        {
+          q: "Which HTML5 element is used for semantic main content?",
+          options: ["<content>", "<main>", "<article>", "<section>"],
+          correct: 1,
+        },
+        {
+          q: "What is the box model in CSS?",
+          options: ["A layout system", "Content, padding, border, margin", "A flexbox alternative", "A grid system"],
+          correct: 1,
+        },
+        {
+          q: "Which method is used to parse JSON in JavaScript?",
+          options: ["JSON.parse()", "JSON.decode()", "parseJSON()", "decode()"],
+          correct: 0,
+        },
+        {
+          q: "What is the purpose of the 'this' keyword in JavaScript?",
+          options: ["Define a constant", "Reference current object", "Create a variable", "Import a module"],
+          correct: 1,
+        },
+        {
+          q: "Which CSS property is used for animations?",
+          options: ["animate", "animation", "transition", "transform"],
+          correct: 1,
+        },
+        {
+          q: "What is event bubbling?",
+          options: [
+            "Event propagation from child to parent",
+            "Event handling method",
+            "Animation technique",
+            "Data flow pattern",
+          ],
+          correct: 0,
+        },
+        {
+          q: "Which HTML attribute makes an element draggable?",
+          options: ["drag", "draggable", "movable", "dragable"],
+          correct: 1,
+        },
+        {
+          q: "What is the purpose of webpack?",
+          options: ["Test code", "Bundle modules", "Format code", "Debug applications"],
+          correct: 1,
+        },
+      ],
+      4: [
+        {
+          q: "What is the time complexity of binary search?",
           options: ["O(n)", "O(log n)", "O(n²)", "O(1)"],
           correct: 1,
         },
         {
-          question: "Which is NOT a JavaScript framework?",
-          options: ["React", "Vue", "Angular", "Flask"],
-          correct: 3,
-        },
-        {
-          question: "What is a closure in JavaScript?",
-          options: [
-            "A function that has access to its outer function's scope",
-            "A way to close a browser window",
-            "A method to end a program",
-            "A type of loop",
-          ],
-          correct: 0,
-        },
-        {
-          question: "Which HTTP status code means 'Not Found'?",
-          options: ["200", "301", "404", "500"],
+          q: "Which design pattern is used in Redux?",
+          options: ["Observer", "Factory", "Flux", "Singleton"],
           correct: 2,
         },
         {
-          question: "What is the purpose of the 'virtual DOM' in React?",
+          q: "What is a Promise in JavaScript?",
           options: [
-            "To improve rendering performance",
-            "To create 3D effects",
-            "To handle virtual reality",
-            "To manage server-side rendering",
+            "A callback function",
+            "An object representing async operation",
+            "A loop structure",
+            "A variable type",
+          ],
+          correct: 1,
+        },
+        { q: "Which HTTP status code indicates 'Not Found'?", options: ["400", "401", "404", "500"], correct: 2 },
+        {
+          q: "What does CORS stand for?",
+          options: [
+            "Cross-Origin Resource Sharing",
+            "Central Object Rendering System",
+            "Core Origin Request Service",
+            "Cross-Origin Routing System",
           ],
           correct: 0,
+        },
+        {
+          q: "What is the virtual DOM?",
+          options: ["A database", "A lightweight copy of the real DOM", "A framework", "A testing tool"],
+          correct: 1,
+        },
+        {
+          q: "Which method is used to merge arrays in JavaScript?",
+          options: ["merge()", "concat()", "combine()", "join()"],
+          correct: 1,
+        },
+        {
+          q: "What is hoisting in JavaScript?",
+          options: [
+            "Variable declaration moved to top",
+            "Function optimization",
+            "Memory management",
+            "Error handling",
+          ],
+          correct: 0,
+        },
+        {
+          q: "Which tool is used for dependency management in Node.js?",
+          options: ["pip", "npm", "gem", "cargo"],
+          correct: 1,
+        },
+        {
+          q: "What is useEffect in React?",
+          options: ["State management", "Side effects handling", "Component creation", "Event handling"],
+          correct: 1,
+        },
+        {
+          q: "Which protocol is used for real-time communication?",
+          options: ["HTTP", "FTP", "WebSocket", "SMTP"],
+          correct: 2,
+        },
+        {
+          q: "What is destructuring in JavaScript?",
+          options: ["Error handling", "Unpacking values from arrays/objects", "Memory cleanup", "Code splitting"],
+          correct: 1,
+        },
+        {
+          q: "Which CSS framework uses utility classes?",
+          options: ["Bootstrap", "Tailwind CSS", "Foundation", "Bulma"],
+          correct: 1,
+        },
+        {
+          q: "What is middleware in Express.js?",
+          options: ["A database layer", "Functions that process requests", "A routing system", "A testing tool"],
+          correct: 1,
+        },
+        {
+          q: "Which method creates a new array with transformed elements?",
+          options: ["forEach()", "map()", "filter()", "reduce()"],
+          correct: 1,
+        },
+      ],
+      5: [
+        {
+          q: "What is the difference between call() and apply()?",
+          options: [
+            "No difference",
+            "call() takes individual args, apply() takes array",
+            "call() is async, apply() is sync",
+            "call() is deprecated",
+          ],
+          correct: 1,
+        },
+        {
+          q: "What is memoization?",
+          options: ["A memory leak", "Caching function results", "A design pattern", "A testing strategy"],
+          correct: 1,
+        },
+        {
+          q: "Which data structure uses LIFO?",
+          options: ["Queue", "Stack", "Tree", "Graph"],
+          correct: 1,
+        },
+        {
+          q: "What is the purpose of useCallback in React?",
+          options: ["Manage state", "Memoize functions", "Handle side effects", "Create refs"],
+          correct: 1,
+        },
+        {
+          q: "What does CI/CD stand for?",
+          options: [
+            "Code Integration/Code Deployment",
+            "Continuous Integration/Continuous Deployment",
+            "Central Integration/Central Deployment",
+            "Computer Integration/Computer Delivery",
+          ],
+          correct: 1,
+        },
+        {
+          q: "Which algorithm is used for shortest path?",
+          options: ["Binary Search", "Dijkstra's", "Quick Sort", "Merge Sort"],
+          correct: 1,
+        },
+        {
+          q: "What is a closure's main benefit?",
+          options: ["Faster execution", "Data encapsulation", "Better styling", "Simpler syntax"],
+          correct: 1,
+        },
+        {
+          q: "What is GraphQL?",
+          options: ["A database", "A query language for APIs", "A CSS framework", "A testing library"],
+          correct: 1,
+        },
+        {
+          q: "Which HTTP method is idempotent?",
+          options: ["POST", "GET", "PATCH", "All methods"],
+          correct: 1,
+        },
+        {
+          q: "What is the purpose of Docker?",
+          options: ["Version control", "Containerization", "Code editing", "Database management"],
+          correct: 1,
+        },
+        {
+          q: "What is lazy loading?",
+          options: ["Slow internet", "Loading resources on demand", "A design pattern", "A testing method"],
+          correct: 1,
+        },
+        {
+          q: "Which pattern separates concerns in MVC?",
+          options: ["Model handles everything", "View-Controller-Model", "Model-View-Controller", "Controller only"],
+          correct: 2,
+        },
+        {
+          q: "What is OAuth used for?",
+          options: ["Database queries", "Authorization", "Styling", "Testing"],
+          correct: 1,
+        },
+        {
+          q: "What is the purpose of Redis?",
+          options: ["Web server", "In-memory data store", "Code editor", "Version control"],
+          correct: 1,
+        },
+        {
+          q: "What is tree shaking?",
+          options: ["Animation technique", "Removing unused code", "Data structure operation", "Testing method"],
+          correct: 1,
         },
       ],
     }
@@ -642,361 +911,424 @@ class QuizGameManager {
   }
 
   init() {
-    if (this.navButtons) {
-      this.navButtons.forEach((btn) => {
-        btn.addEventListener("click", (e) => {
-          const section = e.currentTarget.dataset.section
-          this.showSection(section)
+    console.log("Initializing QuizGameManager")
 
-          // Update active state
-          this.navButtons.forEach((b) => b.classList.remove("active"))
-          e.currentTarget.classList.add("active")
-        })
+    // Setup navigation
+    document.querySelectorAll(".quiz-nav-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        this.showSection(btn.dataset.section)
       })
-    }
-
-    // Game event listeners
-    if (this.startGameBtn) {
-      this.startGameBtn.addEventListener("click", () => this.startGame())
-    }
-
-    if (this.levelButtons) {
-      this.levelButtons.forEach((btn) => {
-        btn.addEventListener("click", () => {
-          this.currentDifficulty = btn.dataset.level
-          this.startQuiz()
-        })
-      })
-    }
-
-    if (this.nextQuestionBtn) {
-      this.nextQuestionBtn.addEventListener("click", () => this.nextQuestion())
-    }
-
-    if (this.endGameBtn) {
-      this.endGameBtn.addEventListener("click", () => this.endGame())
-    }
-
-    if (this.playAgainBtn) {
-      this.playAgainBtn.addEventListener("click", () => this.playAgain())
-    }
-
-    if (this.viewLeaderboardBtn) {
-      this.viewLeaderboardBtn.addEventListener("click", () => {
-        this.showSection("leaderboard")
-        this.navButtons.forEach((b) => b.classList.remove("active"))
-        const leaderboardBtn = document.querySelector('.quiz-nav-btn[data-section="leaderboard"]')
-        if (leaderboardBtn) leaderboardBtn.classList.add("active")
-      })
-    }
-
-    if (this.resetQuizBtn) {
-      this.resetQuizBtn.addEventListener("click", () => this.resetLeaderboard())
-    }
-
-    if (this.leaderboardTabs) {
-      this.leaderboardTabs.forEach((tab) => {
-        tab.addEventListener("click", (e) => {
-          this.currentLeaderboardDifficulty = e.currentTarget.dataset.difficulty
-
-          // Update active tab
-          this.leaderboardTabs.forEach((t) => t.classList.remove("active"))
-          e.currentTarget.classList.add("active")
-
-          this.displayLeaderboard()
-        })
-      })
-    }
-  }
-
-  openModal() {
-    if (this.quizModal) {
-      this.quizModal.style.display = "block"
-      updateDateTime("quizDatetime")
-      this.showSection("playerSetup")
-    }
-  }
-
-  showSection(sectionName) {
-    const sections = [
-      this.rulesSection,
-      this.playerSetup,
-      this.levelSelection,
-      this.gameArea,
-      this.resultsArea,
-      this.leaderboard,
-    ]
-
-    sections.forEach((section) => {
-      if (section) {
-        section.classList.remove("active")
-      }
     })
 
-    const targetSection = document.getElementById(sectionName)
-    if (targetSection) {
-      targetSection.classList.add("active")
-    }
+    // Setup level buttons
+    document.querySelectorAll(".start-level-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const level = Number.parseInt(btn.dataset.level)
+        this.startLevel(level)
+      })
+    })
 
-    if (sectionName === "leaderboard") {
-      this.displayLeaderboard()
-    }
-  }
+    // Setup control buttons
+    document.getElementById("nextQuestionBtn")?.addEventListener("click", () => this.nextQuestion())
+    document.getElementById("endGameBtn")?.addEventListener("click", () => this.endGame())
+    document.getElementById("playAgainBtn")?.addEventListener("click", () => this.resetToSetup())
+    document.getElementById("viewLeaderboardBtn")?.addEventListener("click", () => this.showSection("leaderboard"))
+    document.getElementById("resetQuizBtn")?.addEventListener("click", () => this.resetAllProgress())
 
-  startGame() {
-    const playerName = this.playerNameInput ? this.playerNameInput.value.trim() : ""
-
-    if (!playerName || playerName.length < 2) {
-      if (this.nameError) {
-        this.nameError.textContent = "Please enter a valid name (at least 2 characters)"
-        this.nameError.style.display = "block"
-      }
-      if (this.playerNameInput) {
-        this.playerNameInput.classList.add("invalid")
-      }
-      return
-    }
-
-    this.currentPlayer = playerName
-    if (this.nameError) {
-      this.nameError.style.display = "none"
-    }
-    if (this.playerNameInput) {
-      this.playerNameInput.classList.remove("invalid")
-    }
-
-    this.showSection("levelSelection")
-  }
-
-  startQuiz() {
-    this.score = 0
-    this.currentQuestionIndex = 0
-    this.timeLeft = this.totalTime
-
-    if (this.currentPlayerName) this.currentPlayerName.textContent = this.currentPlayer
-    if (this.currentLevel) this.currentLevel.textContent = this.currentDifficulty.toUpperCase()
-    if (this.currentScore) this.currentScore.textContent = "0"
-
-    this.showSection("gameArea")
-    this.startTimer()
-    this.displayQuestion()
+    // Load saved progress
+    this.loadProgress()
   }
 
   startTimer() {
-    if (this.timer) {
-      clearInterval(this.timer)
-    }
-
-    this.timer = setInterval(() => {
-      this.timeLeft--
-
-      if (this.timerDisplay) {
-        this.timerDisplay.textContent = this.timeLeft
-      }
-
-      if (this.progressFill) {
-        const percentage = (this.timeLeft / this.totalTime) * 100
-        this.progressFill.style.width = percentage + "%"
-      }
-
-      if (this.timeLeft <= 0) {
-        this.endGame()
-      }
+    this.startTime = Date.now()
+    this.elapsedTime = 0
+    this.updateTimerDisplay()
+    this.timerInterval = setInterval(() => {
+      this.elapsedTime = Math.floor((Date.now() - this.startTime) / 1000)
+      this.updateTimerDisplay()
     }, 1000)
   }
 
-  displayQuestion() {
-    const questions = this.questions[this.currentDifficulty]
-    if (!questions || this.currentQuestionIndex >= questions.length) {
-      this.endGame()
+  stopTimer() {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval)
+      this.timerInterval = null
+    }
+  }
+
+  updateTimerDisplay() {
+    const minutes = Math.floor(this.elapsedTime / 60)
+    const seconds = this.elapsedTime % 60
+    const timerElement = document.getElementById("quizTimer")
+    if (timerElement) {
+      timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`
+    }
+  }
+
+  formatTime(seconds) {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, "0")}`
+  }
+
+  showSection(sectionId) {
+    // Update navigation
+    document.querySelectorAll(".quiz-nav-btn").forEach((btn) => {
+      btn.classList.remove("active")
+      if (btn.dataset.section === sectionId) {
+        btn.classList.add("active")
+      }
+    })
+
+    // Update sections
+    document.querySelectorAll(".quiz-section").forEach((section) => {
+      section.classList.remove("active")
+    })
+    document.getElementById(sectionId)?.classList.add("active")
+
+    // Load leaderboard if showing that section
+    if (sectionId === "leaderboard") {
+      this.displayLeaderboard()
+    }
+  }
+
+  startLevel(level) {
+    const playerNameInput = document.getElementById("playerName")
+    this.playerName = playerNameInput?.value.trim() || "Player"
+
+    if (!this.playerName || this.playerName === "Player") {
+      alert("Please enter your name!")
+      playerNameInput?.focus()
       return
     }
 
-    const question = questions[this.currentQuestionIndex]
+    this.currentLevel = level
+    this.currentQuestionIndex = 0
+    this.score = 0
+    this.correctAnswers = 0
 
-    if (this.questionText) {
-      this.questionText.textContent = question.question
-    }
+    // Select 10 random questions from the 15 available
+    const allQuestions = [...this.questions[level]]
+    this.currentQuestions = this.shuffleArray(allQuestions).slice(0, 10)
 
-    if (this.currentQuestionNum) {
-      this.currentQuestionNum.textContent = this.currentQuestionIndex + 1
-    }
+    this.startTimer()
 
-    if (this.totalQuestions) {
-      this.totalQuestions.textContent = questions.length
-    }
-
-    if (this.optionsContainer) {
-      this.optionsContainer.innerHTML = question.options
-        .map(
-          (option, index) => `
-                <button class="option-btn" data-index="${index}">
-                    ${option}
-                </button>
-            `,
-        )
-        .join("")
-
-      const optionButtons = this.optionsContainer.querySelectorAll(".option-btn")
-      optionButtons.forEach((btn) => {
-        btn.addEventListener("click", (e) => this.checkAnswer(Number.parseInt(e.target.dataset.index)))
-      })
-    }
-
-    if (this.nextQuestionBtn) {
-      this.nextQuestionBtn.style.display = "none"
-    }
-  }
-
-  checkAnswer(selectedIndex) {
-    const questions = this.questions[this.currentDifficulty]
-    const question = questions[this.currentQuestionIndex]
-    const optionButtons = this.optionsContainer.querySelectorAll(".option-btn")
-
-    optionButtons.forEach((btn) => (btn.disabled = true))
-
-    if (selectedIndex === question.correct) {
-      optionButtons[selectedIndex].classList.add("correct")
-      const points = this.currentDifficulty === "easy" ? 10 : this.currentDifficulty === "medium" ? 20 : 30
-      this.score += points
-      if (this.currentScore) {
-        this.currentScore.textContent = this.score
-      }
-    } else {
-      optionButtons[selectedIndex].classList.add("wrong")
-      optionButtons[question.correct].classList.add("correct")
-    }
-
-    if (this.nextQuestionBtn) {
-      this.nextQuestionBtn.style.display = "block"
-    }
-  }
-
-  nextQuestion() {
-    this.currentQuestionIndex++
+    this.showSection("gameArea")
     this.displayQuestion()
   }
 
-  endGame() {
-    if (this.timer) {
-      clearInterval(this.timer)
+  shuffleArray(array) {
+    const shuffled = [...array]
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
     }
-
-    if (this.resultPlayerName) this.resultPlayerName.textContent = this.currentPlayer
-    if (this.resultLevel) this.resultLevel.textContent = this.currentDifficulty.toUpperCase()
-    if (this.finalScore) this.finalScore.textContent = this.score
-
-    this.saveScore()
-    this.showSection("resultsArea")
+    return shuffled
   }
 
-  saveScore() {
-    const scores = this.storage.getLocal("quizScores") || []
+  displayQuestion() {
+    const question = this.currentQuestions[this.currentQuestionIndex]
+   if (!question || !Array.isArray(question.options)) {
+    console.error("Invalid question state", {
+      index: this.currentQuestionIndex,
+      total: this.currentQuestions.length
+    })
+    this.showResults()
+    return
+  }
 
-    scores.push({
-      player: this.currentPlayer,
-      level: this.currentDifficulty,
-      score: this.score,
-      date: new Date().toLocaleString(),
-      timestamp: new Date().toISOString(),
+
+    // Update header
+    document.getElementById("currentPlayerName").textContent = this.playerName
+    document.getElementById("currentLevelDisplay").textContent = this.currentLevel
+    document.getElementById("currentScore").textContent = this.score
+    document.getElementById("currentStars").textContent = this.totalStars
+
+
+    // Update question
+    document.getElementById("currentQuestionNum").textContent = this.currentQuestionIndex + 1
+    document.getElementById("totalQuestions").textContent = this.currentQuestions.length
+    document.getElementById("questionText").textContent = question.q
+
+    // Update progress bar
+    const progress = ((this.currentQuestionIndex + 1) / this.currentQuestions.length) * 100
+    document.getElementById("progressFill").style.width = `${progress}%`
+
+    const validOptions = question.options.filter((opt) => opt && opt.toString().trim() !== "")
+
+    if (validOptions.length === 0) {
+      console.error("No valid options for question", question)
+      this.showResults()
+      return
+    }
+
+    // Display options
+    const optionsContainer = document.getElementById("optionsContainer")
+    optionsContainer.innerHTML = validOptions
+      .map(
+        (option, index) => `
+        <button class="option-btn" data-index="${index}">
+          ${this.escapeHtml(option)}
+        </button>
+      `,
+      )
+      .join("")
+
+    // Add event listeners to options
+    optionsContainer.querySelectorAll(".option-btn").forEach((btn) => {
+      btn.addEventListener("click", () => this.selectAnswer(Number.parseInt(btn.dataset.index)))
     })
 
-    scores.sort((a, b) => b.score - a.score)
-
-    const topScores = scores.slice(0, 50)
-    this.storage.setLocal("quizScores", topScores)
-
-    if (this.highScoreMessage) {
-      const rank = topScores.findIndex((s) => s.player === this.currentPlayer && s.score === this.score) + 1
-      if (rank <= 3) {
-        this.highScoreMessage.textContent = `🎉 Congratulations! You're #${rank} on the leaderboard!`
-        this.highScoreMessage.style.display = "block"
-      } else if (rank <= 10) {
-        this.highScoreMessage.textContent = `Great job! You're #${rank} on the leaderboard!`
-        this.highScoreMessage.style.display = "block"
-      } else {
-        this.highScoreMessage.style.display = "none"
-      }
-    }
-  }
-
-  displayLeaderboard() {
-    let scores = this.storage.getLocal("quizScores") || []
-
-    if (this.currentLeaderboardDifficulty !== "all") {
-      scores = scores.filter((s) => s.level === this.currentLeaderboardDifficulty)
-    }
-
-    if (this.leaderboardContent) {
-      if (scores.length === 0) {
-        this.leaderboardContent.innerHTML = `
-          <div class="empty-state">
-            <p>No scores yet. Be the first to play!</p>
-          </div>
-        `
-      } else {
-        this.leaderboardContent.innerHTML = `
-          <table class="leaderboard-table">
-            <thead>
-              <tr>
-                <th>Rank</th>
-                <th>Player</th>
-                <th>Level</th>
-                <th>Score</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${scores
-                .map(
-                  (score, index) => `
-                <tr class="${index < 3 ? "top-score" : ""}">
-                  <td>${index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}</td>
-                  <td>${this.escapeHtml(score.player)}</td>
-                  <td><span class="level-badge ${score.level}">${score.level.toUpperCase()}</span></td>
-                  <td><strong>${score.score}</strong></td>
-                  <td>${score.date}</td>
-                </tr>
-              `,
-                )
-                .join("")}
-            </tbody>
-          </table>
-        `
-      }
-    }
-  }
-
-  resetLeaderboard() {
-    if (confirm("Are you sure you want to reset all scores? This cannot be undone.")) {
-      this.storage.removeLocal("quizScores")
-      this.displayLeaderboard()
-      alert("All scores have been reset!")
-    }
-  }
-
-  playAgain() {
-    this.showSection("levelSelection")
-  }
-
-  resetGame() {
-    if (this.timer) {
-      clearInterval(this.timer)
-    }
-    this.currentPlayer = ""
-    this.currentDifficulty = ""
-    this.score = 0
-    this.currentQuestionIndex = 0
-    this.timeLeft = 60
-    if (this.playerNameInput) {
-      this.playerNameInput.value = ""
-    }
+    // Hide feedback and next button
+    document.getElementById("feedbackMessage").textContent = ""
+    document.getElementById("feedbackMessage").className = "feedback-message"
+    document.getElementById("nextQuestionBtn").style.display = "none"
   }
 
   escapeHtml(text) {
     const div = document.createElement("div")
     div.textContent = text
     return div.innerHTML
+  }
+  selectAnswer(selectedIndex) {
+
+document.querySelectorAll(".option-btn").forEach(btn => btn.disabled = true)
+
+    const question = this.currentQuestions[this.currentQuestionIndex]
+    const isCorrect = selectedIndex === question.correct
+
+    // Disable all buttons
+    document.querySelectorAll(".option-btn").forEach((btn) => {
+      btn.disabled = true
+      const index = Number.parseInt(btn.dataset.index)
+      if (index === question.correct) {
+        btn.classList.add("correct")
+      } else if (index === selectedIndex && !isCorrect) {
+        btn.classList.add("wrong")
+      }
+    })
+
+    // Show feedback
+    const feedbackEl = document.getElementById("feedbackMessage")
+    if (isCorrect) {
+      this.score += 10
+      this.correctAnswers++
+      feedbackEl.textContent = " Correct! Well done!"
+      feedbackEl.className = "feedback-message correct"
+    } else {
+      feedbackEl.textContent = " Wrong answer. The correct answer is highlighted."
+      feedbackEl.className = "feedback-message wrong"
+    }
+
+    // Update score display
+    document.getElementById("currentScore").textContent = this.score
+
+    // Show next button or go to results
+    if (this.currentQuestionIndex < this.currentQuestions.length - 1) {
+      document.getElementById("nextQuestionBtn").style.display = "inline-block"
+    } else {
+      setTimeout(() => this.showResults(), 1500)
+    }
+  }
+
+  nextQuestion() {
+    if (this.currentQuestionIndex >= this.currentQuestions.length - 1) return
+    this.currentQuestionIndex++
+    this.displayQuestion()
+  }
+
+  endGame() {
+    if (confirm("Are you sure you want to end the game? Your progress will be saved.")) {
+      this.showResults()
+    }
+  }
+
+  showResults() {
+    this.stopTimer()
+
+    const percentage = (this.correctAnswers / this.currentQuestions.length) * 100
+    let stars = 0
+    if (percentage >= 80) stars = 3
+    else if (percentage >= 60) stars = 2
+    else if (percentage >= 40) stars = 1
+
+    this.totalStars += stars
+
+    // Save progress
+    this.saveProgress(stars)
+
+    // Display results
+    document.getElementById("resultPlayerName").textContent = this.playerName
+    document.getElementById("resultLevel").textContent = this.currentLevel
+    document.getElementById("resultTime").textContent = this.formatTime(this.elapsedTime)
+    document.getElementById("correctAnswers").textContent = `${this.correctAnswers}/${this.currentQuestions.length}`
+    document.getElementById("levelScore").textContent = this.score
+    document.getElementById("totalStarsDisplay").textContent = "⭐".repeat(stars) || "No stars"
+    document.getElementById("finalScore").textContent = this.score
+
+    // Show level pass message
+    const passMessage = document.getElementById("levelPassMessage")
+    if (stars >= 1) {
+      passMessage.textContent = ` Congratulations! You earned ${stars} star${stars > 1 ? "s" : ""} and unlocked the next level!`
+      passMessage.style.color = "#10b981"
+      passMessage.style.background = "#d1fae5"
+      passMessage.style.padding = "1rem"
+      passMessage.style.borderRadius = "10px"
+    } else {
+      passMessage.textContent = "You need at least 1 star (40% correct) to unlock the next level. Try again!"
+      passMessage.style.color = "#ef4444"
+      passMessage.style.background = "#fee2e2"
+      passMessage.style.padding = "1rem"
+      passMessage.style.borderRadius = "10px"
+    }
+
+    this.showSection("resultsArea")
+  }
+
+  saveProgress(stars) {
+    const savedProgress = this.storage.getLocal("quizProgress")
+    const progress = {
+      levels: savedProgress?.levels || {},
+      leaderboard: savedProgress?.leaderboard || [],
+    }
+
+    // Update level progress
+    if (!progress.levels[this.currentLevel] || progress.levels[this.currentLevel].stars < stars) {
+      progress.levels[this.currentLevel] = {
+        stars: stars,
+        score: this.score,
+        completed: true,
+        time: this.elapsedTime,
+      }
+    }
+
+    // Update leaderboard
+    const existingEntry = progress.leaderboard.find((entry) => entry.name === this.playerName)
+    if (existingEntry) {
+      existingEntry.totalScore += this.score
+      existingEntry.totalStars += stars
+    } else {
+      progress.leaderboard.push({
+        name: this.playerName,
+        totalScore: this.score,
+        totalStars: stars,
+      })
+    }
+
+    // Sort leaderboard
+    progress.leaderboard.sort((a, b) => {
+      if (b.totalStars !== a.totalStars) return b.totalStars - a.totalStars
+      return b.totalScore - a.totalScore
+    })
+
+    this.storage.setLocal("quizProgress", progress)
+    this.loadProgress()
+  }
+
+  loadProgress() {
+    const savedProgress = this.storage.getLocal("quizProgress")
+    const progress = {
+      levels: savedProgress?.levels || {},
+      leaderboard: savedProgress?.leaderboard || [],
+    }
+
+    // Update level cards
+    for (let level = 1; level <= 5; level++) {
+      const card = document.querySelector(`.level-card[data-level="${level}"]`)
+      const btn = document.querySelector(`.start-level-btn[data-level="${level}"]`)
+      const starsEl = document.getElementById(`stars-${level}`)
+      const statusEl = card?.querySelector(".level-status")
+
+      if (!card || !btn) continue
+
+      const levelData = progress.levels?.[level]
+      const previousLevel = level - 1
+      const previousCompleted = level === 1 || progress.levels?.[previousLevel]?.stars >= 1
+
+      if (levelData?.completed) {
+        // Level completed
+        card.classList.remove("locked")
+        card.classList.add("completed")
+        btn.disabled = false
+        const starDisplay = "⭐".repeat(levelData.stars) + "☆".repeat(3 - levelData.stars)
+        if (starsEl) starsEl.textContent = starDisplay
+        if (statusEl) {
+          statusEl.textContent = " Completed"
+          statusEl.classList.add("unlocked")
+        }
+      } else if (previousCompleted) {
+        // Level unlocked but not completed
+        card.classList.remove("locked")
+        card.classList.add("unlocked")
+        btn.disabled = false
+        if (statusEl) {
+          statusEl.textContent = "Unlocked"
+          statusEl.classList.add("unlocked")
+        }
+      } else {
+        // Level locked
+        card.classList.add("locked")
+        card.classList.remove("unlocked", "completed")
+        btn.disabled = true
+        if (statusEl) {
+          statusEl.textContent = `🔒 Complete Level ${level - 1}`
+          statusEl.classList.remove("unlocked")
+        }
+      }
+    }
+  }
+
+  displayLeaderboard() {
+    const progress = this.storage.getLocal("quizProgress") || { leaderboard: [] }
+    const container = document.getElementById("leaderboardContent")
+
+    if (progress.leaderboard.length === 0) {
+      container.innerHTML = '<div class="empty-state">No players yet. Be the first to play!</div>'
+      return
+    }
+
+    const tableHTML = `
+      <table class="leaderboard-table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Player</th>
+            <th>Total Stars</th>
+            <th>Total Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${progress.leaderboard
+            .map(
+              (entry, index) => `
+            <tr class="${index < 3 ? "top-player" : ""}">
+              <td>${index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}</td>
+              <td>${entry.name}</td>
+              <td>${"⭐".repeat(Math.min(entry.totalStars, 15))}</td>
+              <td>${entry.totalScore}</td>
+            </tr>
+          `,
+            )
+            .join("")}
+        </tbody>
+      </table>
+    `
+
+    container.innerHTML = tableHTML
+  }
+
+  resetToSetup() {
+    this.stopTimer()
+    this.showSection("playerSetup")
+  }
+
+  resetAllProgress() {
+    if (confirm("Are you sure you want to reset all quiz progress? This cannot be undone.")) {
+      this.storage.removeLocal("quizProgress")
+      this.loadProgress()
+      this.displayLeaderboard()
+      alert("All progress has been reset!")
+    }
   }
 }
 
@@ -1051,6 +1383,17 @@ class HeroManager {
     }
   }
 }
+
+
+
+
+
+
+
+
+
+
+
 
 // DateTime functions
 function updateDateTime(elementId) {
