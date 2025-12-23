@@ -483,8 +483,17 @@ class QuizGameManager {
     this.currentQuestions = []
     this.correctAnswers = 0
     this.timerInterval = null
+    this.questionTimerInterval = null
     this.startTime = null
     this.elapsedTime = 0
+    this.gameMode = "normal" // "normal" or "challenge"
+    this.questionTimeLimit = 10 // seconds for challenge mode
+    this.questionStartTime = null
+    this.profiles = {}
+    this.currentProfile = null
+
+    // Game mode states
+    this.isChallengeMode = false
 
     // 15 questions per level, show only 10 random
     this.questions = {
@@ -928,6 +937,9 @@ class QuizGameManager {
       })
     })
 
+    // Setup game mode toggle
+    this.setupGameModeToggle()
+
     // Setup control buttons
     document.getElementById("nextQuestionBtn")?.addEventListener("click", () => this.nextQuestion())
     document.getElementById("endGameBtn")?.addEventListener("click", () => this.endGame())
@@ -936,7 +948,18 @@ class QuizGameManager {
     document.getElementById("resetQuizBtn")?.addEventListener("click", () => this.resetAllProgress())
 
     // Load saved progress
+    this.loadProfiles()
     this.loadProgress()
+  }
+
+  setupGameModeToggle() {
+    const modeRadios = document.querySelectorAll('input[name="gameMode"]')
+    modeRadios.forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        this.gameMode = e.target.value
+        this.isChallengeMode = this.gameMode === 'challenge'
+      })
+    })
   }
 
   startTimer() {
@@ -949,11 +972,106 @@ class QuizGameManager {
     }, 1000)
   }
 
+  startQuestionTimer() {
+    if (!this.isChallengeMode) return
+
+    this.questionStartTime = Date.now()
+    this.updateQuestionTimerDisplay(this.questionTimeLimit)
+
+    // Clear any existing timer
+    if (this.questionTimerInterval) {
+      clearInterval(this.questionTimerInterval)
+    }
+
+    // Start new timer
+    this.questionTimerInterval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - this.questionStartTime) / 1000)
+      const remaining = Math.max(0, this.questionTimeLimit - elapsed)
+      
+      this.updateQuestionTimerDisplay(remaining)
+
+      // Check if time's up
+      if (remaining <= 0) {
+        this.handleTimeUp()
+        clearInterval(this.questionTimerInterval)
+      }
+    }, 1000)
+  }
+
+  stopQuestionTimer() {
+    if (this.questionTimerInterval) {
+      clearInterval(this.questionTimerInterval)
+      this.questionTimerInterval = null
+    }
+  }
+
+  updateQuestionTimerDisplay(remainingTime) {
+    let timerDisplay = document.getElementById('questionTimer')
+    
+    // Create timer display if it doesn't exist
+    if (!timerDisplay && this.isChallengeMode) {
+      const questionHeader = document.querySelector('.question-header')
+      if (questionHeader) {
+        timerDisplay = document.createElement('div')
+        timerDisplay.id = 'questionTimer'
+        timerDisplay.className = 'challenge-timer'
+        timerDisplay.innerHTML = `⏱️ <span id="timerValue">${remainingTime}</span>s`
+        questionHeader.appendChild(timerDisplay)
+      }
+    }
+
+    // Update timer value
+    if (timerDisplay) {
+      const timerValue = document.getElementById('timerValue')
+      if (timerValue) {
+        timerValue.textContent = remainingTime
+        
+        // Add warning class when time is low
+        if (remainingTime <= 10) {
+          timerValue.classList.add('time-critical')
+        } else {
+          timerValue.classList.remove('time-critical')
+        }
+      }
+    }
+  }
+
+  handleTimeUp() {
+    if (!this.isChallengeMode) return
+
+    // Disable all options
+    document.querySelectorAll(".option-btn").forEach(btn => {
+      if (!btn.disabled) {
+        btn.disabled = true
+        
+        // Highlight correct answer
+        const question = this.currentQuestions[this.currentQuestionIndex]
+        const index = Number.parseInt(btn.dataset.index)
+        if (index === question.correct) {
+          btn.classList.add('correct')
+        }
+      }
+    })
+
+    // Show feedback
+    const feedbackEl = document.getElementById("feedbackMessage")
+    feedbackEl.textContent = "⏰ Time's up! Question skipped."
+    feedbackEl.className = "feedback-message wrong"
+
+    // Show next button
+    if (this.currentQuestionIndex < this.currentQuestions.length - 1) {
+      document.getElementById("nextQuestionBtn").style.display = "inline-block"
+    } else {
+      setTimeout(() => this.showResults(), 1500)
+    }
+  }
+
   stopTimer() {
     if (this.timerInterval) {
       clearInterval(this.timerInterval)
       this.timerInterval = null
     }
+    this.stopQuestionTimer()
   }
 
   updateTimerDisplay() {
@@ -1002,6 +1120,14 @@ class QuizGameManager {
       return
     }
 
+    // Get game mode
+    const selectedMode = document.querySelector('input[name="gameMode"]:checked')
+    this.gameMode = selectedMode?.value || 'normal'
+    this.isChallengeMode = this.gameMode === 'challenge'
+
+    // Create or load player profile
+    this.loadOrCreateProfile(this.playerName)
+
     this.currentLevel = level
     this.currentQuestionIndex = 0
     this.score = 0
@@ -1013,8 +1139,52 @@ class QuizGameManager {
 
     this.startTimer()
 
+    // Update player display with mode indicator
+    const playerDisplay = document.getElementById("currentPlayerName")
+    playerDisplay.textContent = this.playerName
+    if (this.isChallengeMode) {
+      playerDisplay.innerHTML = `${this.playerName} <span class="challenge-indicator">Challenge Mode</span>`
+    }
+
     this.showSection("gameArea")
     this.displayQuestion()
+  }
+
+  loadOrCreateProfile(playerName) {
+    // Load profiles from storage
+    this.profiles = this.storage.getLocal("quizProfiles") || {}
+    
+    // Check if profile exists
+    if (!this.profiles[playerName]) {
+      // Create new profile
+      this.profiles[playerName] = {
+        name: playerName,
+        unlockedLevels: 1,
+        levels: {},
+        totalStars: 0,
+        totalScore: 0,
+        created: new Date().toISOString(),
+        lastPlayed: new Date().toISOString(),
+        gameMode: this.gameMode
+      }
+      this.saveProfiles()
+    }
+    
+    // Set as current profile
+    this.currentProfile = this.profiles[playerName]
+    
+    // Update last played
+    this.currentProfile.lastPlayed = new Date().toISOString()
+    this.currentProfile.gameMode = this.gameMode
+    this.saveProfiles()
+  }
+
+  saveProfiles() {
+    this.storage.setLocal("quizProfiles", this.profiles)
+  }
+
+  loadProfiles() {
+    this.profiles = this.storage.getLocal("quizProfiles") || {}
   }
 
   shuffleArray(array) {
@@ -1028,22 +1198,19 @@ class QuizGameManager {
 
   displayQuestion() {
     const question = this.currentQuestions[this.currentQuestionIndex]
-   if (!question || !Array.isArray(question.options)) {
-    console.error("Invalid question state", {
-      index: this.currentQuestionIndex,
-      total: this.currentQuestions.length
-    })
-    this.showResults()
-    return
-  }
-
+    if (!question || !Array.isArray(question.options)) {
+      console.error("Invalid question state", {
+        index: this.currentQuestionIndex,
+        total: this.currentQuestions.length
+      })
+      this.showResults()
+      return
+    }
 
     // Update header
-    document.getElementById("currentPlayerName").textContent = this.playerName
     document.getElementById("currentLevelDisplay").textContent = this.currentLevel
     document.getElementById("currentScore").textContent = this.score
     document.getElementById("currentStars").textContent = this.totalStars
-
 
     // Update question
     document.getElementById("currentQuestionNum").textContent = this.currentQuestionIndex + 1
@@ -1079,10 +1246,21 @@ class QuizGameManager {
       btn.addEventListener("click", () => this.selectAnswer(Number.parseInt(btn.dataset.index)))
     })
 
+    // Remove challenge timer if exists
+    const existingTimer = document.getElementById('questionTimer')
+    if (existingTimer) {
+      existingTimer.remove()
+    }
+
     // Hide feedback and next button
     document.getElementById("feedbackMessage").textContent = ""
     document.getElementById("feedbackMessage").className = "feedback-message"
     document.getElementById("nextQuestionBtn").style.display = "none"
+
+    // Start question timer for challenge mode
+    if (this.isChallengeMode) {
+      this.startQuestionTimer()
+    }
   }
 
   escapeHtml(text) {
@@ -1090,16 +1268,19 @@ class QuizGameManager {
     div.textContent = text
     return div.innerHTML
   }
-  selectAnswer(selectedIndex) {
 
-document.querySelectorAll(".option-btn").forEach(btn => btn.disabled = true)
+  selectAnswer(selectedIndex) {
+    // Stop question timer
+    this.stopQuestionTimer()
+
+    // Disable all buttons
+    document.querySelectorAll(".option-btn").forEach(btn => btn.disabled = true)
 
     const question = this.currentQuestions[this.currentQuestionIndex]
     const isCorrect = selectedIndex === question.correct
 
-    // Disable all buttons
+    // Highlight correct/wrong answers
     document.querySelectorAll(".option-btn").forEach((btn) => {
-      btn.disabled = true
       const index = Number.parseInt(btn.dataset.index)
       if (index === question.correct) {
         btn.classList.add("correct")
@@ -1108,15 +1289,33 @@ document.querySelectorAll(".option-btn").forEach(btn => btn.disabled = true)
       }
     })
 
+    // Calculate points
+    let points = 10
+    let timeBonus = 0
+    
+    // Add time bonus in challenge mode if answered quickly
+    if (this.isChallengeMode) {
+      const elapsed = Math.floor((Date.now() - this.questionStartTime) / 1000)
+      if (isCorrect && elapsed < 10) {
+        timeBonus = Math.floor((10 - elapsed) * 0.5) // Up to 5 bonus points
+        points += timeBonus
+      }
+    }
+
     // Show feedback
     const feedbackEl = document.getElementById("feedbackMessage")
     if (isCorrect) {
-      this.score += 10
+      this.score += points
       this.correctAnswers++
-      feedbackEl.textContent = " Correct! Well done!"
+      
+      if (timeBonus > 0) {
+        feedbackEl.textContent = `✓ Correct! +${points} points (10 + ${timeBonus} time bonus)`
+      } else {
+        feedbackEl.textContent = `✓ Correct! +${points} points`
+      }
       feedbackEl.className = "feedback-message correct"
     } else {
-      feedbackEl.textContent = " Wrong answer. The correct answer is highlighted."
+      feedbackEl.textContent = "✗ Wrong answer. The correct answer is highlighted."
       feedbackEl.className = "feedback-message wrong"
     }
 
@@ -1145,17 +1344,18 @@ document.querySelectorAll(".option-btn").forEach(btn => btn.disabled = true)
 
   showResults() {
     this.stopTimer()
+    this.stopQuestionTimer()
 
     const percentage = (this.correctAnswers / this.currentQuestions.length) * 100
     let stars = 0
-    if (percentage >= 80) stars = 3
-    else if (percentage >= 60) stars = 2
-    else if (percentage >= 40) stars = 1
+    if (percentage >= 95) stars = 3
+    else if (percentage >= 70) stars = 2
+    else if (percentage >= 60) stars = 1
 
     this.totalStars += stars
 
-    // Save progress
-    this.saveProgress(stars)
+    // Save progress to profile
+    this.saveProfileProgress(stars)
 
     // Display results
     document.getElementById("resultPlayerName").textContent = this.playerName
@@ -1169,13 +1369,13 @@ document.querySelectorAll(".option-btn").forEach(btn => btn.disabled = true)
     // Show level pass message
     const passMessage = document.getElementById("levelPassMessage")
     if (stars >= 1) {
-      passMessage.textContent = ` Congratulations! You earned ${stars} star${stars > 1 ? "s" : ""} and unlocked the next level!`
+      passMessage.textContent = `🎉 Congratulations! You earned ${stars} star${stars > 1 ? "s" : ""} and unlocked the next level!`
       passMessage.style.color = "#10b981"
       passMessage.style.background = "#d1fae5"
       passMessage.style.padding = "1rem"
       passMessage.style.borderRadius = "10px"
     } else {
-      passMessage.textContent = "You need at least 1 star (40% correct) to unlock the next level. Try again!"
+      passMessage.textContent = "You need at least 1 star (60% correct) to unlock the next level. Try again!"
       passMessage.style.color = "#ef4444"
       passMessage.style.background = "#fee2e2"
       passMessage.style.padding = "1rem"
@@ -1185,52 +1385,55 @@ document.querySelectorAll(".option-btn").forEach(btn => btn.disabled = true)
     this.showSection("resultsArea")
   }
 
-  saveProgress(stars) {
-    const savedProgress = this.storage.getLocal("quizProgress")
-    const progress = {
-      levels: savedProgress?.levels || {},
-      leaderboard: savedProgress?.leaderboard || [],
-    }
+  saveProfileProgress(stars) {
+    if (!this.currentProfile) return
 
-    // Update level progress
-    if (!progress.levels[this.currentLevel] || progress.levels[this.currentLevel].stars < stars) {
-      progress.levels[this.currentLevel] = {
-        stars: stars,
-        score: this.score,
-        completed: true,
-        time: this.elapsedTime,
+    const profile = this.currentProfile
+    const levelKey = `level${this.currentLevel}`
+
+    // Initialize level data if not exists
+    if (!profile.levels[levelKey]) {
+      profile.levels[levelKey] = {
+        bestScore: 0,
+        stars: 0,
+        attempts: 0,
+        time: this.elapsedTime
       }
     }
 
-    // Update leaderboard
-    const existingEntry = progress.leaderboard.find((entry) => entry.name === this.playerName)
-    if (existingEntry) {
-      existingEntry.totalScore += this.score
-      existingEntry.totalStars += stars
-    } else {
-      progress.leaderboard.push({
-        name: this.playerName,
-        totalScore: this.score,
-        totalStars: stars,
-      })
+    const levelData = profile.levels[levelKey]
+
+    // Update if this is a better score
+    if (this.score > levelData.bestScore) {
+      levelData.bestScore = this.score
     }
 
-    // Sort leaderboard
-    progress.leaderboard.sort((a, b) => {
-      if (b.totalStars !== a.totalStars) return b.totalStars - a.totalStars
-      return b.totalScore - a.totalScore
-    })
+    // Update if more stars
+    if (stars > levelData.stars) {
+      levelData.stars = stars
+    }
 
-    this.storage.setLocal("quizProgress", progress)
+    levelData.attempts++
+    profile.lastPlayed = new Date().toISOString()
+
+    // Update unlocked levels if earned at least 1 star
+    if (stars > 0 && this.currentLevel < 5 && profile.unlockedLevels <= this.currentLevel) {
+      profile.unlockedLevels = this.currentLevel + 1
+    }
+
+    // Update totals
+    profile.totalStars = Object.values(profile.levels).reduce((sum, l) => sum + (l.stars || 0), 0)
+    profile.totalScore = Object.values(profile.levels).reduce((sum, l) => sum + (l.bestScore || 0), 0)
+
+    this.saveProfiles()
     this.loadProgress()
   }
 
   loadProgress() {
-    const savedProgress = this.storage.getLocal("quizProgress")
-    const progress = {
-      levels: savedProgress?.levels || {},
-      leaderboard: savedProgress?.leaderboard || [],
-    }
+    // Update level cards based on current profile
+    if (!this.currentProfile) return
+
+    const profile = this.currentProfile
 
     // Update level cards
     for (let level = 1; level <= 5; level++) {
@@ -1241,34 +1444,31 @@ document.querySelectorAll(".option-btn").forEach(btn => btn.disabled = true)
 
       if (!card || !btn) continue
 
-      const levelData = progress.levels?.[level]
-      const previousLevel = level - 1
-      const previousCompleted = level === 1 || progress.levels?.[previousLevel]?.stars >= 1
+      const levelKey = `level${level}`
+      const levelData = profile.levels?.[levelKey]
 
-      if (levelData?.completed) {
-        // Level completed
+      if (level <= profile.unlockedLevels) {
+        // Level unlocked
         card.classList.remove("locked")
-        card.classList.add("completed")
         btn.disabled = false
-        const starDisplay = "⭐".repeat(levelData.stars) + "☆".repeat(3 - levelData.stars)
-        if (starsEl) starsEl.textContent = starDisplay
-        if (statusEl) {
-          statusEl.textContent = " Completed"
-          statusEl.classList.add("unlocked")
-        }
-      } else if (previousCompleted) {
-        // Level unlocked but not completed
-        card.classList.remove("locked")
-        card.classList.add("unlocked")
-        btn.disabled = false
-        if (statusEl) {
-          statusEl.textContent = "Unlocked"
-          statusEl.classList.add("unlocked")
+        
+        if (levelData?.stars) {
+          const stars = levelData.stars || 0
+          const starDisplay = "★".repeat(stars) + "☆".repeat(3 - stars)
+          if (starsEl) starsEl.textContent = starDisplay
+          if (statusEl) {
+            statusEl.textContent = `Completed (${stars}★)`
+            statusEl.classList.add("unlocked")
+          }
+        } else {
+          if (statusEl) {
+            statusEl.textContent = "Unlocked"
+            statusEl.classList.add("unlocked")
+          }
         }
       } else {
         // Level locked
         card.classList.add("locked")
-        card.classList.remove("unlocked", "completed")
         btn.disabled = true
         if (statusEl) {
           statusEl.textContent = `🔒 Complete Level ${level - 1}`
@@ -1279,13 +1479,18 @@ document.querySelectorAll(".option-btn").forEach(btn => btn.disabled = true)
   }
 
   displayLeaderboard() {
-    const progress = this.storage.getLocal("quizProgress") || { leaderboard: [] }
     const container = document.getElementById("leaderboardContent")
 
-    if (progress.leaderboard.length === 0) {
+    if (Object.keys(this.profiles).length === 0) {
       container.innerHTML = '<div class="empty-state">No players yet. Be the first to play!</div>'
       return
     }
+
+    // Sort profiles by total stars, then total score
+    const sortedProfiles = Object.values(this.profiles).sort((a, b) => {
+      if (b.totalStars !== a.totalStars) return b.totalStars - a.totalStars
+      return b.totalScore - a.totalScore
+    })
 
     const tableHTML = `
       <table class="leaderboard-table">
@@ -1295,17 +1500,22 @@ document.querySelectorAll(".option-btn").forEach(btn => btn.disabled = true)
             <th>Player</th>
             <th>Total Stars</th>
             <th>Total Score</th>
+            <th>Levels</th>
+            <th>Last Played</th>
           </tr>
         </thead>
         <tbody>
-          ${progress.leaderboard
+          ${sortedProfiles
+            .slice(0, 20) // Show top 20
             .map(
-              (entry, index) => `
+              (profile, index) => `
             <tr class="${index < 3 ? "top-player" : ""}">
               <td>${index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}</td>
-              <td>${entry.name}</td>
-              <td>${"⭐".repeat(Math.min(entry.totalStars, 15))}</td>
-              <td>${entry.totalScore}</td>
+              <td>${profile.name}</td>
+              <td>${"⭐".repeat(Math.min(profile.totalStars, 15))}</td>
+              <td>${profile.totalScore}</td>
+              <td>${profile.unlockedLevels}/5</td>
+              <td>${new Date(profile.lastPlayed).toLocaleDateString()}</td>
             </tr>
           `,
             )
@@ -1319,18 +1529,26 @@ document.querySelectorAll(".option-btn").forEach(btn => btn.disabled = true)
 
   resetToSetup() {
     this.stopTimer()
+    this.stopQuestionTimer()
     this.showSection("playerSetup")
   }
 
   resetAllProgress() {
-    if (confirm("Are you sure you want to reset all quiz progress? This cannot be undone.")) {
+    if (confirm("Are you sure you want to reset ALL quiz progress and profiles? This cannot be undone.")) {
       this.storage.removeLocal("quizProgress")
+      this.storage.removeLocal("quizProfiles")
+      this.profiles = {}
+      this.currentProfile = null
       this.loadProgress()
       this.displayLeaderboard()
       alert("All progress has been reset!")
     }
   }
+
 }
+
+
+
 
 // Hero Section Manager
 class HeroManager {

@@ -129,6 +129,25 @@
                                 <input type="text" id="playerName" placeholder="Enter your name" maxlength="20" required>
                                 <span class="error-message" id="nameError"></span>
                             </div>
+
+
+
+                            <!-- Add this right after the player name input in playerSetup section -->
+<div class="form-group">
+    <label for="gameMode">Game Mode</label>
+    <div class="game-mode-toggle">
+        <label class="toggle-label">
+            <input type="radio" name="gameMode" value="normal" checked>
+            <span class="toggle-option">Normal Mode</span>
+            <span class="toggle-description"></span>
+        </label>
+        <label class="toggle-label">
+            <input type="radio" name="gameMode" value="challenge">
+            <span class="toggle-option"> Challenge Mode</span>
+            <span class="toggle-description"></span>
+        </label>
+    </div>
+</div>
                             
                             <!-- Level Selection with Lock/Unlock Status -->
                             <div class="level-selection-grid">
