@@ -4,7 +4,41 @@ class StorageManager {
     this.dbName = "LearningJournalDB"
     this.dbVersion = 1
     this.db = null
+    
+    // Clean up any corrupted data first
+    this.cleanCorruptedData();
     this.initIndexedDB()
+  }
+
+  // Clean up corrupted LocalStorage data
+  cleanCorruptedData() {
+    const corruptedKeys = [];
+    
+    // Check specific keys that might be corrupted
+    const keysToCheck = ['quizPlayers', 'currentPlayer', 'quizScores', 'journals', 'projects'];
+    
+    keysToCheck.forEach(key => {
+      try {
+        const item = localStorage.getItem(key);
+        if (item) {
+          // Try to parse it
+          JSON.parse(item);
+        }
+      } catch (error) {
+        // If parsing fails, mark for removal
+        console.warn(`Found corrupted data for key "${key}", removing it`);
+        corruptedKeys.push(key);
+      }
+    });
+    
+    // Remove corrupted keys
+    corruptedKeys.forEach(key => {
+      localStorage.removeItem(key);
+    });
+    
+    if (corruptedKeys.length > 0) {
+      console.log(`Cleaned up ${corruptedKeys.length} corrupted LocalStorage entries`);
+    }
   }
 
   // Initialize IndexedDB for complex data storage
@@ -49,11 +83,50 @@ class StorageManager {
   getLocal(key) {
     try {
       const item = localStorage.getItem(key)
-      return item ? JSON.parse(item) : null
+      if (!item) return null
+      
+      try {
+        return JSON.parse(item)
+      } catch (parseError) {
+        console.warn(`Failed to parse JSON for key "${key}":`, parseError)
+        
+        // Try to clean the data
+        const cleaned = this.cleanJsonString(item)
+        try {
+          return JSON.parse(cleaned)
+        } catch {
+          console.error(`Could not recover data for key "${key}", removing it`)
+          localStorage.removeItem(key)
+          return null
+        }
+      }
     } catch (e) {
       console.error("LocalStorage error:", e)
       return null
     }
+  }
+
+  // Helper to clean JSON strings
+  cleanJsonString(str) {
+    let cleaned = str.trim()
+    
+    // Find first {
+    const firstBrace = cleaned.indexOf('{')
+    const firstBracket = cleaned.indexOf('[')
+    
+    if (firstBrace !== -1 && (firstBracket === -1 || firstBrace < firstBracket)) {
+      cleaned = cleaned.substring(firstBrace)
+    } else if (firstBracket !== -1) {
+      cleaned = cleaned.substring(firstBracket)
+    }
+    
+    // Find last } or ]
+    let lastIndex = Math.max(cleaned.lastIndexOf('}'), cleaned.lastIndexOf(']'))
+    if (lastIndex !== -1) {
+      cleaned = cleaned.substring(0, lastIndex + 1)
+    }
+    
+    return cleaned
   }
 
   removeLocal(key) {

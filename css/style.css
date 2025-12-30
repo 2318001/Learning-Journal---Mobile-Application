@@ -1633,3 +1633,303 @@ body.dark-mode .youtube-section h3 {
     color: #666;
     margin-top: 0.25rem;
 }
+
+
+
+
+
+
+
+
+
+
+
+/* Leaderboard Toggle Styles */
+.leaderboard-mode-toggle {
+    margin: 1.5rem 0;
+    display: flex;
+    justify-content: center;
+}
+
+.toggle-switch {
+    display: flex;
+    background: #f3f4f6;
+    border-radius: 50px;
+    padding: 4px;
+    width: 100%;
+    max-width: 400px;
+    border: 2px solid #e5e7eb;
+}
+
+.toggle-btn {
+    flex: 1;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    background: transparent;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.toggle-btn.active {
+    background: #0ea5e9;
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.2);
+}
+
+.toggle-btn:hover:not(.active) {
+    background: #e5e7eb;
+}
+
+/* Leaderboard Content Area */
+.leaderboard-content-area {
+    margin-top: 1rem;
+    min-height: 300px;
+}
+
+.leaderboard-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.leaderboard-content.active {
+    display: block;
+}
+
+.leaderboard-header {
+    display: grid;
+    grid-template-columns: 80px 1fr 100px 100px 100px;
+    padding: 0.75rem 1rem;
+    background: #0ea5e9;
+    color: white;
+    border-radius: 8px 8px 0 0;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.leaderboard-list {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 2px solid #e5e7eb;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+}
+
+.leaderboard-entry {
+    display: grid;
+    grid-template-columns: 80px 1fr 100px 100px 100px;
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    align-items: center;
+    transition: background 0.2s ease;
+}
+
+.leaderboard-entry:hover {
+    background: #f9fafb;
+}
+
+.leaderboard-entry.current-player {
+    background: rgba(14, 165, 233, 0.1);
+    border-left: 4px solid #0ea5e9;
+}
+
+.leaderboard-rank {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #374151;
+}
+
+.leaderboard-rank.rank-1 { color: #f59e0b; }
+.leaderboard-rank.rank-2 { color: #94a3b8; }
+.leaderboard-rank.rank-3 { color: #b45309; }
+
+.leaderboard-player {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.leaderboard-stars {
+    color: #f59e0b;
+    font-size: 1.1rem;
+}
+
+.leaderboard-score {
+    font-weight: 600;
+    color: #059669;
+}
+
+.leaderboard-levels {
+    color: #4b5563;
+    font-size: 0.9rem;
+}
+
+/* Statistics */
+.leaderboard-stats {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 2px solid #e2e8f0;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0ea5e9;
+}
+
+/* Empty State */
+.leaderboard-list .empty-state {
+    padding: 3rem 1rem;
+    text-align: center;
+    color: #6b7280;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Player Status */
+.player-status {
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    animation: fadeIn 0.3s ease;
+}
+
+.player-status.new-player {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border-left: 4px solid #4caf50;
+}
+
+.player-status.returning-player {
+    background-color: #e3f2fd;
+    color: #1565c0;
+    border-left: 4px solid #2196f3;
+}
+
+/* Resume Button */
+#resumeButtonContainer {
+    text-align: center;
+    animation: slideUp 0.3s ease;
+}
+
+#resumeLastLevelBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+#resumeLastLevelBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.resume-icon {
+    font-size: 1.2rem;
+    animation: spin 2s linear infinite;
+}
+
+/* Level card resume highlight */
+.level-card.resume-level {
+    border: 2px solid #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    animation: pulse 2s infinite;
+}
+
+.level-card.resume-level .level-status {
+    color: #667eea;
+    font-weight: bold;
+}
+
+.level-card.resume-level .start-level-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(102, 126, 234, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0); }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Level status updates */
+.level-status.unlocked {
+    color: #10b981;
+    font-weight: 600;
+}
+
+.level-status.completed {
+    color: #3b82f6;
+    font-weight: 600;
+}
+
+.level-status.resume-here {
+    color: #f59e0b;
+    font-weight: bold;
+    background: #fffbeb;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    display: inline-block;
+}

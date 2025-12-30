@@ -471,31 +471,180 @@ class ProjectsManager {
   }
 }
 
-// Quiz Game Manager Class
+// Player Manager Class - into QuizGameManager
+class PlayerManager {
+  constructor(storage) {
+    this.storage = storage;
+    this.players = this.loadPlayers();
+    this.currentPlayer = null;
+  }
+
+  loadPlayers() {
+    try {
+      const playersData = this.storage.getLocal("quizPlayers");
+      if (!playersData) return {};
+      
+     
+      if (typeof playersData === 'object' && playersData !== null) {
+        return playersData;
+      }
+      
+      
+      if (typeof playersData === 'string') {
+
+        // Remove any corrupted characters
+        const cleaned = playersData.trim();
+        if (cleaned.startsWith('{') && cleaned.endsWith('}')) {
+          try {
+            return JSON.parse(cleaned);
+          } catch (parseError) {
+            console.error("Error parsing quizPlayers JSON:", parseError);
+            return {};
+          }
+        }
+      }
+      
+      return {};
+    } catch (error) {
+      console.error("Error loading players:", error);
+      return {};
+    }
+  }
+
+  savePlayers() {
+    this.storage.setLocal("quizPlayers", JSON.stringify(this.players));
+  }
+
+  playerExists(name) {
+    return this.players.hasOwnProperty(name.toLowerCase());
+  }
+
+  getPlayer(name) {
+    return this.players[name.toLowerCase()];
+  }
+
+  createPlayer(name, gameMode = 'normal') {
+    const playerKey = name.toLowerCase();
+    this.players[playerKey] = {
+      name: name,
+      level: 1, // Current highest unlocked level
+      scores: {}, // Stores scores for each level
+      gameMode: gameMode,
+      totalStars: 0,
+      totalScore: 0,
+      lastPlayed: new Date().toISOString(),
+      createdAt: new Date().toISOString()
+    };
+    this.savePlayers();
+    return this.players[playerKey];
+  }
+
+  updatePlayerProgress(name, level, score, stars, gameMode) {
+    const player = this.getPlayer(name);
+    if (!player) {
+      console.error(`Player "${name}" not found`);
+      return;
+    }
+    
+    // Update game mode
+    player.gameMode = gameMode;
+    player.lastPlayed = new Date().toISOString();
+    
+    // Save score for this level
+    const levelKey = `level${level}`;
+    const currentBest = player.scores[levelKey];
+    
+    // Only update if this is a better score or if no score exists
+    if (!currentBest || score > currentBest.score || stars > currentBest.stars) {
+      player.scores[levelKey] = {
+        score: score,
+        stars: stars,
+        gameMode: gameMode,
+        date: new Date().toISOString()
+      };
+    }
+    
+    // Unlock next level if earned at least 1 star
+    if (stars >= 1) {
+      // Unlock the next level (level + 1)
+      const nextLevel = level + 1;
+      
+      // Only update if next level is higher than current unlocked level
+      if (nextLevel <= 5 && nextLevel > player.level) {
+        player.level = nextLevel;
+        console.log(`Player ${name} unlocked level ${nextLevel} (completed level ${level} with ${stars} stars)`);
+      }
+      
+      // Also, if player completed a higher level than their current level, update it
+      if (level > player.level) {
+        player.level = level;
+      }
+    }
+    
+    // Update total stars and score
+    this.calculateTotals(player);
+    this.savePlayers();
+    
+    // Debug log
+    console.log(`Updated player ${name}: Level ${level} completed, Stars: ${stars}, Can play up to: ${player.level}`);
+  }
+
+  calculateTotals(player) {
+    let totalStars = 0;
+    let totalScore = 0;
+    
+    Object.values(player.scores).forEach(levelData => {
+      totalStars += levelData.stars || 0;
+      totalScore += levelData.score || 0;
+    });
+    
+    player.totalStars = totalStars;
+    player.totalScore = totalScore;
+  }
+
+  getHighestUnlockedLevel(playerName) {
+    const player = this.getPlayer(playerName);
+    return player ? player.level : 1;
+  }
+
+  getLevelScore(playerName, level) {
+    const player = this.getPlayer(playerName);
+    if (player && player.scores[`level${level}`]) {
+      return player.scores[`level${level}`];
+    }
+    return null;
+  }
+
+  resetAllPlayers() {
+    this.players = {};
+    this.savePlayers();
+    this.currentPlayer = null;
+  }
+}
+
+// Quiz Game Manager Class 
 class QuizGameManager {
   constructor(storage) {
-    this.storage = storage
-    this.playerName = ""
-    this.currentLevel = 1
-    this.currentQuestionIndex = 0
-    this.score = 0
-    this.totalStars = 0
-    this.currentQuestions = []
-    this.correctAnswers = 0
-    this.timerInterval = null
-    this.questionTimerInterval = null
-    this.startTime = null
-    this.elapsedTime = 0
-    this.gameMode = "normal" // "normal" or "challenge"
-    this.questionTimeLimit = 10 // seconds for challenge mode
-    this.questionStartTime = null
-    this.profiles = {}
-    this.currentProfile = null
+    this.storage = storage;
+    this.playerName = "";
+    this.currentLevel = 1;
+    this.currentQuestionIndex = 0;
+    this.score = 0;
+    this.totalStars = 0;
+    this.currentQuestions = [];
+    this.correctAnswers = 0;
+    this.timerInterval = null;
+    this.questionTimerInterval = null;
+    this.startTime = null;
+    this.elapsedTime = 0;
+    this.gameMode = "normal";
+    this.questionTimeLimit = 10;
+    this.questionStartTime = null;
+    this.currentProfile = null;
+    this.isChallengeMode = false;
+    this.playerManager = new PlayerManager(storage);
 
-    // Game mode states
-    this.isChallengeMode = false
-
-    // 15 questions per level, show only 10 random
+    // Questions data
     this.questions = {
       1: [
         {
@@ -914,710 +1063,1157 @@ class QuizGameManager {
           correct: 1,
         },
       ],
-    }
+    };
 
-    this.init()
+    this.init();
   }
 
   init() {
-    console.log("Initializing QuizGameManager")
+    console.log("Initializing QuizGameManager with Player Management");
+
+    
+    this.cleanupCorruptedData();
 
     // Setup navigation
     document.querySelectorAll(".quiz-nav-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
-        this.showSection(btn.dataset.section)
-      })
-    })
+        this.showSection(btn.dataset.section);
+      });
+    });
 
     // Setup level buttons
     document.querySelectorAll(".start-level-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
-        const level = Number.parseInt(btn.dataset.level)
-        this.startLevel(level)
-      })
-    })
+        const level = Number.parseInt(btn.dataset.level);
+        this.startLevel(level);
+      });
+    });
 
     // Setup game mode toggle
-    this.setupGameModeToggle()
+    this.setupGameModeToggle();
 
     // Setup control buttons
-    document.getElementById("nextQuestionBtn")?.addEventListener("click", () => this.nextQuestion())
-    document.getElementById("endGameBtn")?.addEventListener("click", () => this.endGame())
-    document.getElementById("playAgainBtn")?.addEventListener("click", () => this.resetToSetup())
-    document.getElementById("viewLeaderboardBtn")?.addEventListener("click", () => this.showSection("leaderboard"))
-    document.getElementById("resetQuizBtn")?.addEventListener("click", () => this.resetAllProgress())
+    const nextQuestionBtn = document.getElementById("nextQuestionBtn");
+    const endGameBtn = document.getElementById("endGameBtn");
+    const playAgainBtn = document.getElementById("playAgainBtn");
+    const viewLeaderboardBtn = document.getElementById("viewLeaderboardBtn");
+    const resetQuizBtn = document.getElementById("resetQuizBtn");
 
-    // Load saved progress
-    this.loadProfiles()
-    this.loadProgress()
+    if (nextQuestionBtn) nextQuestionBtn.addEventListener("click", () => this.nextQuestion());
+    if (endGameBtn) endGameBtn.addEventListener("click", () => this.endGame());
+    if (playAgainBtn) playAgainBtn.addEventListener("click", () => this.resetToSetup());
+    if (viewLeaderboardBtn) viewLeaderboardBtn.addEventListener("click", () => this.showSection("leaderboard"));
+    if (resetQuizBtn) resetQuizBtn.addEventListener("click", () => this.resetAllProgress());
+
+    // Setup leaderboard toggle
+    this.setupLeaderboardToggle();
+
+    // Setup player detection
+    this.setupPlayerDetection();
+
+    // Setup resume button
+    this.setupResumeButton();
+
+    // Load progress for current player if exists
+    this.checkForCurrentPlayer();
+  }
+
+ 
+  cleanupCorruptedData() {
+    console.log("Checking for corrupted data...");
+    
+    try {
+      // Check currentPlayer
+      const currentPlayer = this.storage.getLocal('currentPlayer');
+      if (currentPlayer && typeof currentPlayer === 'string' && currentPlayer.length < 2) {
+        console.log("Removing corrupted currentPlayer data:", currentPlayer);
+        this.storage.removeLocal('currentPlayer');
+      }
+      
+      // Check quizPlayers
+      const quizPlayers = this.storage.getLocal('quizPlayers');
+      if (quizPlayers && typeof quizPlayers === 'string') {
+        
+        if (quizPlayers.length < 10 && !quizPlayers.includes('{') && !quizPlayers.includes('[')) {
+          console.log("Removing corrupted quizPlayers data:", quizPlayers);
+          this.storage.removeLocal('quizPlayers');
+        }
+      }
+    } catch (error) {
+      console.error("Error during cleanup:", error);
+    }
+  }
+
+  setupPlayerDetection() {
+    const playerNameInput = document.getElementById('playerName');
+    if (!playerNameInput) {
+      console.warn("playerName input not found");
+      return;
+    }
+
+    playerNameInput.addEventListener('input', () => {
+      this.handlePlayerNameInput();
+    });
+
+    
+    playerNameInput.addEventListener('blur', () => {
+      setTimeout(() => {
+        this.handlePlayerNameInput();
+      }, 100);
+    });
+  }
+
+  setupResumeButton() {
+    const resumeBtn = document.getElementById('resumeLastLevelBtn');
+    if (!resumeBtn) {
+      console.warn("resumeLastLevelBtn not found");
+      return;
+    }
+
+    resumeBtn.addEventListener('click', () => {
+      const playerName = document.getElementById('playerName')?.value.trim();
+      if (!playerName || !this.playerManager.playerExists(playerName)) {
+        alert('Please enter a valid player name');
+        return;
+      }
+
+      const player = this.playerManager.getPlayer(playerName);
+      const highestLevel = player.level;
+
+      // Set game mode from player's preference
+      const gameMode = player.gameMode || 'normal';
+      const modeRadio = document.querySelector(`input[name="gameMode"][value="${gameMode}"]`);
+      if (modeRadio) modeRadio.checked = true;
+
+      // Start the game
+      this.startGameFromLevel(playerName, highestLevel, gameMode);
+    });
+  }
+
+  checkForCurrentPlayer() {
+    try {
+      const lastPlayer = this.storage.getLocal('currentPlayer');
+      if (lastPlayer && typeof lastPlayer === 'string' && lastPlayer.trim().length >= 2) {
+        const playerNameInput = document.getElementById('playerName');
+        if (playerNameInput) {
+          playerNameInput.value = lastPlayer;
+          setTimeout(() => {
+            this.handlePlayerNameInput();
+          }, 100);
+        }
+      }
+    } catch (error) {
+      console.error("Error checking for current player:", error);
+    }
+  }
+
+  handlePlayerNameInput() {
+    const playerNameInput = document.getElementById('playerName');
+    if (!playerNameInput) return;
+    
+    const playerName = playerNameInput.value.trim();
+    const playerStatus = document.getElementById('playerStatus');
+    const resumeButtonContainer = document.getElementById('resumeButtonContainer');
+    
+    if (playerName.length < 2) {
+      if (playerStatus) playerStatus.style.display = 'none';
+      if (resumeButtonContainer) resumeButtonContainer.style.display = 'none';
+      this.resetLevelCards();
+      return;
+    }
+    
+    if (this.playerManager.playerExists(playerName)) {
+      // Returning player
+      const player = this.playerManager.getPlayer(playerName);
+      const highestLevel = player.level;
+      
+      if (playerStatus) {
+        playerStatus.innerHTML = `
+          <div class="returning-player">
+            <strong>Welcome back, ${player.name}!</strong><br>
+            You have unlocked up to <strong>Level ${highestLevel}</strong>
+            ${player.totalStars > 0 ? `<br>Total Stars: ${player.totalStars} ⭐` : ''}
+          </div>
+        `;
+        playerStatus.style.display = 'block';
+      }
+      
+      // Show resume button
+      if (resumeButtonContainer) {
+        resumeButtonContainer.style.display = 'block';
+        const resumeBtn = document.getElementById('resumeLastLevelBtn');
+        if (resumeBtn) {
+          resumeBtn.innerHTML = `
+            <span class="resume-icon">↻</span>
+            Resume from Level ${highestLevel}
+          `;
+        }
+      }
+      
+      // Update level cards based on player's progress
+      this.updateLevelCardsForPlayer(playerName);
+      
+      // Highlight the level they can resume from
+      this.highlightResumeLevel(highestLevel);
+    } else {
+      // New player
+      if (playerStatus) {
+        playerStatus.innerHTML = `
+          <div class="new-player">
+            <strong>New Player Detected</strong><br>
+            You will start from Level 1
+          </div>
+        `;
+        playerStatus.style.display = 'block';
+      }
+      if (resumeButtonContainer) resumeButtonContainer.style.display = 'none';
+      
+      // Reset level cards to default (all locked except level 1)
+      this.resetLevelCards();
+    }
+  }
+
+  updateLevelCardsForPlayer(playerName) {
+    const player = this.playerManager.getPlayer(playerName);
+    if (!player) {
+      console.log(`Player ${playerName} not found, resetting cards`);
+      this.resetLevelCards();
+      return;
+    }
+
+    const highestLevel = player.level;
+    
+    for (let level = 1; level <= 5; level++) {
+      const levelCard = document.querySelector(`.level-card[data-level="${level}"]`);
+      if (!levelCard) {
+        console.warn(`Level card for level ${level} not found`);
+        continue;
+      }
+      
+      const levelStars = document.getElementById(`stars-${level}`);
+      const levelStatus = levelCard.querySelector('.level-status');
+      const startButton = levelCard.querySelector('.start-level-btn');
+      
+      if (!levelStatus || !startButton) {
+        console.warn(`Level ${level} card missing status or button`);
+        continue;
+      }
+      
+      if (level <= highestLevel) {
+        // Unlock this level
+        levelCard.classList.remove('locked');
+        startButton.disabled = false;
+        startButton.textContent = `Play Level ${level}`;
+        
+        // Show stars if completed
+        const levelScore = player.scores[`level${level}`];
+        if (levelScore && levelScore.stars > 0) {
+          const stars = levelScore.stars || 0;
+          if (levelStars) {
+            levelStars.textContent = '★'.repeat(stars) + '☆'.repeat(3 - stars);
+          }
+          
+          levelStatus.textContent = `Completed (${stars}★)`;
+          levelStatus.className = 'level-status completed';
+        } else {
+          levelStatus.textContent = 'Unlocked';
+          levelStatus.className = 'level-status unlocked';
+          
+          if (levelStars) {
+            levelStars.textContent = '☆☆☆';
+          }
+        }
+      } else {
+        // Lock this level
+        levelCard.classList.add('locked');
+        startButton.disabled = true;
+        startButton.textContent = 'Locked';
+        levelStatus.textContent = `Complete Level ${level - 1}`;
+        levelStatus.className = 'level-status';
+        
+        if (levelStars) {
+          levelStars.textContent = '☆☆☆';
+        }
+      }
+    }
+    
+    // Highlight the resume level
+    this.highlightResumeLevel(highestLevel);
+  }
+
+  highlightResumeLevel(level) {
+    // Remove highlight from all cards
+    document.querySelectorAll('.level-card').forEach(card => {
+      card.classList.remove('resume-level');
+    });
+    
+    // Highlight the resume level
+    const resumeCard = document.querySelector(`.level-card[data-level="${level}"]`);
+    if (resumeCard) {
+      resumeCard.classList.add('resume-level');
+      
+      // Update status text
+      const statusEl = resumeCard.querySelector('.level-status');
+      if (statusEl && statusEl.textContent.includes('Unlocked')) {
+        statusEl.textContent = 'Resume Here';
+        statusEl.className = 'level-status resume-here';
+      }
+    }
+  }
+
+  resetLevelCards() {
+    for (let level = 1; level <= 5; level++) {
+      const levelCard = document.querySelector(`.level-card[data-level="${level}"]`);
+      if (!levelCard) {
+        console.warn(`Level card for level ${level} not found in reset`);
+        continue;
+      }
+      
+      const levelStars = document.getElementById(`stars-${level}`);
+      const levelStatus = levelCard.querySelector('.level-status');
+      const startButton = levelCard.querySelector('.start-level-btn');
+      
+      if (!levelStatus || !startButton) {
+        console.warn(`Level ${level} card missing elements in reset`);
+        continue;
+      }
+      
+      // Reset to default state
+      if (level === 1) {
+        levelCard.classList.remove('locked');
+        startButton.disabled = false;
+        startButton.textContent = 'Play Level 1';
+        levelStatus.textContent = 'Unlocked';
+        levelStatus.className = 'level-status unlocked';
+      } else {
+        levelCard.classList.add('locked');
+        startButton.disabled = true;
+        startButton.textContent = 'Locked';
+        levelStatus.textContent = `Complete Level ${level - 1}`;
+        levelStatus.className = 'level-status';
+      }
+      
+      // Reset stars
+      if (levelStars) {
+        levelStars.textContent = '☆☆☆';
+      }
+    }
   }
 
   setupGameModeToggle() {
-    const modeRadios = document.querySelectorAll('input[name="gameMode"]')
+    const modeRadios = document.querySelectorAll('input[name="gameMode"]');
     modeRadios.forEach(radio => {
       radio.addEventListener('change', (e) => {
-        this.gameMode = e.target.value
-        this.isChallengeMode = this.gameMode === 'challenge'
-      })
-    })
+        this.gameMode = e.target.value;
+        this.isChallengeMode = this.gameMode === 'challenge';
+        
+        // Update player's preferred game mode
+        const playerName = document.getElementById('playerName')?.value.trim();
+        if (playerName && this.playerManager.playerExists(playerName)) {
+          const player = this.playerManager.getPlayer(playerName);
+          player.gameMode = this.gameMode;
+          this.playerManager.savePlayers();
+        }
+      });
+    });
+  }
+
+  setupLeaderboardToggle() {
+    const toggleBtns = document.querySelectorAll('.toggle-switch .toggle-btn');
+    const leaderboardContents = document.querySelectorAll('#leaderboard .leaderboard-content');
+    
+    // Set default active state
+    toggleBtns.forEach(btn => {
+      if (btn.dataset.mode === 'normal') {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+    
+    leaderboardContents.forEach(content => {
+      if (content.id === 'normalLeaderboardContent') {
+        content.classList.add('active');
+      } else {
+        content.classList.remove('active');
+      }
+    });
+    
+    toggleBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const mode = btn.dataset.mode;
+        
+        // Update toggle buttons
+        toggleBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // Show corresponding leaderboard
+        leaderboardContents.forEach(content => {
+          content.classList.remove('active');
+          if (content.id === `${mode}LeaderboardContent`) {
+            content.classList.add('active');
+          }
+        });
+        
+        // Load data for the selected mode
+        this.loadLeaderboardData(mode);
+      });
+    });
+    
+    // Load normal mode data by default
+    setTimeout(() => this.loadLeaderboardData('normal'), 100);
+  }
+
+  loadLeaderboardData(mode) {
+    // Get all players and calculate their scores for the selected mode
+    const players = this.playerManager.players;
+    const playerScores = [];
+    
+    Object.values(players).forEach(player => {
+      let modeStars = 0;
+      let modeScore = 0;
+      let highestLevel = 0;
+      
+      // Calculate totals for this game mode
+      Object.entries(player.scores).forEach(([levelKey, levelData]) => {
+        if (levelData.gameMode === mode) {
+          modeStars += levelData.stars || 0;
+          modeScore += levelData.score || 0;
+          const levelNum = Number.parseInt(levelKey.replace('level', ''));
+          if (levelNum > highestLevel) highestLevel = levelNum;
+        }
+      });
+      
+      if (modeStars > 0 || modeScore > 0) {
+        playerScores.push({
+          playerName: player.name,
+          stars: modeStars,
+          score: modeScore,
+          highestLevel: highestLevel
+        });
+      }
+    });
+    
+    // Sort scores (by stars, then by score)
+    const sortedScores = playerScores.sort((a, b) => {
+      if (b.stars !== a.stars) return b.stars - a.stars;
+      return b.score - a.score;
+    });
+    
+    // Display leaderboard
+    this.displayLeaderboardEntries(mode, sortedScores);
+    
+    // Update statistics
+    this.updateLeaderboardStats(mode, sortedScores);
+  }
+
+  displayLeaderboardEntries(mode, scores) {
+    const listElement = document.getElementById(`${mode}LeaderboardList`);
+    const noEntriesElement = document.getElementById(`no${mode.charAt(0).toUpperCase() + mode.slice(1)}Entries`);
+    
+    if (!listElement) {
+      console.error(`Leaderboard list element not found: ${mode}LeaderboardList`);
+      return;
+    }
+    
+    if (scores.length === 0) {
+      listElement.innerHTML = '';
+      if (noEntriesElement) noEntriesElement.style.display = 'block';
+      return;
+    }
+    
+    if (noEntriesElement) noEntriesElement.style.display = 'none';
+    
+    let html = '';
+    scores.forEach((player, index) => {
+      const currentPlayerName = document.getElementById('playerName')?.value.trim();
+      const isCurrentPlayer = player.playerName === currentPlayerName;
+      
+      html += `
+        <div class="leaderboard-entry ${isCurrentPlayer ? 'current-player' : ''}">
+          <div class="leaderboard-rank">#${index + 1}</div>
+          <div class="leaderboard-player">${player.playerName}</div>
+          <div class="leaderboard-stars">
+            ${'★'.repeat(Math.min(player.stars, 3))}${'☆'.repeat(Math.max(3 - player.stars, 0))}
+          </div>
+          <div class="leaderboard-score">${player.score}</div>
+          <div class="leaderboard-levels">${player.highestLevel}</div>
+        </div>
+      `;
+    });
+    
+    listElement.innerHTML = html;
+  }
+
+  updateLeaderboardStats(mode, scores) {
+    const totalPlayers = scores.length;
+    const totalGames = scores.reduce((sum, player) => sum + 1, 0);
+    const avgScore = totalPlayers > 0 
+      ? Math.round(scores.reduce((sum, player) => sum + player.score, 0) / totalPlayers)
+      : 0;
+    
+    const totalPlayersEl = document.getElementById('totalPlayers');
+    const gamesPlayedEl = document.getElementById('gamesPlayed');
+    const avgScoreEl = document.getElementById('avgScore');
+    
+    if (totalPlayersEl) totalPlayersEl.textContent = totalPlayers;
+    if (gamesPlayedEl) gamesPlayedEl.textContent = totalGames;
+    if (avgScoreEl) avgScoreEl.textContent = avgScore;
+  }
+
+  displayLeaderboard() {
+    this.loadLeaderboardData('normal');
+  }
+
+  startLevel(level) {
+    const playerNameInput = document.getElementById("playerName");
+    if (!playerNameInput) {
+      alert("Player name input not found!");
+      return;
+    }
+    
+    this.playerName = playerNameInput.value.trim() || "Player";
+
+    if (!this.playerName || this.playerName === "Player") {
+      alert("Please enter your name!");
+      playerNameInput.focus();
+      return;
+    }
+
+    // Get game mode
+    const selectedMode = document.querySelector('input[name="gameMode"]:checked');
+    this.gameMode = selectedMode?.value || 'normal';
+    this.isChallengeMode = this.gameMode === 'challenge';
+
+    // Check if player exists or create new
+    if (!this.playerManager.playerExists(this.playerName)) {
+      this.playerManager.createPlayer(this.playerName, this.gameMode);
+    }
+
+    // Set current player
+    this.playerManager.currentPlayer = this.playerManager.getPlayer(this.playerName);
+
+    // Save current player
+    this.storage.setLocal('currentPlayer', this.playerName);
+
+    this.currentLevel = level;
+    this.currentQuestionIndex = 0;
+    this.score = 0;
+    this.correctAnswers = 0;
+
+    // Select 10 random questions from the 15 available
+    const allQuestions = [...this.questions[level]];
+    this.currentQuestions = this.shuffleArray(allQuestions).slice(0, 10);
+
+    this.startTimer();
+
+    // Update player display with mode indicator
+    const playerDisplay = document.getElementById("currentPlayerName");
+    if (playerDisplay) {
+      playerDisplay.textContent = this.playerName;
+      if (this.isChallengeMode) {
+        playerDisplay.innerHTML = `${this.playerName} <span class="challenge-indicator">Challenge Mode</span>`;
+      }
+    }
+
+    this.showSection("gameArea");
+    this.displayQuestion();
+  }
+
+  startGameFromLevel(playerName, level, gameMode = 'normal') {
+    // Set player name
+    const playerNameInput = document.getElementById('playerName');
+    if (playerNameInput) {
+      playerNameInput.value = playerName;
+    }
+    this.playerName = playerName;
+
+    // Set game mode
+    this.gameMode = gameMode;
+    this.isChallengeMode = this.gameMode === 'challenge';
+    const modeRadio = document.querySelector(`input[name="gameMode"][value="${gameMode}"]`);
+    if (modeRadio) modeRadio.checked = true;
+
+    // Check if player exists or create new
+    if (!this.playerManager.playerExists(this.playerName)) {
+      this.playerManager.createPlayer(this.playerName, this.gameMode);
+    }
+
+    // Set current player
+    this.playerManager.currentPlayer = this.playerManager.getPlayer(this.playerName);
+
+    // Save current player
+    this.storage.setLocal('currentPlayer', this.playerName);
+
+    this.currentLevel = level;
+    this.currentQuestionIndex = 0;
+    this.score = 0;
+    this.correctAnswers = 0;
+
+    // Select 10 random questions from the 15 available
+    const allQuestions = [...this.questions[level]];
+    this.currentQuestions = this.shuffleArray(allQuestions).slice(0, 10);
+
+    this.startTimer();
+
+    // Update player display
+    const playerDisplay = document.getElementById("currentPlayerName");
+    if (playerDisplay) {
+      playerDisplay.textContent = this.playerName;
+      if (this.isChallengeMode) {
+        playerDisplay.innerHTML = `${this.playerName} <span class="challenge-indicator">Challenge Mode</span>`;
+      }
+    }
+
+    this.showSection("gameArea");
+    this.displayQuestion();
   }
 
   startTimer() {
-    this.startTime = Date.now()
-    this.elapsedTime = 0
-    this.updateTimerDisplay()
+    this.startTime = Date.now();
+    this.elapsedTime = 0;
+    this.updateTimerDisplay();
     this.timerInterval = setInterval(() => {
-      this.elapsedTime = Math.floor((Date.now() - this.startTime) / 1000)
-      this.updateTimerDisplay()
-    }, 1000)
+      this.elapsedTime = Math.floor((Date.now() - this.startTime) / 1000);
+      this.updateTimerDisplay();
+    }, 1000);
   }
 
   startQuestionTimer() {
-    if (!this.isChallengeMode) return
+    if (!this.isChallengeMode) return;
 
-    this.questionStartTime = Date.now()
-    this.updateQuestionTimerDisplay(this.questionTimeLimit)
+    this.questionStartTime = Date.now();
+    this.updateQuestionTimerDisplay(this.questionTimeLimit);
 
-    // Clear any existing timer
     if (this.questionTimerInterval) {
-      clearInterval(this.questionTimerInterval)
+      clearInterval(this.questionTimerInterval);
     }
 
-    // Start new timer
     this.questionTimerInterval = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - this.questionStartTime) / 1000)
-      const remaining = Math.max(0, this.questionTimeLimit - elapsed)
+      const elapsed = Math.floor((Date.now() - this.questionStartTime) / 1000);
+      const remaining = Math.max(0, this.questionTimeLimit - elapsed);
       
-      this.updateQuestionTimerDisplay(remaining)
+      this.updateQuestionTimerDisplay(remaining);
 
-      // Check if time's up
       if (remaining <= 0) {
-        this.handleTimeUp()
-        clearInterval(this.questionTimerInterval)
+        this.handleTimeUp();
+        clearInterval(this.questionTimerInterval);
       }
-    }, 1000)
+    }, 1000);
   }
 
   stopQuestionTimer() {
     if (this.questionTimerInterval) {
-      clearInterval(this.questionTimerInterval)
-      this.questionTimerInterval = null
+      clearInterval(this.questionTimerInterval);
+      this.questionTimerInterval = null;
     }
   }
 
   updateQuestionTimerDisplay(remainingTime) {
-    let timerDisplay = document.getElementById('questionTimer')
+    let timerDisplay = document.getElementById('questionTimer');
     
-    // Create timer display if it doesn't exist
     if (!timerDisplay && this.isChallengeMode) {
-      const questionHeader = document.querySelector('.question-header')
+      const questionHeader = document.querySelector('.question-header');
       if (questionHeader) {
-        timerDisplay = document.createElement('div')
-        timerDisplay.id = 'questionTimer'
-        timerDisplay.className = 'challenge-timer'
-        timerDisplay.innerHTML = `⏱️ <span id="timerValue">${remainingTime}</span>s`
-        questionHeader.appendChild(timerDisplay)
+        timerDisplay = document.createElement('div');
+        timerDisplay.id = 'questionTimer';
+        timerDisplay.className = 'challenge-timer';
+        timerDisplay.innerHTML = `⏱️ <span id="timerValue">${remainingTime}</span>s`;
+        questionHeader.appendChild(timerDisplay);
       }
     }
 
-    // Update timer value
     if (timerDisplay) {
-      const timerValue = document.getElementById('timerValue')
+      const timerValue = document.getElementById('timerValue');
       if (timerValue) {
-        timerValue.textContent = remainingTime
+        timerValue.textContent = remainingTime;
         
-        // Add warning class when time is low
         if (remainingTime <= 10) {
-          timerValue.classList.add('time-critical')
+          timerValue.classList.add('time-critical');
         } else {
-          timerValue.classList.remove('time-critical')
+          timerValue.classList.remove('time-critical');
         }
       }
     }
   }
 
   handleTimeUp() {
-    if (!this.isChallengeMode) return
+    if (!this.isChallengeMode) return;
 
-    // Disable all options
     document.querySelectorAll(".option-btn").forEach(btn => {
       if (!btn.disabled) {
-        btn.disabled = true
+        btn.disabled = true;
         
-        // Highlight correct answer
-        const question = this.currentQuestions[this.currentQuestionIndex]
-        const index = Number.parseInt(btn.dataset.index)
+        const question = this.currentQuestions[this.currentQuestionIndex];
+        const index = Number.parseInt(btn.dataset.index);
         if (index === question.correct) {
-          btn.classList.add('correct')
+          btn.classList.add('correct');
         }
       }
-    })
+    });
 
-    // Show feedback
-    const feedbackEl = document.getElementById("feedbackMessage")
-    feedbackEl.textContent = "⏰ Time's up! Question skipped."
-    feedbackEl.className = "feedback-message wrong"
+    const feedbackEl = document.getElementById("feedbackMessage");
+    if (feedbackEl) {
+      feedbackEl.textContent = "Time's up! Question skipped.";
+      feedbackEl.className = "feedback-message wrong";
+    }
 
-    // Show next button
     if (this.currentQuestionIndex < this.currentQuestions.length - 1) {
-      document.getElementById("nextQuestionBtn").style.display = "inline-block"
+      const nextQuestionBtn = document.getElementById("nextQuestionBtn");
+      if (nextQuestionBtn) nextQuestionBtn.style.display = "inline-block";
     } else {
-      setTimeout(() => this.showResults(), 1500)
+      setTimeout(() => this.showResults(), 1500);
     }
   }
 
   stopTimer() {
     if (this.timerInterval) {
-      clearInterval(this.timerInterval)
-      this.timerInterval = null
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
     }
-    this.stopQuestionTimer()
+    this.stopQuestionTimer();
   }
 
   updateTimerDisplay() {
-    const minutes = Math.floor(this.elapsedTime / 60)
-    const seconds = this.elapsedTime % 60
-    const timerElement = document.getElementById("quizTimer")
+    const minutes = Math.floor(this.elapsedTime / 60);
+    const seconds = this.elapsedTime % 60;
+    const timerElement = document.getElementById("quizTimer");
     if (timerElement) {
-      timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`
+      timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
     }
   }
 
   formatTime(seconds) {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, "0")}`
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   }
 
   showSection(sectionId) {
-    // Update navigation
     document.querySelectorAll(".quiz-nav-btn").forEach((btn) => {
-      btn.classList.remove("active")
+      btn.classList.remove("active");
       if (btn.dataset.section === sectionId) {
-        btn.classList.add("active")
+        btn.classList.add("active");
       }
-    })
+    });
 
-    // Update sections
     document.querySelectorAll(".quiz-section").forEach((section) => {
-      section.classList.remove("active")
-    })
-    document.getElementById(sectionId)?.classList.add("active")
+      section.classList.remove("active");
+    });
+    
+    const sectionElement = document.getElementById(sectionId);
+    if (sectionElement) {
+      sectionElement.classList.add("active");
+    }
 
-    // Load leaderboard if showing that section
     if (sectionId === "leaderboard") {
-      this.displayLeaderboard()
+      this.displayLeaderboard();
     }
-  }
-
-  startLevel(level) {
-    const playerNameInput = document.getElementById("playerName")
-    this.playerName = playerNameInput?.value.trim() || "Player"
-
-    if (!this.playerName || this.playerName === "Player") {
-      alert("Please enter your name!")
-      playerNameInput?.focus()
-      return
-    }
-
-    // Get game mode
-    const selectedMode = document.querySelector('input[name="gameMode"]:checked')
-    this.gameMode = selectedMode?.value || 'normal'
-    this.isChallengeMode = this.gameMode === 'challenge'
-
-    // Create or load player profile
-    this.loadOrCreateProfile(this.playerName)
-
-    this.currentLevel = level
-    this.currentQuestionIndex = 0
-    this.score = 0
-    this.correctAnswers = 0
-
-    // Select 10 random questions from the 15 available
-    const allQuestions = [...this.questions[level]]
-    this.currentQuestions = this.shuffleArray(allQuestions).slice(0, 10)
-
-    this.startTimer()
-
-    // Update player display with mode indicator
-    const playerDisplay = document.getElementById("currentPlayerName")
-    playerDisplay.textContent = this.playerName
-    if (this.isChallengeMode) {
-      playerDisplay.innerHTML = `${this.playerName} <span class="challenge-indicator">Challenge Mode</span>`
-    }
-
-    this.showSection("gameArea")
-    this.displayQuestion()
-  }
-
-  loadOrCreateProfile(playerName) {
-    // Load profiles from storage
-    this.profiles = this.storage.getLocal("quizProfiles") || {}
-    
-    // Check if profile exists
-    if (!this.profiles[playerName]) {
-      // Create new profile
-      this.profiles[playerName] = {
-        name: playerName,
-        unlockedLevels: 1,
-        levels: {},
-        totalStars: 0,
-        totalScore: 0,
-        created: new Date().toISOString(),
-        lastPlayed: new Date().toISOString(),
-        gameMode: this.gameMode
-      }
-      this.saveProfiles()
-    }
-    
-    // Set as current profile
-    this.currentProfile = this.profiles[playerName]
-    
-    // Update last played
-    this.currentProfile.lastPlayed = new Date().toISOString()
-    this.currentProfile.gameMode = this.gameMode
-    this.saveProfiles()
-  }
-
-  saveProfiles() {
-    this.storage.setLocal("quizProfiles", this.profiles)
-  }
-
-  loadProfiles() {
-    this.profiles = this.storage.getLocal("quizProfiles") || {}
   }
 
   shuffleArray(array) {
-    const shuffled = [...array]
+    const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1))
-      ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
-    return shuffled
+    return shuffled;
   }
 
   displayQuestion() {
-    const question = this.currentQuestions[this.currentQuestionIndex]
+    const question = this.currentQuestions[this.currentQuestionIndex];
     if (!question || !Array.isArray(question.options)) {
       console.error("Invalid question state", {
         index: this.currentQuestionIndex,
         total: this.currentQuestions.length
-      })
-      this.showResults()
-      return
+      });
+      this.showResults();
+      return;
     }
 
     // Update header
-    document.getElementById("currentLevelDisplay").textContent = this.currentLevel
-    document.getElementById("currentScore").textContent = this.score
-    document.getElementById("currentStars").textContent = this.totalStars
+    const currentLevelDisplay = document.getElementById("currentLevelDisplay");
+    const currentScore = document.getElementById("currentScore");
+    const currentStars = document.getElementById("currentStars");
+    
+    if (currentLevelDisplay) currentLevelDisplay.textContent = this.currentLevel;
+    if (currentScore) currentScore.textContent = this.score;
+    if (currentStars) currentStars.textContent = this.totalStars;
 
     // Update question
-    document.getElementById("currentQuestionNum").textContent = this.currentQuestionIndex + 1
-    document.getElementById("totalQuestions").textContent = this.currentQuestions.length
-    document.getElementById("questionText").textContent = question.q
+    const currentQuestionNum = document.getElementById("currentQuestionNum");
+    const totalQuestions = document.getElementById("totalQuestions");
+    const questionText = document.getElementById("questionText");
+    
+    if (currentQuestionNum) currentQuestionNum.textContent = this.currentQuestionIndex + 1;
+    if (totalQuestions) totalQuestions.textContent = this.currentQuestions.length;
+    if (questionText) questionText.textContent = question.q;
 
     // Update progress bar
-    const progress = ((this.currentQuestionIndex + 1) / this.currentQuestions.length) * 100
-    document.getElementById("progressFill").style.width = `${progress}%`
+    const progress = ((this.currentQuestionIndex + 1) / this.currentQuestions.length) * 100;
+    const progressFill = document.getElementById("progressFill");
+    if (progressFill) progressFill.style.width = `${progress}%`;
 
-    const validOptions = question.options.filter((opt) => opt && opt.toString().trim() !== "")
+    const validOptions = question.options.filter((opt) => opt && opt.toString().trim() !== "");
 
     if (validOptions.length === 0) {
-      console.error("No valid options for question", question)
-      this.showResults()
-      return
+      console.error("No valid options for question", question);
+      this.showResults();
+      return;
     }
 
     // Display options
-    const optionsContainer = document.getElementById("optionsContainer")
-    optionsContainer.innerHTML = validOptions
-      .map(
-        (option, index) => `
-        <button class="option-btn" data-index="${index}">
-          ${this.escapeHtml(option)}
-        </button>
-      `,
-      )
-      .join("")
+    const optionsContainer = document.getElementById("optionsContainer");
+    if (optionsContainer) {
+      optionsContainer.innerHTML = validOptions
+        .map(
+          (option, index) => `
+          <button class="option-btn" data-index="${index}">
+            ${this.escapeHtml(option)}
+          </button>
+        `
+        )
+        .join("");
 
-    // Add event listeners to options
-    optionsContainer.querySelectorAll(".option-btn").forEach((btn) => {
-      btn.addEventListener("click", () => this.selectAnswer(Number.parseInt(btn.dataset.index)))
-    })
+      // Add event listeners to options
+      optionsContainer.querySelectorAll(".option-btn").forEach((btn) => {
+        btn.addEventListener("click", () => this.selectAnswer(Number.parseInt(btn.dataset.index)));
+      });
+    }
 
     // Remove challenge timer if exists
-    const existingTimer = document.getElementById('questionTimer')
+    const existingTimer = document.getElementById('questionTimer');
     if (existingTimer) {
-      existingTimer.remove()
+      existingTimer.remove();
     }
 
     // Hide feedback and next button
-    document.getElementById("feedbackMessage").textContent = ""
-    document.getElementById("feedbackMessage").className = "feedback-message"
-    document.getElementById("nextQuestionBtn").style.display = "none"
+    const feedbackMessage = document.getElementById("feedbackMessage");
+    const nextQuestionBtn = document.getElementById("nextQuestionBtn");
+    
+    if (feedbackMessage) {
+      feedbackMessage.textContent = "";
+      feedbackMessage.className = "feedback-message";
+    }
+    if (nextQuestionBtn) nextQuestionBtn.style.display = "none";
 
     // Start question timer for challenge mode
     if (this.isChallengeMode) {
-      this.startQuestionTimer()
+      this.startQuestionTimer();
     }
   }
 
   escapeHtml(text) {
-    const div = document.createElement("div")
-    div.textContent = text
-    return div.innerHTML
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
   }
 
   selectAnswer(selectedIndex) {
     // Stop question timer
-    this.stopQuestionTimer()
+    this.stopQuestionTimer();
 
     // Disable all buttons
-    document.querySelectorAll(".option-btn").forEach(btn => btn.disabled = true)
+    document.querySelectorAll(".option-btn").forEach(btn => btn.disabled = true);
 
-    const question = this.currentQuestions[this.currentQuestionIndex]
-    const isCorrect = selectedIndex === question.correct
+    const question = this.currentQuestions[this.currentQuestionIndex];
+    const isCorrect = selectedIndex === question.correct;
 
     // Highlight correct/wrong answers
     document.querySelectorAll(".option-btn").forEach((btn) => {
-      const index = Number.parseInt(btn.dataset.index)
+      const index = Number.parseInt(btn.dataset.index);
       if (index === question.correct) {
-        btn.classList.add("correct")
+        btn.classList.add("correct");
       } else if (index === selectedIndex && !isCorrect) {
-        btn.classList.add("wrong")
+        btn.classList.add("wrong");
       }
-    })
+    });
 
     // Calculate points
-    let points = 10
-    let timeBonus = 0
+    let points = 10;
+    let timeBonus = 0;
     
     // Add time bonus in challenge mode if answered quickly
     if (this.isChallengeMode) {
-      const elapsed = Math.floor((Date.now() - this.questionStartTime) / 1000)
+      const elapsed = Math.floor((Date.now() - this.questionStartTime) / 1000);
       if (isCorrect && elapsed < 10) {
-        timeBonus = Math.floor((10 - elapsed) * 0.5) // Up to 5 bonus points
-        points += timeBonus
+        timeBonus = Math.floor((10 - elapsed) * 0.5); // Up to 5 bonus points
+        points += timeBonus;
       }
     }
 
     // Show feedback
-    const feedbackEl = document.getElementById("feedbackMessage")
+    const feedbackEl = document.getElementById("feedbackMessage");
     if (isCorrect) {
-      this.score += points
-      this.correctAnswers++
+      this.score += points;
+      this.correctAnswers++;
       
-      if (timeBonus > 0) {
-        feedbackEl.textContent = `✓ Correct! +${points} points (10 + ${timeBonus} time bonus)`
-      } else {
-        feedbackEl.textContent = `✓ Correct! +${points} points`
+      if (feedbackEl) {
+        if (timeBonus > 0) {
+          feedbackEl.textContent = `Correct! +${points} points (10 + ${timeBonus} time bonus)`;
+        } else {
+          feedbackEl.textContent = `Correct! +${points} points`;
+        }
+        feedbackEl.className = "feedback-message correct";
       }
-      feedbackEl.className = "feedback-message correct"
     } else {
-      feedbackEl.textContent = "✗ Wrong answer. The correct answer is highlighted."
-      feedbackEl.className = "feedback-message wrong"
+      if (feedbackEl) {
+        feedbackEl.textContent = " Wrong answer. The correct answer is highlighted.";
+        feedbackEl.className = "feedback-message wrong";
+      }
     }
 
     // Update score display
-    document.getElementById("currentScore").textContent = this.score
+    const currentScore = document.getElementById("currentScore");
+    if (currentScore) currentScore.textContent = this.score;
 
     // Show next button or go to results
+    const nextQuestionBtn = document.getElementById("nextQuestionBtn");
     if (this.currentQuestionIndex < this.currentQuestions.length - 1) {
-      document.getElementById("nextQuestionBtn").style.display = "inline-block"
+      if (nextQuestionBtn) nextQuestionBtn.style.display = "inline-block";
     } else {
-      setTimeout(() => this.showResults(), 1500)
+      setTimeout(() => this.showResults(), 1500);
     }
   }
 
   nextQuestion() {
-    if (this.currentQuestionIndex >= this.currentQuestions.length - 1) return
-    this.currentQuestionIndex++
-    this.displayQuestion()
+    if (this.currentQuestionIndex >= this.currentQuestions.length - 1) return;
+    this.currentQuestionIndex++;
+    this.displayQuestion();
   }
 
   endGame() {
     if (confirm("Are you sure you want to end the game? Your progress will be saved.")) {
-      this.showResults()
+      this.showResults();
     }
   }
 
   showResults() {
-    this.stopTimer()
-    this.stopQuestionTimer()
+    this.stopTimer();
+    this.stopQuestionTimer();
 
-    const percentage = (this.correctAnswers / this.currentQuestions.length) * 100
-    let stars = 0
-    if (percentage >= 95) stars = 3
-    else if (percentage >= 70) stars = 2
-    else if (percentage >= 60) stars = 1
+    const percentage = (this.correctAnswers / this.currentQuestions.length) * 100;
+    let stars = 0;
+    if (percentage >= 95) stars = 3;
+    else if (percentage >= 70) stars = 2;
+    else if (percentage >= 60) stars = 1;
 
-    this.totalStars += stars
+    this.totalStars += stars;
 
-    // Save progress to profile
-    this.saveProfileProgress(stars)
+    // Save progress to player manager
+    if (this.playerManager.currentPlayer) {
+      const playerName = this.playerManager.currentPlayer.name;
+      console.log(`Saving progress for ${playerName}: Level ${this.currentLevel}, Stars: ${stars}`);
+      
+      try {
+        this.playerManager.updatePlayerProgress(playerName, this.currentLevel, this.score, stars, this.gameMode);
+        
+        // Refresh the UI immediately
+        this.updateLevelCardsForPlayer(playerName);
+        
+        // Debug: Check what level was unlocked
+        const updatedPlayer = this.playerManager.getPlayer(playerName);
+        console.log(`Player ${playerName} now unlocked up to level: ${updatedPlayer.level}`);
+      } catch (error) {
+        console.error("Error saving player progress:", error);
+      }
+    }
+
+    // Also save to separate leaderboard storage
+    this.saveScoreToLeaderboard(stars);
 
     // Display results
-    document.getElementById("resultPlayerName").textContent = this.playerName
-    document.getElementById("resultLevel").textContent = this.currentLevel
-    document.getElementById("resultTime").textContent = this.formatTime(this.elapsedTime)
-    document.getElementById("correctAnswers").textContent = `${this.correctAnswers}/${this.currentQuestions.length}`
-    document.getElementById("levelScore").textContent = this.score
-    document.getElementById("totalStarsDisplay").textContent = "⭐".repeat(stars) || "No stars"
-    document.getElementById("finalScore").textContent = this.score
+    const resultPlayerName = document.getElementById("resultPlayerName");
+    const resultLevel = document.getElementById("resultLevel");
+    const resultTime = document.getElementById("resultTime");
+    const correctAnswers = document.getElementById("correctAnswers");
+    const levelScore = document.getElementById("levelScore");
+    const totalStarsDisplay = document.getElementById("totalStarsDisplay");
+    const finalScore = document.getElementById("finalScore");
+    
+    if (resultPlayerName) resultPlayerName.textContent = this.playerName;
+    if (resultLevel) resultLevel.textContent = this.currentLevel;
+    if (resultTime) resultTime.textContent = this.formatTime(this.elapsedTime);
+    if (correctAnswers) correctAnswers.textContent = `${this.correctAnswers}/${this.currentQuestions.length}`;
+    if (levelScore) levelScore.textContent = this.score;
+    if (totalStarsDisplay) totalStarsDisplay.textContent = "⭐".repeat(stars) || "No stars";
+    if (finalScore) finalScore.textContent = this.score;
 
     // Show level pass message
-    const passMessage = document.getElementById("levelPassMessage")
-    if (stars >= 1) {
-      passMessage.textContent = `🎉 Congratulations! You earned ${stars} star${stars > 1 ? "s" : ""} and unlocked the next level!`
-      passMessage.style.color = "#10b981"
-      passMessage.style.background = "#d1fae5"
-      passMessage.style.padding = "1rem"
-      passMessage.style.borderRadius = "10px"
-    } else {
-      passMessage.textContent = "You need at least 1 star (60% correct) to unlock the next level. Try again!"
-      passMessage.style.color = "#ef4444"
-      passMessage.style.background = "#fee2e2"
-      passMessage.style.padding = "1rem"
-      passMessage.style.borderRadius = "10px"
-    }
-
-    this.showSection("resultsArea")
-  }
-
-  saveProfileProgress(stars) {
-    if (!this.currentProfile) return
-
-    const profile = this.currentProfile
-    const levelKey = `level${this.currentLevel}`
-
-    // Initialize level data if not exists
-    if (!profile.levels[levelKey]) {
-      profile.levels[levelKey] = {
-        bestScore: 0,
-        stars: 0,
-        attempts: 0,
-        time: this.elapsedTime
-      }
-    }
-
-    const levelData = profile.levels[levelKey]
-
-    // Update if this is a better score
-    if (this.score > levelData.bestScore) {
-      levelData.bestScore = this.score
-    }
-
-    // Update if more stars
-    if (stars > levelData.stars) {
-      levelData.stars = stars
-    }
-
-    levelData.attempts++
-    profile.lastPlayed = new Date().toISOString()
-
-    // Update unlocked levels if earned at least 1 star
-    if (stars > 0 && this.currentLevel < 5 && profile.unlockedLevels <= this.currentLevel) {
-      profile.unlockedLevels = this.currentLevel + 1
-    }
-
-    // Update totals
-    profile.totalStars = Object.values(profile.levels).reduce((sum, l) => sum + (l.stars || 0), 0)
-    profile.totalScore = Object.values(profile.levels).reduce((sum, l) => sum + (l.bestScore || 0), 0)
-
-    this.saveProfiles()
-    this.loadProgress()
-  }
-
-  loadProgress() {
-    // Update level cards based on current profile
-    if (!this.currentProfile) return
-
-    const profile = this.currentProfile
-
-    // Update level cards
-    for (let level = 1; level <= 5; level++) {
-      const card = document.querySelector(`.level-card[data-level="${level}"]`)
-      const btn = document.querySelector(`.start-level-btn[data-level="${level}"]`)
-      const starsEl = document.getElementById(`stars-${level}`)
-      const statusEl = card?.querySelector(".level-status")
-
-      if (!card || !btn) continue
-
-      const levelKey = `level${level}`
-      const levelData = profile.levels?.[levelKey]
-
-      if (level <= profile.unlockedLevels) {
-        // Level unlocked
-        card.classList.remove("locked")
-        btn.disabled = false
-        
-        if (levelData?.stars) {
-          const stars = levelData.stars || 0
-          const starDisplay = "★".repeat(stars) + "☆".repeat(3 - stars)
-          if (starsEl) starsEl.textContent = starDisplay
-          if (statusEl) {
-            statusEl.textContent = `Completed (${stars}★)`
-            statusEl.classList.add("unlocked")
-          }
+    const passMessage = document.getElementById("levelPassMessage");
+    if (passMessage) {
+      if (stars >= 1) {
+        const nextLevel = this.currentLevel + 1;
+        if (nextLevel <= 5) {
+          passMessage.innerHTML = `
+             Congratulations! You earned ${stars} star${stars > 1 ? "s" : ""}!<br>
+            <strong>Level ${nextLevel} is now unlocked!</strong>
+          `;
         } else {
-          if (statusEl) {
-            statusEl.textContent = "Unlocked"
-            statusEl.classList.add("unlocked")
-          }
+          passMessage.innerHTML = `
+             Congratulations! You earned ${stars} star${stars > 1 ? "s" : ""}!<br>
+            <strong>You've completed all levels!</strong>
+          `;
         }
+        passMessage.style.color = "#10b981";
+        passMessage.style.background = "#d1fae5";
+        passMessage.style.padding = "1rem";
+        passMessage.style.borderRadius = "10px";
+        passMessage.style.margin = "1rem 0";
       } else {
-        // Level locked
-        card.classList.add("locked")
-        btn.disabled = true
-        if (statusEl) {
-          statusEl.textContent = `🔒 Complete Level ${level - 1}`
-          statusEl.classList.remove("unlocked")
-        }
+        passMessage.innerHTML = `
+          You need at least 1 star (60% correct) to unlock the next level.<br>
+          Try again to improve your score!
+        `;
+        passMessage.style.color = "#ef4444";
+        passMessage.style.background = "#fee2e2";
+        passMessage.style.padding = "1rem";
+        passMessage.style.borderRadius = "10px";
+        passMessage.style.margin = "1rem 0";
       }
     }
+
+    this.showSection("resultsArea");
+    
+    // Force refresh the leaderboard after completing a level
+    this.loadLeaderboardData(this.gameMode);
   }
 
-  displayLeaderboard() {
-    const container = document.getElementById("leaderboardContent")
-
-    if (Object.keys(this.profiles).length === 0) {
-      container.innerHTML = '<div class="empty-state">No players yet. Be the first to play!</div>'
-      return
+  saveScoreToLeaderboard(stars) {
+    const savedScores = this.storage.getLocal('quizScores') || [];
+    
+    // Only save if this is a better score for this level and mode
+    const existingScore = savedScores.find(s => 
+      s.playerName === this.playerName && 
+      s.mode === this.gameMode && 
+      s.level === this.currentLevel
+    );
+    
+    if (!existingScore || this.score > existingScore.score || stars > existingScore.stars) {
+      // Remove previous score for this level if exists
+      const filteredScores = savedScores.filter(s => 
+        !(s.playerName === this.playerName && s.mode === this.gameMode && s.level === this.currentLevel)
+      );
+      
+      // Add new score
+      filteredScores.push({
+        playerName: this.playerName,
+        mode: this.gameMode,
+        level: this.currentLevel,
+        score: this.score,
+        stars: stars,
+        timeTaken: this.elapsedTime,
+        date: new Date().toISOString()
+      });
+      
+      this.storage.setLocal('quizScores', filteredScores);
     }
-
-    // Sort profiles by total stars, then total score
-    const sortedProfiles = Object.values(this.profiles).sort((a, b) => {
-      if (b.totalStars !== a.totalStars) return b.totalStars - a.totalStars
-      return b.totalScore - a.totalScore
-    })
-
-    const tableHTML = `
-      <table class="leaderboard-table">
-        <thead>
-          <tr>
-            <th>Rank</th>
-            <th>Player</th>
-            <th>Total Stars</th>
-            <th>Total Score</th>
-            <th>Levels</th>
-            <th>Last Played</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${sortedProfiles
-            .slice(0, 20) // Show top 20
-            .map(
-              (profile, index) => `
-            <tr class="${index < 3 ? "top-player" : ""}">
-              <td>${index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}</td>
-              <td>${profile.name}</td>
-              <td>${"⭐".repeat(Math.min(profile.totalStars, 15))}</td>
-              <td>${profile.totalScore}</td>
-              <td>${profile.unlockedLevels}/5</td>
-              <td>${new Date(profile.lastPlayed).toLocaleDateString()}</td>
-            </tr>
-          `,
-            )
-            .join("")}
-        </tbody>
-      </table>
-    `
-
-    container.innerHTML = tableHTML
   }
 
   resetToSetup() {
-    this.stopTimer()
-    this.stopQuestionTimer()
-    this.showSection("playerSetup")
-  }
-
-  resetAllProgress() {
-    if (confirm("Are you sure you want to reset ALL quiz progress and profiles? This cannot be undone.")) {
-      this.storage.removeLocal("quizProgress")
-      this.storage.removeLocal("quizProfiles")
-      this.profiles = {}
-      this.currentProfile = null
-      this.loadProgress()
-      this.displayLeaderboard()
-      alert("All progress has been reset!")
+    this.stopTimer();
+    this.stopQuestionTimer();
+    this.showSection("playerSetup");
+    
+    // IMPORTANT: Refresh the level cards when returning to setup
+    if (this.playerName) {
+      this.updateLevelCardsForPlayer(this.playerName);
     }
   }
 
+  resetAllProgress() {
+    if (confirm("Are you sure you want to reset ALL quiz progress, players, and leaderboard? This cannot be undone.")) {
+      this.storage.removeLocal("quizProgress");
+      this.storage.removeLocal("quizProfiles");
+      this.storage.removeLocal("quizScores");
+      this.storage.removeLocal("quizPlayers");
+      this.storage.removeLocal("currentPlayer");
+      
+      this.playerManager.resetAllPlayers();
+      this.currentProfile = null;
+      this.playerName = "";
+      this.currentLevel = 1;
+      this.score = 0;
+      this.totalStars = 0;
+      
+      // Clear player name input
+      const playerNameInput = document.getElementById('playerName');
+      if (playerNameInput) playerNameInput.value = '';
+      
+      // Reset UI
+      this.resetLevelCards();
+      
+      // Hide player status and resume button
+      const playerStatus = document.getElementById('playerStatus');
+      const resumeButtonContainer = document.getElementById('resumeButtonContainer');
+      if (playerStatus) playerStatus.style.display = 'none';
+      if (resumeButtonContainer) resumeButtonContainer.style.display = 'none';
+      
+      // Refresh leaderboard display
+      this.loadLeaderboardData('normal');
+      
+      alert("All progress has been reset!");
+    }
+  }
 }
-
-
-
 
 // Hero Section Manager
 class HeroManager {
   constructor(storage) {
-    this.storage = storage
-    this.editHeroBtn = document.getElementById("editHeroBtn")
-    this.editHeroModal = document.getElementById("editHeroModal")
-    this.editHeroForm = document.getElementById("editHeroForm")
-    this.heroName = document.getElementById("heroName")
-    this.heroDescription = document.getElementById("heroDescription")
+    this.storage = storage;
+    this.editHeroBtn = document.getElementById("editHeroBtn");
+    this.editHeroModal = document.getElementById("editHeroModal");
+    this.editHeroForm = document.getElementById("editHeroForm");
+    this.heroName = document.getElementById("heroName");
+    this.heroDescription = document.getElementById("heroDescription");
 
-    this.init()
+    this.init();
   }
 
   init() {
-    const savedHeroName = this.storage.getLocal("heroName")
-    const savedHeroDesc = this.storage.getLocal("heroDescription")
+    const savedHeroName = this.storage.getLocal("heroName");
+    const savedHeroDesc = this.storage.getLocal("heroDescription");
 
     if (savedHeroName && this.heroName) {
-      this.heroName.textContent = savedHeroName
+      this.heroName.textContent = savedHeroName;
     }
     if (savedHeroDesc && this.heroDescription) {
-      this.heroDescription.textContent = savedHeroDesc
+      this.heroDescription.textContent = savedHeroDesc;
     }
 
     if (this.editHeroBtn && this.editHeroModal && this.editHeroForm) {
       this.editHeroBtn.addEventListener("click", () => {
-        const nameInput = document.getElementById("editHeroName")
-        const descInput = document.getElementById("editHeroDesc")
+        const nameInput = document.getElementById("editHeroName");
+        const descInput = document.getElementById("editHeroDesc");
 
-        if (nameInput) nameInput.value = this.heroName?.textContent || ""
-        if (descInput) descInput.value = this.heroDescription?.textContent || ""
+        if (nameInput) nameInput.value = this.heroName?.textContent || "";
+        if (descInput) descInput.value = this.heroDescription?.textContent || "";
 
-        this.editHeroModal.style.display = "block"
-      })
+        this.editHeroModal.style.display = "block";
+      });
 
       this.editHeroForm.addEventListener("submit", (e) => {
-        e.preventDefault()
-        const newName = document.getElementById("editHeroName")?.value || ""
-        const newDesc = document.getElementById("editHeroDesc")?.value || ""
+        e.preventDefault();
+        const newName = document.getElementById("editHeroName")?.value || "";
+        const newDesc = document.getElementById("editHeroDesc")?.value || "";
 
-        if (this.heroName) this.heroName.textContent = newName
-        if (this.heroDescription) this.heroDescription.textContent = newDesc
+        if (this.heroName) this.heroName.textContent = newName;
+        if (this.heroDescription) this.heroDescription.textContent = newDesc;
 
-        this.storage.setLocal("heroName", newName)
-        this.storage.setLocal("heroDescription", newDesc)
+        this.storage.setLocal("heroName", newName);
+        this.storage.setLocal("heroDescription", newDesc);
 
-        this.editHeroModal.style.display = "none"
-      })
+        this.editHeroModal.style.display = "none";
+      });
     }
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
 // DateTime functions
 function updateDateTime(elementId) {
-  const element = document.getElementById(elementId)
+  const element = document.getElementById(elementId);
   if (element) {
-    const now = new Date()
+    const now = new Date();
     const options = {
       weekday: "long",
       year: "numeric",
@@ -1626,224 +2222,226 @@ function updateDateTime(elementId) {
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
-    }
-    element.textContent = now.toLocaleDateString("en-US", options)
+    };
+    element.textContent = now.toLocaleDateString("en-US", options);
   }
 }
 
 function startPageDateTime() {
-  updateDateTime("pageDateTime")
-  setInterval(() => updateDateTime("pageDateTime"), 1000)
+  updateDateTime("pageDateTime");
+  setInterval(() => updateDateTime("pageDateTime"), 1000);
 }
 
 // Modal system setup
 function setupModalSystem(managers = {}) {
-  const modals = document.querySelectorAll(".modal")
+  const modals = document.querySelectorAll(".modal");
 
   // Close buttons inside modals
   document.querySelectorAll(".close-button").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const modal = btn.closest(".modal")
-      if (modal) modal.style.display = "none"
-    })
-  })
+      const modal = btn.closest(".modal");
+      if (modal) modal.style.display = "none";
+    });
+  });
 
   // Click outside to close
   window.addEventListener("click", (event) => {
     modals.forEach((modal) => {
       if (event.target === modal) {
-        modal.style.display = "none"
+        modal.style.display = "none";
       }
-    })
-  })
+    });
+  });
 
   // Generic openers: data-open="modalId"
   document.querySelectorAll("[data-open]").forEach((el) => {
-    const modalId = el.getAttribute("data-open")
-    const modal = document.getElementById(modalId)
-    if (!modal) return
+    const modalId = el.getAttribute("data-open");
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
 
     el.addEventListener("click", (e) => {
-      e.preventDefault()
+      e.preventDefault();
       if (
         modalId === "journalModal" &&
         managers.journalManager &&
         typeof managers.journalManager.openModal === "function"
       ) {
-        managers.journalManager.openModal()
+        managers.journalManager.openModal();
       } else if (
         modalId === "projectsModal" &&
         managers.projectsManager &&
         typeof managers.projectsManager.openModal === "function"
       ) {
-        managers.projectsManager.openModal()
+        managers.projectsManager.openModal();
       } else if (
         modalId === "quizModal" &&
         managers.quizManager &&
         typeof managers.quizManager.openModal === "function"
       ) {
-        managers.quizManager.openModal()
+        managers.quizManager.openModal();
       } else {
-        modal.style.display = "block"
-        const dtId = modalId.replace("Modal", "Datetime")
-        updateDateTime(dtId)
+        modal.style.display = "block";
+        const dtId = modalId.replace("Modal", "Datetime");
+        updateDateTime(dtId);
       }
-    })
-  })
+    });
+  });
 }
 
 // Initialize other modals (About, CV, Hero, Profile Picture)
 function initializeOtherModals(storage) {
-  const editProfilePicBtn = document.getElementById("editProfilePicBtn")
-  const profilePicInput = document.getElementById("profilePicInput")
-  const profileImage = document.getElementById("profileImage")
+  const editProfilePicBtn = document.getElementById("editProfilePicBtn");
+  const profilePicInput = document.getElementById("profilePicInput");
+  const profileImage = document.getElementById("profileImage");
 
   if (editProfilePicBtn && profilePicInput && profileImage) {
     editProfilePicBtn.addEventListener("click", (e) => {
-      e.preventDefault()
-      e.stopPropagation()
-      profilePicInput.click()
-    })
+      e.preventDefault();
+      e.stopPropagation();
+      profilePicInput.click();
+    });
 
     profilePicInput.addEventListener("change", (e) => {
-      const file = e.target.files[0]
+      const file = e.target.files[0];
       if (file && file.type.startsWith("image/")) {
-        const reader = new FileReader()
+        const reader = new FileReader();
         reader.onload = (event) => {
-          profileImage.src = event.target.result
-          storage.setLocal("profilePicture", event.target.result)
-        }
-        reader.readAsDataURL(file)
+          profileImage.src = event.target.result;
+          storage.setLocal("profilePicture", event.target.result);
+        };
+        reader.readAsDataURL(file);
       } else {
-        alert("Please select a valid image file")
+        alert("Please select a valid image file");
       }
-    })
+    });
 
-    const savedProfilePic = storage.getLocal("profilePicture")
+    const savedProfilePic = storage.getLocal("profilePicture");
     if (savedProfilePic) {
-      profileImage.src = savedProfilePic
+      profileImage.src = savedProfilePic;
     }
   }
 
-  const editAboutBtn = document.getElementById("editAboutBtn")
-  const uploadAboutBtn = document.getElementById("uploadAboutBtn")
-  const aboutFileInput = document.getElementById("aboutFileInput")
-  const editAboutModal = document.getElementById("editAboutModal")
-  const editAboutForm = document.getElementById("editAboutForm")
-  const aboutContent = document.getElementById("aboutContent")
+  const editAboutBtn = document.getElementById("editAboutBtn");
+  const uploadAboutBtn = document.getElementById("uploadAboutBtn");
+  const aboutFileInput = document.getElementById("aboutFileInput");
+  const editAboutModal = document.getElementById("editAboutModal");
+  const editAboutForm = document.getElementById("editAboutForm");
+  const aboutContent = document.getElementById("aboutContent");
 
   if (editAboutBtn && editAboutModal && editAboutForm) {
     editAboutBtn.addEventListener("click", () => {
-      const currentText = aboutContent?.textContent || ""
-      const textInput = document.getElementById("editAboutText")
-      if (textInput) textInput.value = currentText
-      editAboutModal.style.display = "block"
-    })
+      const currentText = aboutContent?.textContent || "";
+      const textInput = document.getElementById("editAboutText");
+      if (textInput) textInput.value = currentText;
+      editAboutModal.style.display = "block";
+    });
 
     editAboutForm.addEventListener("submit", (e) => {
-      e.preventDefault()
-      const newText = document.getElementById("editAboutText")?.value || ""
-      if (aboutContent) aboutContent.textContent = newText
-      storage.setLocal("aboutContent", newText)
-      editAboutModal.style.display = "none"
-    })
+      e.preventDefault();
+      const newText = document.getElementById("editAboutText")?.value || "";
+      if (aboutContent) aboutContent.textContent = newText;
+      storage.setLocal("aboutContent", newText);
+      editAboutModal.style.display = "none";
+    });
   }
 
   if (uploadAboutBtn && aboutFileInput) {
     uploadAboutBtn.addEventListener("click", () => {
-      aboutFileInput.click()
-    })
+      aboutFileInput.click();
+    });
 
     aboutFileInput.addEventListener("change", (e) => {
-      const file = e.target.files[0]
+      const file = e.target.files[0];
       if (file) {
-        const reader = new FileReader()
+        const reader = new FileReader();
         reader.onload = (event) => {
-          const content = event.target.result
-          if (aboutContent) aboutContent.textContent = content
-          storage.setLocal("aboutContent", content)
-          alert(`File "${file.name}" uploaded successfully!`)
-        }
-        reader.readAsText(file)
+          const content = event.target.result;
+          if (aboutContent) aboutContent.textContent = content;
+          storage.setLocal("aboutContent", content);
+          alert(`File "${file.name}" uploaded successfully!`);
+        };
+        reader.readAsText(file);
       }
-    })
+    });
   }
 
-  const savedAbout = storage.getLocal("aboutContent")
-  if (savedAbout && aboutContent) aboutContent.textContent = savedAbout
+  const savedAbout = storage.getLocal("aboutContent");
+  if (savedAbout && aboutContent) aboutContent.textContent = savedAbout;
 
-  const editCvBtn = document.getElementById("editCvBtn")
-  const editCvModal = document.getElementById("editCvModal")
-  const editCvForm = document.getElementById("editCvForm")
-  const cvContent = document.getElementById("cvContent")
-  const uploadCvBtn = document.getElementById("uploadCvBtn")
-  const cvFileInput = document.getElementById("cvFileInput")
-  const cvFileDisplay = document.getElementById("cvFileDisplay")
-  const cvFileName = document.getElementById("cvFileName")
-  const viewCvBtn = document.getElementById("viewCvBtn")
+  const editCvBtn = document.getElementById("editCvBtn");
+  const editCvModal = document.getElementById("editCvModal");
+  const editCvForm = document.getElementById("editCvForm");
+  const cvContent = document.getElementById("cvContent");
+  const uploadCvBtn = document.getElementById("uploadCvBtn");
+  const cvFileInput = document.getElementById("cvFileInput");
+  const cvFileDisplay = document.getElementById("cvFileDisplay");
+  const cvFileName = document.getElementById("cvFileName");
+  const viewCvBtn = document.getElementById("viewCvBtn");
 
   if (editCvBtn && editCvModal && editCvForm) {
     editCvBtn.addEventListener("click", () => {
-      const currentText = cvContent?.innerHTML || ""
-      const textInput = document.getElementById("editCvText")
-      if (textInput) textInput.value = currentText
-      editCvModal.style.display = "block"
-    })
+      const currentText = cvContent?.innerHTML || "";
+      const textInput = document.getElementById("editCvText");
+      if (textInput) textInput.value = currentText;
+      editCvModal.style.display = "block";
+    });
 
     editCvForm.addEventListener("submit", (e) => {
-      e.preventDefault()
-      const newText = document.getElementById("editCvText")?.value || ""
-      if (cvContent) cvContent.innerHTML = newText
-      storage.setLocal("cvContent", newText)
-      editCvModal.style.display = "none"
-      alert("CV content updated successfully!")
-    })
+      e.preventDefault();
+      const newText = document.getElementById("editCvText")?.value || "";
+      if (cvContent) cvContent.innerHTML = newText;
+      storage.setLocal("cvContent", newText);
+      editCvModal.style.display = "none";
+      alert("CV content updated successfully!");
+    });
   }
 
   if (uploadCvBtn && cvFileInput) {
     uploadCvBtn.addEventListener("click", () => {
-      cvFileInput.click()
-    })
+      cvFileInput.click();
+    });
 
     cvFileInput.addEventListener("change", (e) => {
-      const file = e.target.files[0]
+      const file = e.target.files[0];
       if (file) {
-        if (cvFileName) cvFileName.textContent = file.name
-        if (cvFileDisplay) cvFileDisplay.style.display = "block"
-        storage.setLocal("cvFileName", file.name)
+        if (cvFileName) cvFileName.textContent = file.name;
+        if (cvFileDisplay) cvFileDisplay.style.display = "block";
+        storage.setLocal("cvFileName", file.name);
 
-        const reader = new FileReader()
+        const reader = new FileReader();
         reader.onload = (event) => {
-          storage.setLocal("cvFileData", event.target.result)
-          alert(`CV file "${file.name}" uploaded successfully!`)
-        }
-        reader.readAsDataURL(file)
+          storage.setLocal("cvFileData", event.target.result);
+          alert(`CV file "${file.name}" uploaded successfully!`);
+        };
+        reader.readAsDataURL(file);
       }
-    })
+    });
   }
 
   if (viewCvBtn) {
     viewCvBtn.addEventListener("click", () => {
-      const fileData = storage.getLocal("cvFileData")
-      const fileName = storage.getLocal("cvFileName")
+      const fileData = storage.getLocal("cvFileData");
+      const fileName = storage.getLocal("cvFileName");
       if (fileData && fileName) {
-        const link = document.createElement("a")
-        link.href = fileData
-        link.download = fileName
-        link.click()
+        const link = document.createElement("a");
+        link.href = fileData;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       } else {
-        alert("No CV file uploaded yet.")
+        alert("No CV file uploaded yet.");
       }
-    })
+    });
   }
 
-  const savedCvContent = storage.getLocal("cvContent")
-  if (savedCvContent && cvContent) cvContent.innerHTML = savedCvContent
+  const savedCvContent = storage.getLocal("cvContent");
+  if (savedCvContent && cvContent) cvContent.innerHTML = savedCvContent;
 
-  const savedCvFileName = storage.getLocal("cvFileName")
+  const savedCvFileName = storage.getLocal("cvFileName");
   if (savedCvFileName && cvFileName && cvFileDisplay) {
-    cvFileName.textContent = savedCvFileName
-    cvFileDisplay.style.display = "block"
+    cvFileName.textContent = savedCvFileName;
+    cvFileDisplay.style.display = "block";
   }
 }
 
@@ -1851,32 +2449,32 @@ function initializeOtherModals(storage) {
 document.addEventListener("DOMContentLoaded", () => {
   // Check for required classes
   if (typeof StorageManager === "undefined") {
-    console.error("StorageManager not found. Make sure storage.js is loaded before script.js")
-    return
+    console.error("StorageManager not found. Make sure storage.js is loaded before script.js");
+    return;
   }
   if (typeof window.BrowserAPIsManager === "undefined") {
-    console.error("BrowserAPIsManager not found. Make sure browser.js is loaded before script.js")
-    return
+    console.error("BrowserAPIsManager not found. Make sure browser.js is loaded before script.js");
+    return;
   }
 
-  const storage = new StorageManager()
-  const browserAPIs = new window.BrowserAPIsManager(storage)
-  const youtubeManager = new window.YouTubeManager(storage)
-  const journalManager = new JournalManager(storage, browserAPIs)
-  const projectsManager = new ProjectsManager(storage, browserAPIs)
-  const quizManager = new QuizGameManager(storage)
-  const heroManager = new HeroManager(storage)
+  const storage = new StorageManager();
+  const browserAPIs = new window.BrowserAPIsManager(storage);
+  const youtubeManager = new window.YouTubeManager(storage);
+  const journalManager = new JournalManager(storage, browserAPIs);
+  const projectsManager = new ProjectsManager(storage, browserAPIs);
+  const quizManager = new QuizGameManager(storage);
+  const heroManager = new HeroManager(storage);
 
-  window.youtubeManager = youtubeManager
-  window.projectsManager = projectsManager
+  window.youtubeManager = youtubeManager;
+  window.projectsManager = projectsManager;
 
   if (browserAPIs && typeof journalManager.setValidationManager === "function") {
-    journalManager.setValidationManager(browserAPIs)
+    journalManager.setValidationManager(browserAPIs);
   }
 
-  startPageDateTime()
-  setupModalSystem({ journalManager, projectsManager, quizManager })
-  initializeOtherModals(storage)
+  startPageDateTime();
+  setupModalSystem({ journalManager, projectsManager, quizManager });
+  initializeOtherModals(storage);
 
-  console.log(" Learning Journal loaded successfully")
-})
+  console.log("Learning Journal loaded successfully");
+});
