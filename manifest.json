@@ -1,0 +1,29 @@
+{
+  "name": "Learning Journal PWA",
+  "short_name": "LearnJournal",
+  "description": "A Progressive Web App for tracking learning progress,reflections, c.v and Quiz game ",
+
+  "start_url": "/",
+  "scope": "/",
+
+  "display": "standalone",
+  "background_color": "#0ea5e9",
+  "theme_color": "#0ea5e9",
+
+  "orientation": "portrait-primary",
+
+  "icons": [
+    {
+      "src": "/static/book.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/mario-111.png",
+    "sizes": "512x512",
+    "type": "image/png"
+    }
+  ],
+
+  "lang": "en-US"
+}

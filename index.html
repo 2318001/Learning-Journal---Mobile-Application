@@ -1,655 +1,731 @@
-<!DOCTYPE html>
-<html lang="en">
+    <!DOCTYPE html>
+    <html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Learning Journal PWA - Mobile Application Development</title>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Learning Journal PWA - Mobile Application Development</title>
 
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="icon" href="image/mario 111.png" type="image/png">
-    <meta name="theme-color" content="#0ea5e9">
+        <link rel="stylesheet" href="/static/style.css">
+        <link rel="icon" href="/static/mario-111.png" type="image/png">
+        <link rel="apple-touch-icon" href="/static/mario-111.png">
+        <meta name="theme-color" content="#0ea5e9">
 
-    <!-- JavaScript Files -->
-    <script src="storage.js" defer></script>
-    <script src="browser.js" defer></script>
-    <script src="thirdparty.js" defer></script>
-    <script src="script.js" defer></script>
-    
-    <!-- YouTube IFrame API -->
-    <script src="https://www.youtube.com/iframe_api" defer></script>
-</head>
+        <!-- Add these to your existing <head> -->
+    <link rel="manifest" href="/static/manifest.json">
 
-<body>
-    <!-- HEADER -->
-    <header>
-        <div class="container">
-            <div class="logo">
-                <span class="logo-text">WEL~COME~TO~MY~LEARNING~JOURNAL.</span>
+        <!-- JavaScript Files -->
+        <script src="/static/storage.js" defer></script>
+        <script src="/static/browser.js" defer></script>
+        <script src="/static/thirdparty.js" defer></script>
+        <script src="/static/script.js" defer></script>
+        <script src="/static/pwa.js" defer></script>
+
+        <!-- YouTube IFrame API -->
+        <script src="https://www.youtube.com/iframe_api" defer></script>
+
+
+
+
+
+
+    <!-- iOS Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="LearnJournal">
+
+
+    <!-- Android Chrome -->
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <!-- Microsoft Windows -->
+    <meta name="msapplication-TileColor" content="#0ea5e9">
+
+
+
+
+
+
+    </head>
+
+    <body>
+        <!-- HEADER -->
+        <header>
+            <div class="container">
+                <div class="logo">
+                    <span class="logo-text">WEL~COME~TO~MY~LEARNING~JOURNAL.</span>
+                </div>
+
+    <!-- PWA Install Button -->
+    <button id="pwaInstallBtn" class="pwa-install-btn" style="display: none;">
+
+        <span class="install-text">Install App</span>
+    </button>
+
+
+                <nav class="nav-box">
+                    <ul class="nav-list">
+                        <li><a href="index" class="active">Home</a></li>
+                        <li><a href="#" id="journalBtn" data-open="journalModal">Journal</a></li>
+                        <li><a href="#" id="projectsBtn" data-open="projectsModal">Projects</a></li>
+                        <li><a href="#" id="quizBtn" data-open="quizModal">Quiz Game</a></li>
+                        <li><a href="#" id="aboutBtn" data-open="aboutModal">About</a></li>
+                        <li><a href="#" id="cvBtn" data-open="cvModal">C.V</a></li>
+                    </ul>
+                </nav>
             </div>
+        </header>
 
-            <nav class="nav-box">
-                <ul class="nav-list">
-                    <li><a href="index.html" class="active">Home</a></li>
-                    <li><a href="#" id="journalBtn" data-open="journalModal">Journal</a></li>
-                    <li><a href="#" id="projectsBtn" data-open="projectsModal">Projects</a></li>
-                    <li><a href="#" id="quizBtn" data-open="quizModal">Quiz Game</a></li>
-                    <li><a href="#" id="aboutBtn" data-open="aboutModal">About</a></li>
-                    <li><a href="#" id="cvBtn" data-open="cvModal">C.V</a></li>
-                </ul>
-            </nav>
+        <!-- DATETIME BANNER -->
+        <div class="page-datetime-banner">
+            <div class="container">
+                <div id="pageDateTime" class="page-datetime"></div>
+            </div>
         </div>
-    </header>
 
-    <!-- DATETIME BANNER -->
-    <div class="page-datetime-banner">
-        <div class="container">
-            <div id="pageDateTime" class="page-datetime"></div>
-        </div>
-    </div>
-
-    <!-- HERO SECTION -->
-    <main>
-        <div class="container">
-            <section class="first-section">
-                <div class="second-section">
-                    <div class="third-section">
-                        <div class="edit-section-header">
-                            <h1><span id="heroName">Hi, I'm Rajan KC</span></h1>
-                            <button class="edit-btn" id="editHeroBtn">Edit</button>
+        <!-- HERO SECTION -->
+        <main>
+            <div class="container">
+                <section class="first-section">
+                    <div class="second-section">
+                        <div class="third-section">
+                            <div class="edit-section-header">
+                                <h1><span id="heroName">Hi, I'm Rajan KC</span></h1>
+                                <button class="edit-btn" id="editHeroBtn">Edit</button>
+                            </div>
+                            <p class="description" id="heroDescription">
+                                I am from Nepal, completed my SEE and +2 (NEB) from high school, and I am currently studying BSc Computer Science at UCA Farnham since September 2023. I am a dedicated and motivated student with strong communication, leadership, and teamwork skills, and I am eager to learn, develop my abilities, and gain valuable experience to build my future in the technology field. In my free time, I enjoy travelling, trekking in the mountains, playing football, and listening to music.
+                            </p>
                         </div>
-                        <p class="description" id="heroDescription">
-                            I am a passionate developer who enjoys building dynamic, user-friendly web applications.
-                            I study Computer Science at UCA and I explore the latest technologies to bring ideas to life.
-                        </p>
-                    </div>
 
-                    <div class="hero-image">
-                        <div class="profile-image-container">
-                            <img src="https://placeholder.svg?height=200&width=200&query=profile+picture" class="profile-image" alt="Profile image" id="profileImage">
-                            <button class="edit-profile-pic-btn" id="editProfilePicBtn" title="Edit profile picture">...</button>
-                            <input type="file" id="profilePicInput" accept="image/*" style="display:none;">
+                        <div class="hero-image">
+                            <div class="profile-image-container">
+                                <img src="/static/mario-111.png" class="profile-image" alt="Profile image" id="profileImage">
+                                <button class="edit-profile-pic-btn" id="editProfilePicBtn" title="Edit profile picture">...</button>
+                                <input type="file" id="profilePicInput" accept="image/*" style="display:none;">
+                            </div>
                         </div>
                     </div>
-                </div>
-            </section>
-        </div>
-    </main>
+                </section>
+            </div>
+        </main>
 
-    <!-- FOOTER -->
-    <footer class="site-footer">
-        <div class="container">
-            <p>&copy; 2025 Rajan KC - Learning Journal</p>
-        </div>
-    </footer>
+        <!-- FOOTER -->
+        <footer class="site-footer">
+            <div class="container">
+                <p>&copy; 2025 Rajan KC - Learning Journal</p>
+            </div>
+        </footer>
 
-    <!-- MODALS -->
+        <!-- MODALS -->
 
-    <!-- QUIZ GAME MODAL -->
-    <div id="quizModal" class="modal">
-        <div class="modal-content quiz-modal-content">
-            <span class="close-button">&times;</span>
-            <div id="quizDatetime" class="datetime"></div>
-            
-            <div class="quiz-layout">
-                <!-- Left Navigation Bar -->
-                <div class="quiz-sidebar">
-                    <h3 class="quiz-nav-title">Quiz Navigation</h3>
-                    <div class="quiz-nav-menu">
-                        <button class="quiz-nav-btn active" data-section="playerSetup">
-                            <span class="nav-icon"></span>
-                            <span>Start Game</span>
-                        </button>
-                        <button class="quiz-nav-btn" data-section="rules">
-                            <span class="nav-icon"></span>
-                            <span>Rules</span>
-                        </button>
-                        <button class="quiz-nav-btn" data-section="leaderboard">
-                            <span class="nav-icon"></span>
-                            <span>Leaderboard</span>
-                        </button>
+        <!-- QUIZ GAME MODAL -->
+        <div id="quizModal" class="modal">
+            <div class="modal-content quiz-modal-content">
+                <span class="close-button">&times;</span>
+                <div id="quizDatetime" class="datetime"></div>
+
+                <div class="quiz-layout">
+                    <!-- Left Navigation Bar -->
+                    <div class="quiz-sidebar">
+                        <h3 class="quiz-nav-title">Quiz Navigation</h3>
+                        <div class="quiz-nav-menu">
+                            <button class="quiz-nav-btn active" data-section="playerSetup">
+                                <span class="nav-icon"></span>
+                                <span>Start Game</span>
+                            </button>
+                            <button class="quiz-nav-btn" data-section="rules">
+                                <span class="nav-icon"></span>
+                                <span>Rules</span>
+                            </button>
+                            <button class="quiz-nav-btn" data-section="leaderboard">
+                                <span class="nav-icon"></span>
+                                <span>Leaderboard</span>
+                            </button>
+                        </div>
+                        <button class="reset-btn" id="resetQuizBtn" style="margin-top: 2rem; width: 100%;">Reset All</button>
                     </div>
-                    <button class="reset-btn" id="resetQuizBtn" style="margin-top: 2rem; width: 100%;">Reset All</button>
+
+                    <!-- Right Content Area -->
+                    <div class="quiz-content-area">
+                        <!-- Player Setup Section -->
+                        <div id="playerSetup" class="quiz-section active">
+                            <div class="setup-container">
+                                <h3>Start New Game</h3>
+                                <p class="section-subtitle">Enter your name to begin or continue your game!</p>
+
+                                <div class="form-group">
+                                    <label for="playerName">Player Name</label>
+                                    <input type="text" id="playerName" placeholder="Enter your name" maxlength="20" required>
+                                    <span class="error-message" id="nameError"></span>
+                                    <div id="playerStatus" class="player-status" style="display: none;"></div>
+                                </div>
+
+                                <!-- Game Mode Selection - FIXED: removed for attribute -->
+                                <div class="form-group">
+                                    <label>Game Mode</label>
+                                    <div class="game-mode-toggle">
+                                        <label class="toggle-label">
+                                            <input type="radio" name="gameMode" value="normal" checked>
+                                            <span class="toggle-option">Normal Mode</span>
+                                        </label>
+                                        <label class="toggle-label">
+                                            <input type="radio" name="gameMode" value="challenge">
+                                            <span class="toggle-option">Challenge Mode</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+
+    <!-- Category Selection -->
+                <div class="form-group">
+                    <label>Category</label>
+                    <div class="category-toggle" id="categoryToggle">
+                    <button type="button" class="category-btn active" data-category="programming">Programming</button>
+                    <button type="button" class="category-btn" data-category="sports">Sports</button>
+                    <button type="button" class="category-btn" data-category="general">General Knowledge</button>
+                    <button type="button" class="category-btn" data-category="science">Science & Tech</button>
+                    <button type="button" class="category-btn" data-category="computers">Computers</button>
+                    </div>
                 </div>
 
-                <!-- Right Content Area -->
-                <div class="quiz-content-area">
-                    <!-- Player Setup Section -->
-                    <div id="playerSetup" class="quiz-section active">
-                        <div class="setup-container">
-                            <h3>Start New Game</h3>
-                            <p class="section-subtitle">Enter your name to begin or continue your game!</p>
-                            
-                            <div class="form-group">
-                                <label for="playerName">Player Name</label>
-                                <input type="text" id="playerName" placeholder="Enter your name" maxlength="20" required>
-                                <span class="error-message" id="nameError"></span>
-                                <div id="playerStatus" class="player-status" style="display: none;"></div>
-                            </div>
 
-                            <!-- Game Mode Selection - FIXED: removed for attribute -->
-                            <div class="form-group">
-                                <label>Game Mode</label>
-                                <div class="game-mode-toggle">
-                                    <label class="toggle-label">
-                                        <input type="radio" name="gameMode" value="normal" checked>
-                                        <span class="toggle-option">Normal Mode</span>
-                                    </label>
-                                    <label class="toggle-label">
-                                        <input type="radio" name="gameMode" value="challenge">
-                                        <span class="toggle-option">Challenge Mode</span>
-                                    </label>
+
+
+                                <!-- Level Selection -->
+                                <div class="level-selection-grid">
+                                    <div class="level-card" data-level="1">
+                                        <div class="level-number">Level 1</div>
+                                        <div class="level-stars" id="stars-1">☆☆☆</div>
+                                        <div class="level-status unlocked">Unlocked</div>
+                                        <button class="start-level-btn" data-level="1">Start Level 1</button>
+                                    </div>
+                                    <div class="level-card locked" data-level="2">
+                                        <div class="level-number">Level 2</div>
+                                        <div class="level-stars" id="stars-2">☆☆☆</div>
+                                        <div class="level-status">Locked</div>
+                                        <button class="start-level-btn" data-level="2" disabled>Locked</button>
+                                    </div>
+                                    <div class="level-card locked" data-level="3">
+                                        <div class="level-number">Level 3</div>
+                                        <div class="level-stars" id="stars-3">☆☆☆</div>
+                                        <div class="level-status">Locked</div>
+                                        <button class="start-level-btn" data-level="3" disabled>Locked</button>
+                                    </div>
+                                    <div class="level-card locked" data-level="4">
+                                        <div class="level-number">Level 4</div>
+                                        <div class="level-stars" id="stars-4">☆☆☆</div>
+                                        <div class="level-status">Locked</div>
+                                        <button class="start-level-btn" data-level="4" disabled>Locked</button>
+                                    </div>
+                                    <div class="level-card locked" data-level="5">
+                                        <div class="level-number">Level 5</div>
+                                        <div class="level-stars" id="stars-5">☆☆☆</div>
+                                        <div class="level-status">Locked</div>
+                                        <button class="start-level-btn" data-level="5" disabled>Locked</button>
+                                    </div>
                                 </div>
-                            </div>
-                                        
-                            <!-- Level Selection -->
-                            <div class="level-selection-grid">
-                                <div class="level-card" data-level="1">
-                                    <div class="level-number">Level 1</div>
-                                    <div class="level-stars" id="stars-1">☆☆☆</div>
-                                    <div class="level-status unlocked">Unlocked</div>
-                                    <button class="start-level-btn" data-level="1">Start Level 1</button>
-                                </div>
-                                <div class="level-card locked" data-level="2">
-                                    <div class="level-number">Level 2</div>
-                                    <div class="level-stars" id="stars-2">☆☆☆</div>
-                                    <div class="level-status">Locked</div>
-                                    <button class="start-level-btn" data-level="2" disabled>Locked</button>
-                                </div>
-                                <div class="level-card locked" data-level="3">
-                                    <div class="level-number">Level 3</div>
-                                    <div class="level-stars" id="stars-3">☆☆☆</div>
-                                    <div class="level-status">Locked</div>
-                                    <button class="start-level-btn" data-level="3" disabled>Locked</button>
-                                </div>
-                                <div class="level-card locked" data-level="4">
-                                    <div class="level-number">Level 4</div>
-                                    <div class="level-stars" id="stars-4">☆☆☆</div>
-                                    <div class="level-status">Locked</div>
-                                    <button class="start-level-btn" data-level="4" disabled>Locked</button>
-                                </div>
-                                <div class="level-card locked" data-level="5">
-                                    <div class="level-number">Level 5</div>
-                                    <div class="level-stars" id="stars-5">☆☆☆</div>
-                                    <div class="level-status">Locked</div>
-                                    <button class="start-level-btn" data-level="5" disabled>Locked</button>
-                                </div>
-                            </div>
 
                             <!-- Auto-resume button -->
-                            <div id="resumeButtonContainer" style="display: none; margin-top: 1rem;">
-                                <button id="resumeLastLevelBtn" class="cta-btn primary">
-                                    <span class="resume-icon">↻</span>
-                                    Resume from Last Level
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Rules Section -->
-                    <div id="rules" class="quiz-section">
-                        <div class="rules-container">
-                            <h3>Quiz Game Rules</h3>
-                            <p class="section-subtitle">Read these rules carefully before playing</p>
-                            <div class="rules-content">
-                                <div class="rule-item">
-                                    <h4>Game Modes</h4>
-                                    <ul>
-                                        <li><strong>Normal Mode:</strong> No time pressure. Answer at your own pace.</li>
-                                        <li><strong>Challenge Mode:</strong> 10-second timer per question. Earn bonus points for quick answers!</li>
-                                        <li>There is separate leaderboard rankings for each mode.</li>
-                                    </ul>
-                                </div>
-                                <div class="rule-item">
-                                    <h4>Game Objective</h4>
-                                    <ul>
-                                        <li>Complete all 5 levels by answering questions correctly</li>
-                                        <li>Each level has 15 questions, but only 10 random questions are shown</li>
-                                        <li>Earn stars and points based on the performance</li>
-                                        <li>Questions cover web development topics from basic to advanced</li>
-                                    </ul>
-                                </div>
-                                <div class="rule-item">
-                                    <h4>Scoring System</h4>
-                                    <ul>
-                                        <li><strong>Correct answer:</strong> +10 base points</li>
-                                        <li><strong>Challenge Mode Bonus:</strong> Up to +5 bonus points for quick answers (under 10 seconds)</li>
-                                        <li><strong>Wrong answer:</strong> 0 points (no penalty)</li>
-                                        <li><strong>Time's Up (Challenge Mode):</strong> Question skipped, 0 points</li>
-                                        <li><strong>3 Stars:</strong> 95% or higher (9-10 correct answers)</li>
-                                        <li><strong>2 Stars:</strong> 70-94% (7-8 correct answers)</li>
-                                        <li><strong>1 Star:</strong> 60-69% (6 correct answers)</li>
-                                        <li><strong>0 Stars:</strong> Below 60% (less than 6 correct)</li>
-                                    </ul>
-                                </div>
-                                <div class="rule-item">
-                                    <h4>Level Progression</h4>
-                                    <ul>
-                                        <li>Level 1 is unlocked by default for all players</li>
-                                        <li>You must earn at least 1 star to unlock the next level</li>
-                                        <li>Complete Level 1 → Unlock Level 2, and so on</li>
-                                        <li>It can replay completed levels to improve your score</li>
-                                        <li>Higher levels have more difficult questions</li>
-                                    </ul>
-                                </div>
-                                <div class="rule-item">
-                                    <h4>Timer System</h4>
-                                    <ul>
-                                        <li><strong>Normal Mode:</strong> Overall timer only (no per-question limit)</li>
-                                        <li><strong>Challenge Mode:</strong> 10-second timer per question + overall timer</li>
-                                        <li>Challenge mode timer turns red when under 10 seconds remaining</li>
-                                        <li>Completion time is shown in the game header and results</li>
-                                    </ul>
-                                </div>
-                                <div class="rule-item">
-                                    <h4>Leaderboard</h4>
-                                    <ul>
-                                        <li>The best score for each level is saved automatically</li>
-                                        <li>Separate leaderboards for Normal Mode and Challenge Mode</li>
-                                        <li>Leaderboard ranks players by total stars earned</li>
-                                        <li>If stars are equal, total score determines ranking</li>
-                                        <li>Compete with yourself and improve your rankings!</li>
-                                    </ul>
-                                </div>
-                                <div class="rule-item">
-                                    <h4>Player Profiles</h4>
-                                    <ul>
-                                        <li>The progress is saved automatically when you enter a name</li>
-                                        <li>Each player name has its own profile with separate progress</li>
-                                        <li>Stars earned across all levels are tracked per profile</li>
-                                        <li>It can reset all progress with the "Reset All" button</li>
-                                    </ul>
-                                </div>
-                                <div class="rule-item">
-                                    <h4>Tips for Success</h4>
-                                    <ul>
-                                        <li>Read each question carefully before answering</li>
-                                        <li>In Challenge Mode, balance speed with accuracy</li>
-                                        <li>Review the correct answer when you get it wrong</li>
-                                        <li>Practice makes perfect - replay levels to improve!</li>
-                                        <li>Start with Normal Mode to learn the questions, then try Challenge Mode</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Game Area -->
-                    <div id="gameArea" class="quiz-section">
-                        <div class="game-header">
-                            <div class="player-info">
-                                <span class="info-item"><strong id="currentPlayerName"></strong></span>
-                                <span class="info-item">Level <strong id="currentLevelDisplay"></strong></span>
-                                <span class="info-item"> <strong id="currentScore">0</strong> pts</span>
-                                <span class="info-item"> <strong id="currentStars">0</strong></span>
-                                <span class="info-item timer-display"> <strong id="quizTimer">0:00</strong></span>
-                            </div>
-                        </div>
-
-                        <div class="question-area">
-                            <div class="question-header">
-                                <span class="question-number">Question <span id="currentQuestionNum">1</span>/<span id="totalQuestions">10</span></span>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" id="progressFill"></div>
-                                </div>
-                            </div>
-                            <h3 id="questionText" class="question-text"></h3>
-                            <div id="optionsContainer" class="options-container"></div>
-                            <div id="feedbackMessage" class="feedback-message"></div>
-                        </div>
-
-                        <div class="game-controls">
-                            <button id="nextQuestionBtn" class="cta-btn secondary" style="display: none;">Next Question →</button>
-                            <button id="endGameBtn" class="cta-btn danger">End Game</button>
-                        </div>
-                    </div>
-
-                    <!-- Results -->
-                    <div id="resultsArea" class="quiz-section">
-                        <div class="results-container">
-                            <h3 id="resultsTitle">Level Complete!</h3>
-                            <div class="results-summary">
-                                <div class="result-item">
-                                    <span class="result-label">Player:</span>
-                                    <span class="result-value" id="resultPlayerName"></span>
-                                </div>
-                                <div class="result-item">
-                                    <span class="result-label">Level:</span>
-                                    <span class="result-value" id="resultLevel"></span>
-                                </div>
-                                <div class="result-item">
-                                    <span class="result-label">Time Taken:</span>
-                                    <span class="result-value" id="resultTime"></span>
-                                </div>
-                                <div class="result-item">
-                                    <span class="result-label">Correct Answers:</span>
-                                    <span class="result-value" id="correctAnswers"></span>
-                                </div>
-                                <div class="result-item">
-                                    <span class="result-label">Level Score:</span>
-                                    <span class="result-value score-display" id="levelScore"></span>
-                                </div>
-                                <div class="result-item">
-                                    <span class="result-label">Stars Earned:</span>
-                                    <span class="result-value stars-display" id="totalStarsDisplay"></span>
-                                </div>
-                                <div class="result-item">
-                                    <span class="result-label">Total Score:</span>
-                                    <span class="result-value score-display" id="finalScore"></span>
-                                </div>
-                                <div id="levelPassMessage" class="level-pass-message"></div>
-                            </div>
-                            <div class="results-actions">
-                                <button id="playAgainBtn" class="cta-btn primary">Play Again</button>
-                                <button id="viewLeaderboardBtn" class="cta-btn secondary">View Leaderboard</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Leaderboard Section -->
-                    <div id="leaderboard" class="quiz-section">
-                        <div class="leaderboard-container">
-                            <h3>Leaderboard</h3>
-                            <p class="section-subtitle">Top players ranked by stars and total score</p>
-                            
-                            <!-- Leaderboard Mode Toggle -->
-                            <div class="leaderboard-mode-toggle">
-                                <div class="toggle-switch">
-                                    <button class="toggle-btn active" data-mode="normal">Normal Mode</button>
-                                    <button class="toggle-btn" data-mode="challenge">Challenge Mode</button>
-                                </div>
-                            </div>
-                            
-                            <!-- Leaderboard Content Area -->
-                            <div class="leaderboard-content-area">
-                                <!-- Normal Mode Leaderboard -->
-                                <div id="normalLeaderboardContent" class="leaderboard-content active">
-                                    <div class="leaderboard-header">
-                                        <div class="leaderboard-rank">Rank</div>
-                                        <div class="leaderboard-player">Player</div>
-                                        <div class="leaderboard-stars">Stars</div>
-                                        <div class="leaderboard-score">Score</div>
-                                        <div class="leaderboard-levels">Levels</div>
-                                    </div>
-                                    <div id="normalLeaderboardList" class="leaderboard-list"></div>
-                                    <div id="noNormalEntries" class="empty-state" style="display: none;">
-                                        <p>No normal mode scores yet. Play the game to appear on the leaderboard!</p>
-                                    </div>
-                                </div>
-                                
-                                <!-- Challenge Mode Leaderboard -->
-                                <div id="challengeLeaderboardContent" class="leaderboard-content">
-                                    <div class="leaderboard-header">
-                                        <div class="leaderboard-rank">Rank</div>
-                                        <div class="leaderboard-player">Player</div>
-                                        <div class="leaderboard-stars">Stars</div>
-                                        <div class="leaderboard-score">Score</div>
-                                        <div class="leaderboard-levels">Levels</div>
-                                    </div>
-                                    <div id="challengeLeaderboardList" class="leaderboard-list"></div>
-                                    <div id="noChallengeEntries" class="empty-state" style="display: none;">
-                                        <p>No challenge mode scores yet. Play in challenge mode to appear here!</p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Statistics Summary -->
-                            <div class="leaderboard-stats">
-                                <div class="stat-item">
-                                    <span class="stat-label">Total Players:</span>
-                                    <span class="stat-value" id="totalPlayers">0</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="stat-label">Games Played:</span>
-                                    <span class="stat-value" id="gamesPlayed">0</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="stat-label">Avg. Score:</span>
-                                    <span class="stat-value" id="avgScore">0</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div id="resumeButtonContainer" style="display: none; margin-top: 1rem;">
+                    <button id="resumeLastLevelBtn" class="cta-btn primary">
+                    <!--<span class="resume-icon"></span>-->
+                    Resume from Last Level
+                    </button>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- HERO EDIT MODAL -->
-    <div id="editHeroModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h2 class="gradient-text">Edit Introduction</h2>
-            <form id="editHeroForm" class="edit-form">
-                <div class="form-group">
-                    <label for="editHeroName">Name/Greeting <span class="required">*</span></label>
-                    <input type="text" id="editHeroName" required minlength="2" maxlength="100">
-                </div>
-                <div class="form-group">
-                    <label for="editHeroDesc">Description <span class="required">*</span></label>
-                    <textarea id="editHeroDesc" rows="5" required minlength="10" maxlength="500"></textarea>
-                </div>
-                <button type="submit" class="cta-btn primary">Save Changes</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- JOURNAL MODAL -->
-    <div id="journalModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <div id="journalDatetime" class="datetime"></div>
-
-            <div class="modal-header-actions">
-                <h2 class="gradient-text">My Journal</h2>
-                <div class="button-group">
-                    <button class="settings-btn" id="journalSettingsBtn">Add</button>
-                    <button class="reset-btn" id="resetJournalBtn">Reset</button>
                 </div>
             </div>
 
-            <!-- Journal Filters -->
-            <div class="journal-filters">
-                <div class="filter-group">
-                    <label for="journalKeywordFilter">Keyword:</label>
-                    <input type="text" id="journalKeywordFilter" placeholder="Search...">
-                </div>
-                <div class="filter-group">
-                    <label for="journalDateFilter">Date:</label>
-                    <input type="date" id="journalDateFilter">
-                </div>
-                <div class="filter-group">
-                    <label for="journalLengthFilter">Length:</label>
-                    <select id="journalLengthFilter">
-                        <option value="all">All</option>
-                        <option value="short">Short (&lt;200)</option>
-                        <option value="medium">Medium (200-500)</option>
-                        <option value="long">Long (500+)</option>
+
+                        <!-- Rules Section -->
+                        <div id="rules" class="quiz-section">
+                            <div class="rules-container">
+                                <h3>Quiz Game Rules</h3>
+                                <p class="section-subtitle">Read these rules carefully before playing</p>
+                                <div class="rules-content">
+                                    <div class="rule-item">
+                                        <h4>Game Modes</h4>
+                                        <ul>
+                                            <li><strong>Normal Mode:</strong> No time pressure. Answer at your own pace.</li>
+                                            <li><strong>Challenge Mode:</strong> 10-second timer per question. Earn bonus points for quick answers!</li>
+                                            <li>There is different cateogry of question bank.</li>
+                                            <li>There is separate leaderboard rankings for each mode.</li>
+                                        </ul>
+                                    </div>
+                                    <div class="rule-item">
+                                        <h4>Game Objective</h4>
+                                        <ul>
+                                            <li> Complete all different cateogry.</li>
+                                            <li>Complete all 5 levels by answering questions correctly.</li>
+                                            <li>Each level has 15 questions, but only 10 random questions are shown.</li>
+                                            <li>Earn stars and points based on the performance.</li>
+                                            <li>Questions cover Different topics from basic to advanced.</li>
+                                        </ul>
+                                    </div>
+                                    <div class="rule-item">
+                                        <h4>Scoring System</h4>
+                                        <ul>
+                                            <li><strong>Correct answer:</strong> +10 base points</li>
+                                            <li><strong>Challenge Mode Bonus:</strong> Up to +5 bonus points for quick answers (under 10 seconds)</li>
+                                            <li><strong>Wrong answer:</strong> 0 points (no penalty)</li>
+                                            <li><strong>Time's Up (Challenge Mode):</strong> Question skipped, 0 points</li>
+                                            <li><strong>3 Stars:</strong> 95% or higher (9-10 correct answers)</li>
+                                            <li><strong>2 Stars:</strong> 70-94% (7-8 correct answers)</li>
+                                            <li><strong>1 Star:</strong> 60-69% (6 correct answers)</li>
+                                            <li><strong>0 Stars:</strong> Below 60% (less than 6 correct)</li>
+                                        </ul>
+                                    </div>
+                                    <div class="rule-item">
+                                        <h4>Level Progression</h4>
+                                        <ul>
+                                            <li>Level 1 is unlocked by default for all players</li>
+                                            <li>You must earn at least 1 star to unlock the next level</li>
+                                            <li>Complete Level 1 → Unlock Level 2, and so on</li>
+                                            <li>It can replay completed levels to improve your score</li>
+                                            <li>Higher levels have more difficult questions</li>
+                                        </ul>
+                                    </div>
+                                    <div class="rule-item">
+                                        <h4>Timer System</h4>
+                                        <ul>
+                                            <li><strong>Normal Mode:</strong> Overall timer only (no per-question limit)</li>
+                                            <li><strong>Challenge Mode:</strong> 10-second timer per question + overall timer</li>
+                                            <li>Challenge mode timer turns red when under 10 seconds remaining</li>
+                                            <li>Completion time is shown in the game header and results</li>
+                                        </ul>
+                                    </div>
+                                    <div class="rule-item">
+                                        <h4>Leaderboard</h4>
+                                        <ul>
+                                            <li>The best score for each level is saved automatically</li>
+                                            <li>Separate leaderboards for Normal Mode and Challenge Mode</li>
+                                            <li>Leaderboard ranks players by total stars earned</li>
+                                            <li>If stars are equal, total score determines ranking</li>
+                                            <li>Compete with yourself and improve your rankings!</li>
+                                        </ul>
+                                    </div>
+                                    <div class="rule-item">
+                                        <h4>Player Profiles</h4>
+                                        <ul>
+                                            <li>The progress is saved automatically when you enter a name</li>
+                                            <li>Each player name has its own profile with separate progress</li>
+                                            <li>Stars earned across all levels are tracked per profile</li>
+                                            <li>It can reset all progress with the "Reset All" button</li>
+                                        </ul>
+                                    </div>
+                                    <div class="rule-item">
+                                        <h4>Tips for Success</h4>
+                                        <ul>
+                                            <li>Read each question carefully before answering</li>
+                                            <li>In Challenge Mode, balance speed with accuracy</li>
+                                            <li>Review the correct answer when you get it wrong</li>
+                                            <li>Practice makes perfect - replay levels to improve!</li>
+                                            <li>Start with Normal Mode to learn the questions, then try Challenge Mode</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Game Area -->
+                        <div id="gameArea" class="quiz-section">
+                            <div class="game-header">
+                                <div class="player-info">
+                                    <span class="info-item"><strong id="currentPlayerName"></strong></span>
+                                    <span class="info-item">Level <strong id="currentLevelDisplay"></strong></span>
+                                    <span class="info-item"> <strong id="currentScore">0</strong> pts</span>
+                                    <span class="info-item"> <strong id="currentStars">0</strong></span>
+                                    <span class="info-item timer-display"> <strong id="quizTimer">0:00</strong></span>
+                                </div>
+                            </div>
+
+                            <div class="question-area">
+                                <div class="question-header">
+                                    <span class="question-number">Question <span id="currentQuestionNum">1</span>/<span id="totalQuestions">10</span></span>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" id="progressFill"></div>
+                                    </div>
+                                </div>
+                                <h3 id="questionText" class="question-text"></h3>
+                                <div id="optionsContainer" class="options-container"></div>
+                                <div id="feedbackMessage" class="feedback-message"></div>
+                            </div>
+
+                            <div class="game-controls">
+                                <button id="nextQuestionBtn" class="cta-btn secondary" style="display: none;">Next Question →</button>
+                                <button id="endGameBtn" class="cta-btn danger">End Game</button>
+                            </div>
+                        </div>
+
+                        <!-- Results -->
+                        <div id="resultsArea" class="quiz-section">
+                            <div class="results-container">
+                                <h3 id="resultsTitle">Level Complete!</h3>
+                                <div class="results-summary">
+                                    <div class="result-item">
+                                        <span class="result-label">Player:</span>
+                                        <span class="result-value" id="resultPlayerName"></span>
+                                    </div>
+                                    <div class="result-item">
+                                        <span class="result-label">Level:</span>
+                                        <span class="result-value" id="resultLevel"></span>
+                                    </div>
+                                    <div class="result-item">
+                                        <span class="result-label">Time Taken:</span>
+                                        <span class="result-value" id="resultTime"></span>
+                                    </div>
+                                    <div class="result-item">
+                                        <span class="result-label">Correct Answers:</span>
+                                        <span class="result-value" id="correctAnswers"></span>
+                                    </div>
+                                    <div class="result-item">
+                                        <span class="result-label">Level Score:</span>
+                                        <span class="result-value score-display" id="levelScore"></span>
+                                    </div>
+                                    <div class="result-item">
+                                        <span class="result-label">Stars Earned:</span>
+                                        <span class="result-value stars-display" id="totalStarsDisplay"></span>
+                                    </div>
+                                    <div class="result-item">
+                                        <span class="result-label">Total Score:</span>
+                                        <span class="result-value score-display" id="finalScore"></span>
+                                    </div>
+                                    <div id="levelPassMessage" class="level-pass-message"></div>
+                                </div>
+                                <div class="results-actions">
+                                    <button id="playAgainBtn" class="cta-btn primary">Play Again</button>
+                                    <button id="viewLeaderboardBtn" class="cta-btn secondary">View Leaderboard</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Leaderboard Section -->
+                        <div id="leaderboard" class="quiz-section">
+                            <div class="leaderboard-container">
+                                <h3>Leaderboard</h3>
+                                <p class="section-subtitle">Top players ranked by stars and total score</p>
+
+                                <!-- Leaderboard Mode Toggle -->
+                                <div class="leaderboard-mode-toggle">
+                                    <div class="toggle-switch">
+                                        <button class="toggle-btn active" data-mode="normal">Normal Mode</button>
+                                        <button class="toggle-btn" data-mode="challenge">Challenge Mode</button>
+                                    </div>
+                                </div>
+
+
+
+    <!-- Leaderboard Category Filter -->
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label for="leaderboardCategoryFilter">Category</label>
+                    <select id="leaderboardCategoryFilter">
+                    <option value="all" selected>All Categories</option>
+                    <option value="programming">Programming</option>
+                    <option value="sports">Sports</option>
+                    <option value="general">General Knowledge</option>
+                    <option value="science">Science & Tech</option>
+                    <option value="computers">Computers</option>
                     </select>
                 </div>
-                <div class="journal-counter" id="journalCounter">0 Reflections</div>
-            </div>
 
-            <form id="journalForm" class="journal-form" style="display: none;">
-                <div class="form-group">
-                    <label for="journalTitle">Title <span class="required">*</span></label>
-                    <input id="journalTitle" type="text" required minlength="3" maxlength="100" aria-describedby="titleError">
-                    <span class="error-message" id="titleError"></span>
+
+
+
+
+
+
+                                <!-- Leaderboard Content Area -->
+                                <div class="leaderboard-content-area">
+                                    <!-- Normal Mode Leaderboard -->
+                                    <div id="normalLeaderboardContent" class="leaderboard-content active">
+                                        <div class="leaderboard-header">
+                                            <div class="leaderboard-rank">Rank</div>
+                                            <div class="leaderboard-player">Player</div>
+                                            <div class="leaderboard-stars">Stars</div>
+                                            <div class="leaderboard-score">Score</div>
+                                            <div class="leaderboard-levels">Levels</div>
+                                        </div>
+                                        <div id="normalLeaderboardList" class="leaderboard-list"></div>
+                                        <div id="noNormalEntries" class="empty-state" style="display: none;">
+                                            <p>No normal mode scores yet. Play the game to appear on the leaderboard!</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Challenge Mode Leaderboard -->
+                                    <div id="challengeLeaderboardContent" class="leaderboard-content">
+                                        <div class="leaderboard-header">
+                                            <div class="leaderboard-rank">Rank</div>
+                                            <div class="leaderboard-player">Player</div>
+                                            <div class="leaderboard-stars">Stars</div>
+                                            <div class="leaderboard-score">Score</div>
+                                            <div class="leaderboard-levels">Levels</div>
+                                        </div>
+                                        <div id="challengeLeaderboardList" class="leaderboard-list"></div>
+                                        <div id="noChallengeEntries" class="empty-state" style="display: none;">
+                                            <p>No challenge mode scores yet. Play in challenge mode to appear here!</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Statistics Summary -->
+                                <div class="leaderboard-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-label">Total Players:</span>
+                                        <span class="stat-value" id="totalPlayers">0</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">Games Played:</span>
+                                        <span class="stat-value" id="gamesPlayed">0</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">Avg. Score:</span>
+                                        <span class="stat-value" id="avgScore">0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            </div>
+        </div>
 
-                <div class="form-group">
-                    <label for="journalContent">Reflection <span class="required">*</span></label>
-                    <textarea id="journalContent" rows="10" required minlength="10" maxlength="5000" aria-describedby="contentError"></textarea>
-                    <span class="error-message" id="contentError"></span>
-                    <div class="character-count">
-                        <span id="charCount">0</span> / 5000 characters
+        <!-- HERO EDIT MODAL -->
+        <div id="editHeroModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h2 class="gradient-text">Edit Introduction</h2>
+                <form id="editHeroForm" class="edit-form">
+                    <div class="form-group">
+                        <label for="editHeroName">Name/Greeting <span class="required">*</span></label>
+                        <input type="text" id="editHeroName" required minlength="2" maxlength="100">
+                    </div>
+                    <div class="form-group">
+                        <label for="editHeroDesc">Description <span class="required">*</span></label>
+                        <textarea id="editHeroDesc" rows="5" required minlength="10" maxlength="500"></textarea>
+                    </div>
+                    <button type="submit" class="cta-btn primary">Save Change</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- JOURNAL MODAL -->
+        <div id="journalModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <div id="journalDatetime" class="datetime"></div>
+
+                <div class="modal-header-actions">
+                    <h2 class="gradient-text">My Journal</h2>
+                    <div class="button-group">
+                        <button class="settings-btn" id="journalSettingsBtn">Add</button>
+                        <button class="reset-btn" id="resetJournalBtn">Reset</button>
                     </div>
                 </div>
 
-                <button type="submit" class="cta-btn primary">Submit</button>
-            </form>
-
-            <div id="journalEmptyState" class="empty-state">
-                <p>No journal entries yet. Click the Add button to add your first entry!</p>
-            </div>
-
-            <div id="journalEntries" class="journal-entries"></div>
-        </div>
-    </div>
-
-    <!-- PROJECTS MODAL -->
-    <div id="projectsModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <div id="projectsDatetime" class="datetime"></div>
-
-            <div class="modal-header-actions">
-                <h2 class="gradient-text">My Projects</h2>
-                <div class="button-group">
-                    <button class="settings-btn" id="projectsSettingsBtn">Add</button>
-                    <button class="reset-btn" id="resetProjectsBtn">Reset</button>
-                </div>
-            </div>
-
-            <form id="projectForm" class="project-form" style="display: none;">
-                <div class="form-group">
-                    <label for="projectTitle">Project Title <span class="required">*</span></label>
-                    <input id="projectTitle" type="text" required minlength="3" maxlength="100" aria-describedby="projectTitleError">
-                    <span class="error-message" id="projectTitleError"></span>
+                <!-- Journal Filters -->
+                <div class="journal-filters">
+                    <div class="filter-group">
+                        <label for="journalKeywordFilter">Keyword:</label>
+                        <input type="text" id="journalKeywordFilter" placeholder="Search...">
+                    </div>
+                    <div class="filter-group">
+                        <label for="journalDateFilter">Date:</label>
+                        <input type="date" id="journalDateFilter">
+                    </div>
+                    <div class="filter-group">
+                        <label for="journalLengthFilter">Length:</label>
+                        <select id="journalLengthFilter">
+                            <option value="all">All</option>
+                            <option value="short">Short (&lt;200)</option>
+                            <option value="medium">Medium (200-500)</option>
+                            <option value="long">Long (500+)</option>
+                        </select>
+                    </div>
+                    <div class="journal-counter" id="journalCounter">0 Reflections</div>
                 </div>
 
-                <div class="form-group">
-                    <label for="projectDescription">Project Description <span class="required">*</span></label>
-                    <textarea id="projectDescription" rows="5" required minlength="10" maxlength="2000" aria-describedby="projectDescError"></textarea>
-                    <span class="error-message" id="projectDescError"></span>
-                </div>
-                
-                <div class="form-group">
-                    <label for="projectFile">Project File (Optional)</label>
-                    <input type="file" id="projectFile" accept="*/*" style="display:none">
-                    <button type="button" id="projectFileBtn" class="cta-btn secondary">Choose File</button>
-                    <span id="projectFileName">No file chosen</span>
-                </div>
+                <form id="journalForm" class="journal-form" style="display: none;">
+                    <div class="form-group">
+                        <label for="journalTitle">Title <span class="required">*</span></label>
+                        <input id="journalTitle" type="text" required minlength="3" maxlength="100" aria-describedby="titleError">
+                        <span class="error-message" id="titleError"></span>
+                    </div>
 
-                <button type="submit" class="cta-btn primary">Submit</button>
-            </form>
+                    <div class="form-group">
+                        <label for="journalContent">Reflection <span class="required">*</span></label>
+                        <textarea id="journalContent" rows="10" required minlength="10" maxlength="5000" aria-describedby="contentError"></textarea>
+                        <span class="error-message" id="contentError"></span>
+                        <div class="character-count">
+                            <span id="charCount">0</span> / 5000 characters
+                        </div>
+                    </div>
 
-            <div id="projectsEmptyState" class="empty-state">
-                <p>No projects yet. Click the Add button to add your first project!</p>
-            </div>
+                    <button type="submit" class="cta-btn primary">Submit</button>
+                </form>
 
-            <div id="projectsList" class="projects-list"></div>
-        </div>
-    </div>
-
-    <!-- ABOUT MODAL -->
-    <div id="aboutModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <div id="aboutDatetime" class="datetime"></div>
-
-            <div class="modal-header-actions">
-                <h2 class="gradient-text">About Me</h2>
-                <div class="button-group">
-                    <button class="edit-btn" id="editAboutBtn">Edit</button>
-                    <button class="upload-btn" id="uploadAboutBtn">Upload</button>
-                </div>
-            </div>
-
-            <input type="file" id="aboutFileInput" accept=".txt,.doc,.docx" style="display:none">
-
-            <div id="aboutContent" class="about-content">
-                <p>I am a passionate developer...</p>
-            </div>
-
-            <!-- YouTube section -->
-            <div class="youtube-section">
-                <h3>Featured Video</h3>
-
-                <div class="youtube-controls">
-                    <input type="text" id="youtubeVideoId" placeholder="Enter YouTube Video ID or URL (any format)">
-                    <button id="loadVideoBtn" class="cta-btn primary">Load Video</button>
+                <div id="journalEmptyState" class="empty-state">
+                    <p>No journal entries yet. Click the Add button to add your first entry!</p>
                 </div>
 
-                <div id="youtubePlayer"></div>
-
-                <div id="videoControls" class="video-controls" style="display:none">
-                    <button id="playBtn" class="control-btn">Play</button>
-                    <button id="pauseBtn" class="control-btn">Pause</button>
-                    <button id="stopBtn" class="control-btn">Stop</button>
-                    <button id="muteBtn" class="control-btn">Mute</button>
-                    <button id="unmuteBtn" class="control-btn">Unmute</button>
-                    <button id="fullscreenBtn" class="control-btn">Fullscreen</button>
-                </div>
-
-                <div id="videoStatus" class="video-status"></div>
+                <div id="journalEntries" class="journal-entries"></div>
             </div>
         </div>
-    </div>
 
-    <!-- EDIT ABOUT MODAL -->
-    <div id="editAboutModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h2 class="gradient-text">Edit About</h2>
-            <form id="editAboutForm" class="edit-form">
-                <div class="form-group">
-                    <label for="editAboutText">About Text</label>
-                    <textarea id="editAboutText" rows="8" required></textarea>
+        <!-- PROJECTS MODAL -->
+        <div id="projectsModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <div id="projectsDatetime" class="datetime"></div>
+
+                <div class="modal-header-actions">
+                    <h2 class="gradient-text">My Projects</h2>
+                    <div class="button-group">
+                        <button class="settings-btn" id="projectsSettingsBtn">Add</button>
+                        <button class="reset-btn" id="resetProjectsBtn">Reset</button>
+                    </div>
                 </div>
-                <button type="submit" class="cta-btn primary">Save Changes</button>
-            </form>
+
+                <form id="projectForm" class="project-form" style="display: none;">
+                    <div class="form-group">
+                        <label for="projectTitle">Project Title <span class="required">*</span></label>
+                        <input id="projectTitle" type="text" required minlength="3" maxlength="100" aria-describedby="projectTitleError">
+                        <span class="error-message" id="projectTitleError"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="projectDescription">Project Description <span class="required">*</span></label>
+                        <textarea id="projectDescription" rows="5" required minlength="10" maxlength="2000" aria-describedby="projectDescError"></textarea>
+                        <span class="error-message" id="projectDescError"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="projectFile">Project File</label>
+                        <input type="file" id="projectFile" accept="*/*" style="display:none">
+                        <button type="button" id="projectFileBtn" class="cta-btn secondary">Choose File</button>
+                        <span id="projectFileName">No file chosen</span>
+                    </div>
+
+                    <button type="submit" class="cta-btn primary">Submit</button>
+                </form>
+
+                <div id="projectsEmptyState" class="empty-state">
+                    <p>No projects yet. Click the Add button to add your first project!</p>
+                </div>
+
+                <div id="projectsList" class="projects-list"></div>
+            </div>
         </div>
-    </div>
+
+        <!-- ABOUT MODAL -->
+        <div id="aboutModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <div id="aboutDatetime" class="datetime"></div>
+
+                <div class="modal-header-actions">
+                    <h2 class="gradient-text">About Me</h2>
+                    <div class="button-group">
+                        <button class="edit-btn" id="editAboutBtn">Edit</button>
+                        <button class="upload-btn" id="uploadAboutBtn">Upload</button>
+                    </div>
+                </div>
+
+                <input type="file" id="aboutFileInput" accept=".txt,.doc,.docx" style="display:none">
+
+                <div id="aboutContent" class="about-content">
+                    <p>I am a passionate developer...</p>
+                </div>
+
+                <!-- YouTube section -->
+                <div class="youtube-section">
+                    <h3>Featured Video</h3>
+
+                    <div class="youtube-controls">
+                        <input type="text" id="youtubeVideoId" placeholder="Enter YouTube Video ID or URL (any format)">
+                        <button id="loadVideoBtn" class="cta-btn primary">Load Video</button>
+                    </div>
+
+                    <div id="youtubePlayer"></div>
+
+                    <div id="videoControls" class="video-controls" style="display:none">
+                        <button id="playBtn" class="control-btn">Play</button>
+                        <button id="pauseBtn" class="control-btn">Pause</button>
+                        <button id="stopBtn" class="control-btn">Stop</button>
+                        <button id="muteBtn" class="control-btn">Mute</button>
+                        <button id="unmuteBtn" class="control-btn">Unmute</button>
+                        <button id="fullscreenBtn" class="control-btn">Fullscreen</button>
+                    </div>
+
+                    <div id="videoStatus" class="video-status"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- EDIT ABOUT MODAL -->
+        <div id="editAboutModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h2 class="gradient-text">Edit About</h2>
+                <form id="editAboutForm" class="edit-form">
+                    <div class="form-group">
+                        <label for="editAboutText">About Text</label>
+                        <textarea id="editAboutText" rows="8" required></textarea>
+                    </div>
+                    <button type="submit" class="cta-btn primary">Save Changes</button>
+                </form>
+            </div>
+        </div>
+
+        
 
     <!-- CV MODAL -->
-    <div id="cvModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <div id="cvDatetime" class="datetime"></div>
+        <div id="cvModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <div id="cvDatetime" class="datetime"></div>
 
-            <div class="modal-header-actions">
-                <h2 class="gradient-text">My CV</h2>
-                <div class="cv-actions">
-                    <button id="editCvBtn" class="edit-btn">Edit</button>
+                <div class="modal-header-actions">
+                    <h2 class="gradient-text">My CV</h2>
+                    <div class="cv-actions">
+                        <button id="editCvBtn" class="edit-btn">Edit</button>
+                    </div>
                 </div>
-            </div>
 
-            <div id="cvContent" class="cv-content">
-                <h3>Education</h3>
-                <p>Computer Science - University for Creative Arts</p>
+                <div id="cvContent" class="cv-content">
+                    <h3>Education</h3>
+                    <p>Computer Science - University for Creative Arts</p>
 
-                <h3>Skills</h3>
-                <p>HTML, CSS, JavaScript, AI, Python, Git</p>
+                    <h3>Skills</h3>
+                    <p>HTML, CSS, JavaScript, AI, Python, Git</p>
 
-                <h3>Experience</h3>
-                <p>Add your work experience here...</p>
-            </div>
+                    <h3>Experience</h3>
+                    <p>Add your work experience here...</p>
+                </div>
 
-            <div class="cv-file-section">
-                <button id="uploadCvBtn" class="cta-btn secondary">Upload CV File</button>
-                <input type="file" id="cvFileInput" accept=".pdf,.doc,.docx" style="display: none;">
-                <div id="cvFileDisplay" style="display: none; margin-top: 1rem;">
-                    <p><strong>Uploaded File:</strong> <span id="cvFileName"></span></p>
-                    <button id="viewCvBtn" class="cta-btn primary">Download CV</button>
+                <div class="cv-file-section">
+                    <button id="uploadCvBtn" class="cta-btn secondary">Upload CV File</button>
+                    <input type="file" id="cvFileInput" accept=".pdf,.doc,.docx" style="display: none;">
+                    <div id="cvFileDisplay" style="display: none; margin-top: 1rem;">
+                        <p><strong>Uploaded File:</strong> <span id="cvFileName"></span></p>
+                        <button id="viewCvBtn" class="cta-btn primary">Download CV</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- EDIT CV MODAL -->
-    <div id="editCvModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h2 class="gradient-text">Edit CV Content</h2>
-            <form id="editCvForm" class="edit-form">
-                <div class="form-group">
-                    <label for="editCvText">CV Content (HTML supported)</label>
-                    <textarea id="editCvText" rows="15" required></textarea>
-                </div>
-                <button type="submit" class="cta-btn primary">Save Changes</button>
-            </form>
+        <!-- EDIT CV MODAL -->
+        <div id="editCvModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h2 class="gradient-text">Edit CV Content</h2>
+                <form id="editCvForm" class="edit-form">
+                    <div class="form-group">
+                        <label for="editCvText">CV Content</label>
+                        <textarea id="editCvText" rows="15" required></textarea>
+                    </div>
+                    <button type="submit" class="cta-btn primary">Save Change</button>
+                </form>
+            </div>
         </div>
-    </div>
-</body>
-</html>
+    </body>
+    </html>

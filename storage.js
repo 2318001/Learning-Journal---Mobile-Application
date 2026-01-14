@@ -120,7 +120,7 @@ class StorageManager {
       cleaned = cleaned.substring(firstBracket)
     }
     
-    // Find last } or ]
+    
     let lastIndex = Math.max(cleaned.lastIndexOf('}'), cleaned.lastIndexOf(']'))
     if (lastIndex !== -1) {
       cleaned = cleaned.substring(0, lastIndex + 1)
