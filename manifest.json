@@ -14,12 +14,12 @@
 
   "icons": [
     {
-      "src": "/static/book.png",
+      "src": "image/book.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/static/mario-111.png",
+      "src": "image/book.png",
     "sizes": "512x512",
     "type": "image/png"
     }
